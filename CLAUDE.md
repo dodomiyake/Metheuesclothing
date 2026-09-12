@@ -69,12 +69,13 @@ Worth reading before repeating them.
 
 Done: schema + RLS + integrity functions (migrations 001–008, all applied),
 checkout, Stripe webhook, guest order lookup, returns, rate limiting, design
-tokens. The §18 guarantees were verified against the live database rather than
-assumed — see `supabase/migrations/README.md`.
+tokens, E3 order confirmation email. The §18 guarantees were verified against
+the live database rather than assumed — see `supabase/migrations/README.md`.
 
-Next: Resend wiring for the nine email templates (E3 goes where the TODO sits in
-the webhook), the admin side of returns, auth rate limiting, and the catalogue,
-product, bag and account pages.
+Next: the remaining eight Resend templates (`lib/email/layout.ts` has the
+shared chrome — reuse it rather than duplicating table markup per template),
+the admin side of returns, auth rate limiting, and the catalogue, product, bag
+and account pages.
 
 Blocked on the owner, not on code: photography, verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real

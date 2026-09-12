@@ -13,7 +13,7 @@ T-shirt-first storefront and admin, built to the MVP v2.0 specification.
 ```
 supabase/migrations/   schema, RLS, integrity functions
 app/api/               checkout, Stripe webhook, order lookup, returns
-lib/                   Supabase clients, money helpers
+lib/                   Supabase clients, money helpers, transactional email
 design/tokens/         CSS and TS tokens exported from Figma
 ```
 
@@ -57,8 +57,9 @@ Each is verified, not assumed — see `supabase/migrations/README.md`.
 
 Code still to write:
 
-- Resend wiring for the nine templates. E3 (order confirmation) goes where the
-  TODO sits in the webhook handler.
+- Resend wiring for the remaining eight templates. E3 (order confirmation) is
+  built and sends from the webhook handler; `lib/email/layout.ts` has the
+  shared chrome the other eight should reuse rather than duplicate.
 - Rate limiting on the auth routes. Checkout, order lookup and returns already
   have it; the budgets live in `LIMITS` in `lib/rate-limit.ts`.
 - The admin side of returns: receiving, approving or rejecting, and the restock

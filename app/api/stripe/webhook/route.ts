@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createServiceClient } from '@/lib/supabase/server';
+import { sendTransactionalEmail } from '@/lib/email/send';
+import { buildOrderConfirmationEmail } from '@/lib/email/templates/order-confirmation';
 
 // Node runtime, not edge: the Stripe SDK needs Node crypto to verify signatures.
 export const runtime = 'nodejs';
@@ -108,7 +110,57 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        // TODO: send E3 order confirmation via Resend
+        // E3 order confirmation. Sent after the update above so it carries the
+        // shipping address Stripe just gave us, and after the stock attempt so
+        // an oversell (rare, logged above) does not also cost the customer
+        // their confirmation email — the payment succeeded either way.
+        const { data: confirmedOrder } = await db
+          .from('orders')
+          .select(
+            'order_number, email, profile_id, currency, subtotal_pence, delivery_pence, total_pence, delivery_method, delivery_address',
+          )
+          .eq('id', orderId)
+          .single();
+
+        const { data: orderItems } = await db
+          .from('order_items')
+          .select('product_name, colour, size, quantity, unit_price_pence, line_total_pence')
+          .eq('order_id', orderId);
+
+        const { data: settings } = await db
+          .from('store_settings')
+          .select('return_window_days')
+          .single();
+
+        if (confirmedOrder && orderItems && settings) {
+          const email = buildOrderConfirmationEmail(
+            confirmedOrder,
+            orderItems,
+            settings.return_window_days,
+          );
+          await sendTransactionalEmail(db, {
+            template: 'E3 order confirmation',
+            to: confirmedOrder.email,
+            subject: email.subject,
+            html: email.html,
+            text: email.text,
+            entityType: 'order',
+            entityId: orderId,
+          });
+        } else {
+          // The order was just written and store_settings is seeded (008), so
+          // any of these three coming back empty is a real fault, not a race.
+          // Same principle as the oversell above: the payment succeeded, so
+          // this is not a reason to fail the webhook — just to say so loudly.
+          await db.from('audit_logs').insert({
+            actor_label: 'System',
+            action: 'email_delivery_failed',
+            entity_type: 'order',
+            entity_id: orderId,
+            summary:
+              'E3 order confirmation not sent: could not load order, items or store_settings.',
+          });
+        }
         break;
       }
 
