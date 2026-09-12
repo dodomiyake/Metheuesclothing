@@ -7,15 +7,23 @@ export default async function ProductVariantsPage({ params }: { params: Promise<
   const { id } = await params;
   const supabase = await createServerComponentClient();
 
-  const { data: product } = await supabase.from('products').select('id, name').eq('id', id).maybeSingle();
+  const { data: product, error: productError } = await supabase
+    .from('products')
+    .select('id, name')
+    .eq('id', id)
+    .maybeSingle();
+  // A query error and an unknown id both leave `product` null -- only the
+  // second is a 404 (see app/shop/[slug]/page.tsx's comment).
+  if (productError) throw new Error(`Could not load product: ${productError.message}`);
   if (!product) notFound();
 
-  const { data: variants } = await supabase
+  const { data: variants, error: variantsError } = await supabase
     .from('product_variants')
     .select('id, colour, size, sku, price_pence, stock_quantity, is_active')
     .eq('product_id', id)
     .order('colour')
     .order('size');
+  if (variantsError) throw new Error(`Could not load variants: ${variantsError.message}`);
 
   return (
     <div style={{ padding: 'var(--mc-space-xl)' }}>

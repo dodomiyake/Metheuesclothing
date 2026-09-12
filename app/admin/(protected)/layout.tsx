@@ -18,11 +18,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/admin/sign-in');
   }
 
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from('profiles')
     .select('role, full_name, email')
     .eq('id', user.id)
     .single();
+
+  // A query error must not read as "not staff" -- a real staff member
+  // should see a loud failure during an outage, not a quiet demotion.
+  if (error) throw new Error(`Could not load your profile: ${error.message}`);
 
   const isStaff = profile?.role === 'staff' || profile?.role === 'owner';
 

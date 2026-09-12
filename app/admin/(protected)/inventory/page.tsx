@@ -11,10 +11,13 @@ import { createServerComponentClient } from '@/lib/supabase/server-component';
 export default async function AdminInventoryPage() {
   const supabase = await createServerComponentClient();
 
-  const { data: variants } = await supabase
+  const { data: variants, error } = await supabase
     .from('product_variants')
     .select('id, colour, size, sku, stock_quantity, low_stock_threshold, is_active, product_id, products(name)')
     .order('stock_quantity', { ascending: true });
+  // See app/shop/page.tsx's comment -- a query error must not render as an
+  // empty inventory.
+  if (error) throw new Error(`Could not load inventory: ${error.message}`);
 
   return (
     <div style={{ padding: 'var(--mc-space-xl)', fontFamily: 'var(--mc-font-body)' }}>

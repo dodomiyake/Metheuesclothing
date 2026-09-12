@@ -17,10 +17,13 @@ app/api/               checkout, Stripe webhook, order lookup, returns, auth,
 app/(auth)/            sign in, register, forgot/reset password — 460px card
 app/auth/callback/     lands every emailed auth link, exchanges its code
 app/admin/              staff-only: T-shirts, variants/stock, inventory
+app/shop/               product listing and detail — the customer catalogue
+app/bag/                cart (localStorage) through to Stripe Checkout
 app/layout.tsx, page.tsx   root shell; page.tsx is a placeholder until the
-                           catalogue exists
+                           homepage exists
 lib/                   Supabase clients, money helpers, transactional email
 lib/admin/              staff-session check, the product/variant zod schema
+lib/bag/                localStorage cart — display only, never priced from
 middleware.ts           refreshes the Supabase session cookie every request
 design/tokens/         CSS and TS tokens exported from Figma
 ```
@@ -84,9 +87,18 @@ Code still to write:
   can turn on, not something further application code unlocks.
 - The admin side of returns: receiving, approving or rejecting, and the restock
   decision. `return_items.restock` stays false until a human sets it.
-- The customer-facing catalogue, product, bag and account pages. Auth
-  (register, sign in/out, forgot/reset password) is built — `app/(auth)/`
-  and `app/api/auth/`, rate limited the same way checkout and returns are.
+- The customer-facing account pages (profile, addresses, order history).
+  Auth (register, sign in/out, forgot/reset password) is built —
+  `app/(auth)/` and `app/api/auth/`, rate limited the same way checkout and
+  returns are. The catalogue and bag are also built (`app/shop/`,
+  `app/bag/`) — reduced fidelity against §8.2/§8.4/§8.7: no filters,
+  sorting or search yet, no image gallery (no photography exists), the
+  add-to-bag confirmation is inline text rather than a side panel/bottom
+  sheet, and the bag's cart is localStorage rather than a server-side bag
+  a customer could pick up on another device. Every price the bag shows is
+  re-fetched from `product_variants` on load and is still only a display
+  convenience — `POST /api/checkout` reprices from `price_cart()` regardless
+  of what the browser sent, same as always.
 - Admin: T-shirts (create/edit), colours/sizes/stock and a read-only
   inventory view are built (A03, A04 MVP subset, A06, A07, A08) —
   `app/admin/`. Not built: the dashboard (A02), collections (A09/A10), the

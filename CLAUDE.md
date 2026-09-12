@@ -64,6 +64,17 @@ Worth reading before repeating them.
   cold instance hands out a fresh allowance. It is counted in Postgres.
 - `x-forwarded-for` is a request header. It is only trustworthy because Vercel
   overwrites it at the edge. Change hosting and the limiter silently stops.
+- Every Server Component reading the catalogue destructured `data` from a
+  Supabase query and ignored `error`. `data` comes back `null` on a query
+  error the same way it does when there are genuinely no rows, so a
+  database that could not be reached rendered as "nothing published yet" —
+  found when a real network block (this session's sandbox, not production)
+  made every query fail and the shop page reported an empty catalogue
+  instead of an error. Same shape of mistake as store_settings having no
+  row: a real problem reading as a harmless empty state. Every page under
+  `app/shop/`, `app/bag/` and `app/admin/` now checks `error` and throws
+  rather than falling through to the empty-state branch; `notFound()` is
+  only called when `error` is absent AND the row is genuinely missing.
 
 ## State
 
@@ -73,24 +84,36 @@ tokens, E3 order confirmation and E6 return request received emails, the
 Next.js scaffold (it never existed as a committed package.json until now —
 see the "scaffold" commit), auth — register, sign in/out, forgot/reset
 password, all rate limited, all under `app/(auth)/` and `app/api/auth/` —
-and the admin catalogue MVP under `app/admin/`: T-shirts create/edit, colours/
+the admin catalogue MVP under `app/admin/`: T-shirts create/edit, colours/
 sizes/stock (A06+A08 combined into one page), and a read-only inventory view
-(A07). Migration 009 added the `handle_new_user` trigger profiles always
-needed and never had; migration 010 added `adjust_stock()`, the SECURITY
-DEFINER function manual stock changes go through, for the same reason
-002_rls.sql gives staff no INSERT policy on inventory_adjustments — see both
-migrations' comments. The §18 guarantees were verified against the live
-database rather than assumed — see `supabase/migrations/README.md` (stale as
-of 003 — it predates 004–010 and is due a rewrite, not a launch blocker).
+(A07) — and the customer catalogue/bag under `app/shop/` and `app/bag/`,
+closing the loop from browsing to the checkout route that existed for
+months with no UI in front of it. Migration 009 added the `handle_new_user`
+trigger profiles always needed and never had; migration 010 added
+`adjust_stock()`, the SECURITY DEFINER function manual stock changes go
+through, for the same reason 002_rls.sql gives staff no INSERT policy on
+inventory_adjustments — see both migrations' comments. The §18 guarantees
+were verified against the live database rather than assumed — see
+`supabase/migrations/README.md` (stale as of 003 — it predates 004–010 and
+is due a rewrite, not a launch blocker).
 
 The live database has zero products, variants or collections, and — as of
-this session — zero users, so nothing in the admin catalogue or the auth
-flows has been exercised end to end, only verified by `tsc`/`next build`/a
-dev-server smoke test of the unauthenticated paths (redirects and 401s,
-which is the security-critical half). There is no self-service way to become
-staff by design (see README) — someone with database access has to run one
-UPDATE on `profiles` before the admin screens can be walked through for
-real.
+this session — zero users, so nothing in the admin catalogue, auth flows or
+storefront has been exercised end to end with real data. What verification
+found instead is in "Things that have already gone wrong" above: this
+sandbox's network egress blocks Supabase entirely (`Host not in allowlist`),
+which surfaced that every catalogue page was swallowing query errors as
+empty states — fixed, but still means the actual "products render
+correctly" path has never been observed, only exercised via `tsc`/`next
+build`/a dev-server smoke test of the unauthenticated and now-loud-on-error
+paths. Production is a different network and will not have this specific
+problem, but has its own unverified gap: the Vercel project has no
+environment variables configured at all (see the "fail open" commit), so
+until the owner sets them, the deployed app is in the same
+never-reaches-Supabase state this sandbox is permanently in. There is no
+self-service way to become staff by design (see README) — someone with
+database access has to run one UPDATE on `profiles` before the admin
+screens can be walked through for real.
 
 Next: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
@@ -106,8 +129,11 @@ E7-vs-"Return approved" naming in design-system-state.json's own decisions
 list doesn't match its own id map — worth confirming with the design owner
 before building the approve/reject function, not guessing), the admin
 dashboard/collections/orders/customers/settings screens (A02, A09/A10,
-A11 onward), and — now unblocked by the admin catalogue existing — the
-customer-facing catalogue, product, bag and account pages.
+A11 onward), and the customer-facing account pages (profile, addresses,
+order history — now unblocked the same way the catalogue was, since
+they need auth, which exists). The catalogue and bag (`app/shop/`,
+`app/bag/`) are built but reduced-fidelity — see README's "What is not
+here yet" for exactly which parts of §8.2/§8.4/§8.7 are deferred.
 
 Blocked on the owner, not on code: photography, verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real

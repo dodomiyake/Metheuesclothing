@@ -7,7 +7,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const supabase = await createServerComponentClient();
 
-  const { data: product } = await supabase
+  const { data: product, error } = await supabase
     .from('products')
     .select(
       'id, slug, name, status, description_short, design_story, fit, fabric_weight_gsm, composition, neck, made_in, care_instructions, packed_weight_g, hs_code, country_of_origin, seo_title, seo_description',
@@ -15,6 +15,9 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
     .eq('id', id)
     .maybeSingle();
 
+  // A query error and an unknown id both leave `product` null -- only the
+  // second is a 404 (see app/shop/[slug]/page.tsx's comment).
+  if (error) throw new Error(`Could not load product: ${error.message}`);
   if (!product) notFound();
 
   return (

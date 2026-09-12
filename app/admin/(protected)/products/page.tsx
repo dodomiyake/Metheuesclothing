@@ -9,18 +9,22 @@ import { createServerComponentClient } from '@/lib/supabase/server-component';
 export default async function AdminProductsPage() {
   const supabase = await createServerComponentClient();
 
-  const { data: products } = await supabase
+  const { data: products, error: productsError } = await supabase
     .from('products')
     .select('id, slug, name, status, updated_at')
     .order('updated_at', { ascending: false });
+  // See app/shop/page.tsx's comment -- a query error must not render as an
+  // empty catalogue.
+  if (productsError) throw new Error(`Could not load products: ${productsError.message}`);
 
   const productIds = (products ?? []).map((p) => p.id);
-  const { data: variants } = productIds.length
+  const { data: variants, error: variantsError } = productIds.length
     ? await supabase
         .from('product_variants')
         .select('product_id, stock_quantity, is_active')
         .in('product_id', productIds)
-    : { data: [] as { product_id: string; stock_quantity: number; is_active: boolean }[] };
+    : { data: [] as { product_id: string; stock_quantity: number; is_active: boolean }[], error: null };
+  if (variantsError) throw new Error(`Could not load variants: ${variantsError.message}`);
 
   const stockByProduct = new Map<string, { total: number; active: number }>();
   for (const v of variants ?? []) {
