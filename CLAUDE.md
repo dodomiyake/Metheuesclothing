@@ -67,18 +67,30 @@ Worth reading before repeating them.
 
 ## State
 
-Done: schema + RLS + integrity functions (migrations 001–009, all applied),
+Done: schema + RLS + integrity functions (migrations 001–010, all applied),
 checkout, Stripe webhook, guest order lookup, returns, rate limiting, design
 tokens, E3 order confirmation and E6 return request received emails, the
 Next.js scaffold (it never existed as a committed package.json until now —
-see the "scaffold" commit), and auth — register, sign in/out, forgot/reset
-password, all rate limited, all under `app/(auth)/` and `app/api/auth/`.
-Migration 009 added the `handle_new_user` trigger profiles always needed and
-never had; see its comment for why that was the same class of bug as
-store_settings having no row. The §18 guarantees were verified against the
-live database rather than assumed — see `supabase/migrations/README.md`
-(stale as of 003 — it predates 004–009 and is due a rewrite, not a launch
-blocker).
+see the "scaffold" commit), auth — register, sign in/out, forgot/reset
+password, all rate limited, all under `app/(auth)/` and `app/api/auth/` —
+and the admin catalogue MVP under `app/admin/`: T-shirts create/edit, colours/
+sizes/stock (A06+A08 combined into one page), and a read-only inventory view
+(A07). Migration 009 added the `handle_new_user` trigger profiles always
+needed and never had; migration 010 added `adjust_stock()`, the SECURITY
+DEFINER function manual stock changes go through, for the same reason
+002_rls.sql gives staff no INSERT policy on inventory_adjustments — see both
+migrations' comments. The §18 guarantees were verified against the live
+database rather than assumed — see `supabase/migrations/README.md` (stale as
+of 003 — it predates 004–010 and is due a rewrite, not a launch blocker).
+
+The live database has zero products, variants or collections, and — as of
+this session — zero users, so nothing in the admin catalogue or the auth
+flows has been exercised end to end, only verified by `tsc`/`next build`/a
+dev-server smoke test of the unauthenticated paths (redirects and 401s,
+which is the security-critical half). There is no self-service way to become
+staff by design (see README) — someone with database access has to run one
+UPDATE on `profiles` before the admin screens can be walked through for
+real.
 
 Next: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
@@ -92,8 +104,10 @@ return decision — build each template alongside the route that triggers it,
 the way E3 and E6 went in. Also still open: the admin side of returns (the
 E7-vs-"Return approved" naming in design-system-state.json's own decisions
 list doesn't match its own id map — worth confirming with the design owner
-before building the approve/reject function, not guessing), and the
-catalogue, product, bag and account pages.
+before building the approve/reject function, not guessing), the admin
+dashboard/collections/orders/customers/settings screens (A02, A09/A10,
+A11 onward), and — now unblocked by the admin catalogue existing — the
+customer-facing catalogue, product, bag and account pages.
 
 Blocked on the owner, not on code: photography, verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real

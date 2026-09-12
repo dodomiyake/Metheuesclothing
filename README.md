@@ -12,12 +12,15 @@ T-shirt-first storefront and admin, built to the MVP v2.0 specification.
 
 ```
 supabase/migrations/   schema, RLS, integrity functions
-app/api/               checkout, Stripe webhook, order lookup, returns, auth
+app/api/               checkout, Stripe webhook, order lookup, returns, auth,
+                        admin catalogue writes
 app/(auth)/            sign in, register, forgot/reset password — 460px card
 app/auth/callback/     lands every emailed auth link, exchanges its code
+app/admin/              staff-only: T-shirts, variants/stock, inventory
 app/layout.tsx, page.tsx   root shell; page.tsx is a placeholder until the
                            catalogue exists
 lib/                   Supabase clients, money helpers, transactional email
+lib/admin/              staff-session check, the product/variant zod schema
 middleware.ts           refreshes the Supabase session cookie every request
 design/tokens/         CSS and TS tokens exported from Figma
 ```
@@ -81,9 +84,19 @@ Code still to write:
   can turn on, not something further application code unlocks.
 - The admin side of returns: receiving, approving or rejecting, and the restock
   decision. `return_items.restock` stays false until a human sets it.
-- The catalogue, product, bag and account pages themselves. Auth (register,
-  sign in/out, forgot/reset password) is built — `app/(auth)/` and
-  `app/api/auth/`, rate limited the same way checkout and returns are.
+- The customer-facing catalogue, product, bag and account pages. Auth
+  (register, sign in/out, forgot/reset password) is built — `app/(auth)/`
+  and `app/api/auth/`, rate limited the same way checkout and returns are.
+- Admin: T-shirts (create/edit), colours/sizes/stock and a read-only
+  inventory view are built (A03, A04 MVP subset, A06, A07, A08) —
+  `app/admin/`. Not built: the dashboard (A02), collections (A09/A10), the
+  image manager (A05 — no upload pipeline exists, and there is no real
+  photography to manage yet), and everything past the catalogue (orders,
+  returns, customers, homepage content, store settings, audit log — A11
+  onward). There is also no self-service way to *become* staff — that is a
+  direct `update profiles set role = 'staff' where id = ...` by whoever
+  already has database access, the same bootstrap problem every app with
+  roles has once.
 
 Not code, and blocking launch rather than blocking development:
 
