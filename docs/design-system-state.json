@@ -1,0 +1,1261 @@
+{
+  "runId": "metheues-ds-001",
+  "phase": "phase1",
+  "step": "foundations",
+  "source_of_truth": "Metheues Clothings \u2014 T-Shirt-First MVP v2.0 (\u00a76 brand, \u00a713 accessibility, \u00a717 screens)",
+  "decision_log": [
+    "Stitch project scrapped as a design source on the user's instruction \u2014 inconsistency across independently generated boards.",
+    "Copy written fresh from the MVP language rather than carried over from Stitch.",
+    "Desktop width 1440 per \u00a713; Stitch boards were 1280.",
+    "Reuse matrix: Simple Design System 'Button' exists but REBUILD \u2014 remote community library, binds to its own tokens, generic-neutral visual language incompatible with the editorial Bodoni/Manrope direction. Material 3 and Apple kits rejected for the same reason.",
+    "Figma plan is Starter: hard cap of 3 pages, so components and screens are organised in sections rather than a page per component."
+  ],
+  "entities": {
+    "file": {
+      "key": "9SzUlTWGVKOCkAULkbqOsr",
+      "name": "Metheues Clothings \u2014 Design System"
+    },
+    "pages": {
+      "00 \u00b7 Foundations": "0:1",
+      "01 \u00b7 Storefront": "1:31",
+      "02 \u00b7 Admin & System States": "1:32"
+    },
+    "collections": {
+      "Metheues Colour": "VariableCollectionId:1:2",
+      "Metheues Layout": "VariableCollectionId:1:13"
+    },
+    "variables": {
+      "Primary/Metheues Black": "VariableID:1:3",
+      "Background/Warm Ivory": "VariableID:1:4",
+      "Surface/Soft Cream": "VariableID:1:5",
+      "Secondary/Deep Espresso": "VariableID:1:6",
+      "Accent/Antique Gold": "VariableID:1:7",
+      "Accent/Oxblood": "VariableID:1:8",
+      "Status/Success Forest": "VariableID:1:9",
+      "Status/Error Deep Red": "VariableID:1:10",
+      "Text/Supporting Stone": "VariableID:1:11",
+      "Border/Sand": "VariableID:1:12",
+      "Breakpoint/Mobile": "VariableID:1:14",
+      "Breakpoint/Tablet": "VariableID:1:15",
+      "Breakpoint/Desktop": "VariableID:1:16",
+      "Target/Minimum Touch": "VariableID:1:17",
+      "Type/Minimum Body": "VariableID:1:18"
+    },
+    "textStyles": [
+      "Display/XL",
+      "Display/L",
+      "Heading/M",
+      "Heading/S",
+      "Body/L",
+      "Body/M",
+      "Meta/S",
+      "Label/Uppercase",
+      "Action/Button",
+      "Data/Numeric"
+    ],
+    "effectStyles": [
+      "Elevation/Card",
+      "Elevation/Sheet"
+    ],
+    "foundationsDoc": {
+      "root": "6:2",
+      "colourSection": "6:6",
+      "typeSection": "6:8"
+    },
+    "components": {
+      "Button": {
+        "setId": "9:20",
+        "variants": 9,
+        "axes": [
+          "Style",
+          "State"
+        ],
+        "props": [
+          "Label#9:0"
+        ]
+      },
+      "Header": {
+        "setId": "15:32",
+        "variants": 3,
+        "axes": [
+          "Breakpoint"
+        ],
+        "sizes": {
+          "Desktop": "1440x84",
+          "Tablet": "768x68",
+          "Mobile": "390x60"
+        },
+        "verified": true,
+        "note": "Wordmark centred structurally \u2014 outer columns FILL equally, wordmark hugs. Measured offset 0 at all three breakpoints."
+      },
+      "Form Field": {
+        "setId": "16:22",
+        "variants": 4,
+        "axes": [
+          "State"
+        ],
+        "verified": true,
+        "note": "Input height 50px, clears the 44px minimum. Error carries the word Error as well as the colour."
+      },
+      "Product Card": {
+        "setId": "20:60",
+        "variants": 5,
+        "axes": [
+          "Availability"
+        ],
+        "verified": true,
+        "note": "4:5 image well. Sold out label sits outside the dimmed image so it stays legible at full opacity."
+      },
+      "Footer": {
+        "setId": "21:66",
+        "variants": 3,
+        "axes": [
+          "Breakpoint"
+        ],
+        "verified": true,
+        "note": "All three breakpoints. Tablet keeps four columns at 768; mobile wraps to 2x2. Muted text uses text/muted-inverse throughout."
+      }
+    }
+  },
+  "components_round_2": {
+    "Announcement Bar": {
+      "id": "24:2",
+      "height": 44,
+      "props": [
+        "Message#24:0"
+      ],
+      "verified": true
+    },
+    "Quantity Control": {
+      "setId": "24:25",
+      "variants": 2,
+      "axes": [
+        "State"
+      ],
+      "verified": true
+    },
+    "Nav Drawer / Mobile": {
+      "id": "25:2",
+      "size": "390x844",
+      "verified": true
+    }
+  },
+  "accessibility_findings": [
+    "Icon glyphs built from rotated LINE nodes do not land where the maths says \u2014 Figma rotates about the node origin, so the X and chevron came out as single diagonal strokes. Rebuilt as VECTOR nodes with explicit path data ('M 0 0 L 14 14 M 14 0 L 0 14'), which is exact and scales. Use vectors for every glyph from here.",
+    "Stone #68635D on Metheues Black measures 3.2:1 \u2014 fails AA for body text. Added Text/Supporting Stone on Dark #8A8178 (4.97:1) and Semantic/text/muted-inverse; all 14 footer supporting-text nodes rebound to it. Any future dark-ground surface must use the inverse token.",
+    "Recurring build hazard: figma.createAutoLayout() applies a default white fill. Clear fills on every container frame or cream text lands on white bands \u2014 hit twice, on the Foundations page and the Footer.",
+    "Figma query() attribute selectors cannot contain spaces \u2014 FRAME[name=Account navigation] silently matches nothing. Use children.find(c => c.name === '...') for multi-word names."
+  ],
+  "resolved": {
+    "figma_plan": "Upgraded to Pro with a Full seat \u2014 200 MCP calls/day, 15/min. The Starter 20-per-month cap no longer applies."
+  },
+  "screens": {
+    "02C \u2014 Homepage \u2014 Mobile": {
+      "id": "28:2",
+      "page": "01 \u00b7 Storefront",
+      "size": "390x3915",
+      "composition": [
+        "Announcement Bar",
+        "Header (Mobile)",
+        "Hero \u2014 First Drop",
+        "Latest drop (4 Product Card instances)",
+        "Story behind the designs",
+        "Fabric and construction (dark)",
+        "Fit and size guidance",
+        "Delivery and returns reassurance",
+        "Footer (Mobile)"
+      ],
+      "note": "First composed screen. Every repeated element is a component instance \u2014 no local copies. Section order follows MVP \u00a78.1."
+    },
+    "02B \u2014 Homepage \u2014 Tablet": {
+      "id": "36:93",
+      "page": "01 \u00b7 Storefront",
+      "size": "768x3365",
+      "note": "Split hero, 2x2 drop grid at 340 per card, two-column craft section, three-across reassurance."
+    },
+    "02A \u2014 Homepage \u2014 Desktop": {
+      "id": "38:190",
+      "page": "01 \u00b7 Storefront",
+      "size": "1440x3307",
+      "note": "Split hero with 72px display type, four-up drop row, measure held to 640-760px on body copy."
+    }
+  },
+  "component_property_keys": {
+    "Button": "Label#9:0, Style, State",
+    "Filter Chip": "Label#43:3, State",
+    "Product Card": "Availability",
+    "Announcement Bar": "Message#24:0",
+    "note": "Property keys are NOT predictable from creation order \u2014 read them with Object.keys(set.componentPropertyDefinitions) before calling setProperties, or the whole script fails."
+  },
+  "03C \u2014 Product Listing \u2014 Mobile": {
+    "id": "47:287",
+    "size": "390x2609",
+    "note": "Discovery bar (Filter \u00b7 2 / Sort \u00b7 Newest / result count), removable active-filter chips, Clear all, six-card grid including a sold-out card."
+  },
+  "03B \u2014 Product Listing \u2014 Tablet": {
+    "id": "50:406",
+    "size": "768x1980",
+    "note": "Discovery bar retained, three-up grid at 221 per card."
+  },
+  "03A \u2014 Product Listing \u2014 Desktop": {
+    "id": "51:531",
+    "size": "1440x2000",
+    "note": "Persistent 240px filter rail with all seven \u00a78.2 filter groups, four-up grid at 238, eight cards."
+  },
+  "03D \u2014 Filter Sheet \u2014 Mobile": {
+    "id": "53:674",
+    "size": "390x844",
+    "note": "Full-height sheet: filters-applied count, removable chips, Clear all, six filter groups, sticky 'Show 12 styles' action carrying the live result count (\u00a78.2)."
+  },
+  "04C \u2014 Product Detail \u2014 Mobile": {
+    "id": "54:703",
+    "size": "390x3534",
+    "note": "All 14 \u00a78.4 elements in order. Sold-out sizes use the Filter Chip Disabled variant so they stay visible. Sticky purchase bar is absolutely positioned at the frame bottom and named to say it is viewport-fixed."
+  },
+  "04B \u2014 Product Detail \u2014 Tablet": {
+    "id": "58:783",
+    "size": "768x2627",
+    "note": "Gallery with four thumbnails beside the purchase panel; specification splits into two columns; three-up related row."
+  },
+  "04A \u2014 Product Detail \u2014 Desktop": {
+    "id": "60:878",
+    "size": "1440x3439",
+    "note": "Vertical thumbnail rail with the active thumb outlined, 624px gallery, purchase panel carrying the delivery/returns/payment summary. Specification runs three columns; story band pairs copy with a print-detail image."
+  },
+  "Bag Line Item": {
+    "id": "64:2",
+    "props": [
+      "Product#64:0",
+      "Variant#64:1",
+      "Subtotal#64:2",
+      "Unit#64:3"
+    ],
+    "note": "Quantity is overridden on the NESTED Quantity Control instance (Quantity#67:4), not on the line item \u2014 Figma would not accept forwarding a nested property up to the parent via componentPropertyReferences."
+  },
+  "05C \u2014 Bag \u2014 Mobile": {
+    "id": "65:993",
+    "size": "390x1887",
+    "note": "Three lines with real arithmetic (2x68 + 74 + 58 = 268), delivery guidance, summary, Secure Checkout plus guest-checkout note."
+  },
+  "05B \u2014 Bag \u2014 Tablet": {
+    "id": "69:1101",
+    "size": "768x1333",
+    "note": "Lines left, 268px summary panel right."
+  },
+  "05A \u2014 Bag \u2014 Desktop": {
+    "id": "72:1215",
+    "size": "1440x1430",
+    "note": "380px summary panel with an Estimated VAT row; Continue shopping moves into the delivery band."
+  },
+  "05D/E/F \u2014 Empty Bag": {
+    "ids": {
+      "Desktop": "73:1649",
+      "Tablet": "73:1481",
+      "Mobile": "73:1329"
+    },
+    "note": "Centred empty state with scarcity copy, Shop the First Drop plus Sign in, then a suggested-products grid \u2014 2 cards mobile, 3 tablet, 4 desktop."
+  },
+  "05G/H/I \u2014 Add to Bag confirmation": {
+    "ids": {
+      "Desktop drawer": "75:1580",
+      "Tablet sheet": "75:1660",
+      "Mobile sheet": "75:1740"
+    },
+    "note": "\u00a78.6: confirms product, colour, size, quantity and price, shows the updated bag subtotal and item count, offers View Bag and Continue shopping, and never navigates away. Cross-sell uses compact rows \u2014 full product cards overflowed the panel on the first attempt."
+  },
+  "Checkout Header": {
+    "setId": "79:44",
+    "variants": 3,
+    "note": "No browse nav, a back-to-bag route, secure-checkout mark, and a step row on tablet/desktop. Mobile drops the step row and names the step in the heading instead. Padlock drawn with cubic curves \u2014 Figma vectorPaths rejects SVG arc (A) commands."
+  },
+  "Form Field props": {
+    "props": [
+      "Helper#81:0",
+      "Label#81:5",
+      "Value#81:10",
+      "HelperText#81:15",
+      "State"
+    ],
+    "note": "Helper is a boolean because repeating one helper line under every input is noise; only email, postcode, country and phone carry one on 06C."
+  },
+  "06C \u2014 Checkout Information \u2014 Mobile": {
+    "id": "80:1646",
+    "size": "390x2081",
+    "note": "Guest checkout entry stated up front per \u00a78.8, contact, seven-field UK delivery address with Country disabled at launch scope, Continue to delivery."
+  },
+  "screens_complete": "Homepage 02A/B/C, Product Listing 03A/B/C, Filter Sheet 03D, Product Detail 04A/B/C \u2014 10 screens, all from component instances.",
+  "filter_chip_removable": "Filter Chip gained a Removable BOOLEAN (Removable#59:0, default true). Filters keep the remove control; size and colour selection chips set it false \u2014 you switch a size, you do not remove it. 18 instances across 04C and 04B updated.",
+  "imagery_blocker": "This session's egress proxy blocks every canva.com and figma.com domain from the container, so Figma upload_assets cannot be used at all \u2014 I cannot place ANY raster image, generated or user-supplied. Images must be dragged in by the user, or fetched via a machine that can reach both hosts. Four Canva 4:5 candidates were generated and left unused: canva.com/d/WX5TOauvcfEHquN, /MkokLDpjbhkQkr6, /xCTPToyAlvct0qv, /HxppF-NDP4dJsAL",
+  "next_screens": [
+    "03 Product Listing (A/B/C)",
+    "04 Product Detail (A/B/C)",
+    "19 First Drop collection page",
+    "23 Size and fit guide"
+  ],
+  "componentQueue": [
+    "Header + nav drawer (390/768/1440)",
+    "Footer",
+    "Form field",
+    "Product card",
+    "Address card",
+    "Status badge",
+    "Quantity control",
+    "Filter sheet",
+    "Order summary row"
+  ],
+  "completedSteps": [
+    "P0.a",
+    "P0.b",
+    "P0.c",
+    "P0.d",
+    "P0.f",
+    "P1.a",
+    "P1.b",
+    "P1.c",
+    "P1.d",
+    "P1.e",
+    "P1.f",
+    "P2.a",
+    "P2.b",
+    "P3-Button"
+  ],
+  "pendingValidations": [],
+  "06B \u2014 Checkout Information \u2014 Tablet": {
+    "id": "86:1718",
+    "size": "768x1725",
+    "note": "Form left, 260px order summary right."
+  },
+  "06A \u2014 Checkout Information \u2014 Desktop": {
+    "id": "86:1902",
+    "size": "1440x1718",
+    "note": "Form left, 380px order summary with per-line thumbnails and quantities. City and Postcode share a row from tablet up."
+  },
+  "Selectable Option": {
+    "setId": "88:32",
+    "variants": 3,
+    "props": [
+      "Title#88:9",
+      "Meta#88:10",
+      "Price#88:11",
+      "State"
+    ],
+    "note": "Radio-style single-choice row. Selection carried by filled radio AND heavier border, never colour alone (\u00a713)."
+  },
+  "Checkout Header (revised)": {
+    "setId": "79:44",
+    "variants": 12,
+    "axes": [
+      "Breakpoint",
+      "Step"
+    ],
+    "note": "Step axis added after the Delivery screen shipped showing 'Information' as current. Mobile Step variants differ only in metadata since mobile has no step row."
+  },
+  "07 Delivery": {
+    "ids": {
+      "Mobile": "89:1872",
+      "Tablet": "89:2016",
+      "Desktop": "89:2178"
+    },
+    "note": "Confirmed address with Edit, four delivery methods including a disabled Saturday option, and the \u00a3150 free-delivery threshold stated in words."
+  },
+  "08 Payment": {
+    "ids": {
+      "Mobile": "91:2077",
+      "Tablet": "91:2204",
+      "Desktop": "91:2351"
+    },
+    "note": "Order review with per-section Edit, then a DASHED boundary region labelled 'Stripe Checkout \u2014 embedded' containing dimmed card fields and the instruction 'Do not build these inputs'. Pay button carries the amount. \u00a78.8/\u00a712 boundary made visible so nobody implements card capture."
+  },
+  "08 Payment states": {
+    "ids": {
+      "Processing": "92:2213",
+      "Failed": "92:2251"
+    },
+    "note": "Processing says do not close/refresh and explains why double charging cannot happen. Failure states plainly that no money left the account, no order was created, and the bag is held \u2014 plus likely causes."
+  },
+  "09 Order Confirmation": {
+    "ids": {
+      "Mobile": "93:2229",
+      "Tablet": "93:2390",
+      "Desktop": "93:2556"
+    },
+    "note": "Persistent order number MET-2026-004182 shown as retrieved data, Confirmed\u2192Preparing\u2192Shipped\u2192Delivered timeline per \u00a78.9, amount paid, delivery estimate, guest-to-account prompt, returns window stated."
+  },
+  "journey_complete": "02 Homepage through 09 Order Confirmation built at 390/768/1440, plus filter sheet, add-to-bag confirmation, empty bag, payment processing and payment failed. 33 screens.",
+  "10 Auth": {
+    "ids": {
+      "Sign In": {
+        "Mobile": "95:2356",
+        "Tablet": "95:2485",
+        "Desktop": "95:2620"
+      },
+      "Create Account": {
+        "Mobile": "95:2708",
+        "Tablet": "95:2836",
+        "Desktop": "95:2970"
+      }
+    },
+    "note": "Centred 460px card. Create Account states plainly that guest checkout stays open, so the account is a benefit not a gate. Checkbox drawn inline \u2014 NOT yet a component; extract one if a third screen needs it."
+  },
+  "27/28 Auth states": {
+    "ids": {
+      "Password reset": "96:2731",
+      "Email verification": "96:2806"
+    },
+    "note": "Four labelled states each, stacked on one mobile artboard. Reset says 'if an account exists' to avoid confirming which addresses are registered. Resend buttons use the Button Disabled state with a visible cooldown."
+  },
+  "Account Nav Item": {
+    "setId": "98:14",
+    "variants": 2,
+    "props": [
+      "Label#98:2",
+      "State"
+    ],
+    "note": "Current marked by left rule + filled surface + weight, never colour alone. Composed into a rail (tablet/desktop) or wrapping tab row (mobile) rather than baked into a nav component \u2014 avoids a 5x3 variant matrix."
+  },
+  "11 Account Overview": {
+    "ids": {
+      "Mobile": "100:2774",
+      "Tablet": "100:2925",
+      "Desktop": "100:3082"
+    },
+    "note": "Latest order with live status, four section tiles carrying real counts, sign out. Rail on tablet/desktop, wrapping tabs on mobile."
+  },
+  "build_hazards": [
+    "Cloning a finished screen and swapping only the content column is far cheaper and more consistent than rebuilding a shell \u2014 but remember the mobile Sign out button lives INSIDE the content column, so it must be re-added when the column is replaced.",
+    "Ghost Button instances land FILL width with centred content; set primaryAxisAlignItems='MIN' (and paddingLeft 0, or 14 to match nav items) to left-align them with surrounding copy.",
+    "maxWidth on a FILL auto-layout child is the clean way to cap a wide desktop content column without switching it to FIXED.",
+    "A component variant sized with resize(w,h) becomes FIXED on both axes; any text inside that wraps then overflows and overlaps the next sibling. Use minHeight for a touch-target floor and leave the counter axis AUTO.",
+    "A TEXT node left at WIDTH_AND_HEIGHT inside a FILL column does not wrap \u2014 it overflows and is clipped by the frame. Set layoutSizingHorizontal='FILL' on every text that shares a row with something else.",
+    "On mobile, a head row holding a title column and a status pill needs layoutWrap='WRAP' or the pill squeezes the title to nothing.",
+    "An empty auto-layout FRAME defaults to 100x100 \u2014 using one as a flexible spacer silently inflates its row. resize(1,1) first, then set layoutSizingHorizontal='FILL' and layoutSizingVertical='FIXED'.",
+    "03A Product Listing Desktop nests Discovery bar and Product grid inside 'Listing body' > 'Results'; mobile and tablet keep them at the top level. Any clone-and-edit across breakpoints must branch on that.",
+    "A HORIZONTAL shell frame hugs on HEIGHT, not width: set primaryAxisSizingMode='FIXED' (width) and counterAxisSizingMode='AUTO' (height). Getting it backwards leaves the frame 100px tall with everything clipped.",
+    "layoutSizingHorizontal must be set AFTER appendChild \u2014 setting it on a node that is not yet in an auto-layout parent silently does nothing.",
+    "A FILL child inside a WRAP container shares the row rather than filling the width. To stack full-width cards on mobile, switch the container to VERTICAL rather than relying on FILL.",
+    "counterAxisAlignItems has no 'STRETCH' \u2014 use layoutSizingVertical='FILL' on the child instead.",
+    "Check argument counts on long helper signatures: makeAdminShell(...) was called with 7 of 8 args, which silently pushed the subtitle into the title slot and dropped the page title on three screens.",
+    "Desktop admin frames need minHeight (900 used) or a short page lets the black rail hug the content and clip the sign-out block.",
+    "resize() re-fixes BOTH sizing modes on an auto-layout frame. Set primaryAxisSizingMode/counterAxisSizingMode AFTER the resize, or a shell meant to hug its content stays stuck at the resize height (A04 desktop sat at its 900 minHeight with 2600px of content clipped).",
+    "layoutSizingHorizontal='HUG' does not reliably shrink an instance whose main component has a FILL-width text child \u2014 the instance keeps a wide intrinsic width. For chip-like rows of a form component, set FIXED and resize instead."
+  ],
+  "12 Orders": {
+    "ids": {
+      "Mobile": "102:2948",
+      "Tablet": "102:3124",
+      "Desktop": "102:3304"
+    },
+    "note": "Built by cloning the 11 Account Overview shell and replacing the content column \u2014 guarantees identical header/rail/footer. Three orders (Preparing / Delivered / Refunded), status shown as dot + text pill, guest-order lookup panel. Desktop content column capped at maxWidth 820 so the total is not an eye-travel from its label."
+  },
+  "13 Order Detail": {
+    "ids": {
+      "Mobile": "103:3134",
+      "Tablet": "103:3381",
+      "Desktop": "103:3631"
+    },
+    "note": "Cloned from 12 Orders. Vertical progress timeline (done=small black dot, current=larger Forest dot + SemiBold label + 'Current step' meta, todo=outlined dot + muted) so state is never colour alone. Desktop is two-column (main FILL + 320 fixed side rail) capped at maxWidth 1000; tablet and mobile stack. Start a return is a Disabled Primary with explanatory helper text. Page H1 is 'Order details' with the number in the meta line so it is not duplicated by the head card."
+  },
+  "account_cluster_progress": {
+    "done": [
+      "11 Account Overview",
+      "12 Orders",
+      "13 Order Detail",
+      "18 Account Details",
+      "30 Saved Addresses",
+      "14 Start a Return",
+      "15 Review Return",
+      "16 Return Confirmation",
+      "17 Return Details"
+    ],
+    "remaining": []
+  },
+  "Checkbox": {
+    "setId": "105:26",
+    "variants": 3,
+    "props": [
+      "Label#105:0",
+      "DescriptionText#105:4",
+      "Description#105:8",
+      "State"
+    ],
+    "note": "State=Unchecked/Checked/Disabled. Rows hug height with minHeight 44 \u2014 do NOT resize() the variant height, a FIXED height makes a wrapping description overlap the next row. Checked is a filled black box with a white tick vector 'M 4 11 L 9 16 L 18 6'."
+  },
+  "30 Saved Addresses": {
+    "ids": {
+      "Mobile": "106:3317",
+      "Tablet": "106:3516",
+      "Desktop": "106:3719"
+    },
+    "note": "Default / alternative / international (Republic of Ireland) cards, each with a bordered uppercase tag so the default is named in text not marked by colour. Desktop is a two-up wrap grid of 400px cards capped at maxWidth 840; tablet and mobile stack. Delivery guidance panel carries the only Antique Gold on the screen (Shipping Policy link). A labelled empty-state variant sits below the grid."
+  },
+  "18 Account Details": {
+    "ids": {
+      "Mobile": "107:3515",
+      "Tablet": "107:3728",
+      "Desktop": "107:3945"
+    },
+    "note": "Personal details (Form Field instances, email carries a Verified helper), password with last-changed date, contact preferences and account closure with the six-year tax retention note. Desktop capped at maxWidth 720. The always-on service emails are a locked row with an ALWAYS ON tag, not a checkbox that cannot be unchecked."
+  },
+  "14 Start a Return": {
+    "ids": {
+      "Mobile": "111:3773",
+      "Tablet": "111:3982",
+      "Desktop": "111:4195"
+    },
+    "note": "Step 1 of 2. Per-item Checkbox with a custom bordered select for the reason (chevron vector 'M 0 0 L 5 5 L 10 0'), indented 34px under its checkbox. Free-text notes box, condition rules, running '2 of 3 items selected' summary. Step position is stated in words, not just a colour."
+  },
+  "15 Review Return": {
+    "ids": {
+      "Mobile": "112:3989",
+      "Tablet": "112:4200",
+      "Desktop": "112:4415"
+    },
+    "note": "Step 2 of 2. Reuses Selectable Option (88:32) for drop-off vs collection. Refund breakdown names what is and is not refunded (original delivery is not). Nothing is committed until Confirm."
+  },
+  "16 Return Confirmation": {
+    "ids": {
+      "Mobile": "112:4630",
+      "Tablet": "112:4826",
+      "Desktop": "112:5026"
+    },
+    "note": "Forest tick badge plus the words 'Return confirmed'. Numbered what-to-do-next steps with the 14-day label deadline, item summary, and a plain explanation of refund timing."
+  },
+  "17 Return Details": {
+    "ids": {
+      "Mobile": "112:5226",
+      "Tablet": "112:5447",
+      "Desktop": "112:5672"
+    },
+    "note": "Same timeline grammar as 13 Order Detail: Requested / Label issued / On its way / Checked / Refunded. Refund panel states nothing has been refunded yet."
+  },
+  "returns_flow_complete": true,
+  "content_consistency": {
+    "MC-10482": "Preparing, 4 items, \u00a3268.00, placed 4 Sept 2026 \u2014 used by 12 Orders and 13 Order Detail",
+    "MC-10231": "Delivered 15 Aug 2026, 3 items, \u00a3206.00 \u2014 used by 12 Orders and the whole returns flow. Was 1 item until the returns flow needed something to choose between; the Orders cards were updated to match.",
+    "RET-4471": "Return of 2 of the 3 MC-10231 items, \u00a3138.00, label valid until 24 Sept 2026 \u2014 used by 15, 16 and 17."
+  },
+  "next_up": [
+    "Refresh or retire the published screen-inventory artifact, which predates the Figma rebuild and is now misleading",
+    "Imagery \u2014 still blocked by the container egress policy",
+    "Optional: Danger button style, if the user wants one",
+    "Optional: prototype wiring between screens"
+  ],
+  "20 Search Overlay": {
+    "ids": {
+      "Mobile": "118:5221",
+      "Tablet": "118:5309",
+      "Desktop": "118:5402"
+    },
+    "note": "Standalone frames: Header instance + panel + a 45% Metheues Black scrim standing in for the dimmed page, with a caption under each explaining focus behaviour. Field shows a focus ring bound to Semantic/focus/ring (2px) plus a caret. Desktop splits recent/popular from product suggestions; tablet and mobile stack; mobile adds Cancel."
+  },
+  "21 Search Results": {
+    "ids": {
+      "Mobile": "116:5077",
+      "Tablet": "116:5230",
+      "Desktop": "116:5389"
+    },
+    "note": "Cloned from 03 Product Listing. Query field under the head, count text rewritten to 'N results for \u201coversized black\u201d', related-search chips (Removable=false) after the grid."
+  },
+  "22 Search No Results": {
+    "ids": {
+      "Mobile": "117:4952",
+      "Tablet": "117:5140",
+      "Desktop": "117:5334"
+    },
+    "note": "Cloned from 21. Empty block explains the miss and offers spelling/phrasing help, popular searches and two actions; grid trimmed to three 'You might like' cards. Active-filter chips removed on all three so the state reads as a phrase with no match rather than an over-filtered one."
+  },
+  "23 Size and Fit Guide": {
+    "ids": {
+      "Mobile": "120:5278",
+      "Tablet": "120:5514",
+      "Desktop": "120:5761"
+    },
+    "note": "Built on a new reusable content-page shell (Announcement Bar + Header + centred content column + Footer). Fit definitions, garment measurements as cm and inch tables on tablet/desktop and per-size cards on mobile (a table that needs horizontal scroll is not the honest mobile answer), how-to-measure steps, model heights. \u00a78.5 caveat recorded as a canvas note: every figure is a placeholder pending verified production measurements."
+  },
+  "19 The First Drop": {
+    "ids": {
+      "Mobile": "121:5428",
+      "Tablet": "121:5514",
+      "Desktop": "121:5606"
+    },
+    "note": "Cloned from 03 Product Listing. Adds a 16:9 hero placeholder band and a drop metadata row (released / styles / run / made). Collection facet removed from the desktop filter rail \u2014 the page IS the collection \u2014 and carried-over filter chips cleared so the page lands unfiltered."
+  },
+  "32 Our Story": {
+    "ids": {
+      "Mobile": "122:5815",
+      "Tablet": "122:5948",
+      "Desktop": "122:6087"
+    },
+    "note": "Editorial page: origin, what we make, how it is made, an inverse-ground pull quote carrying the \u00a78.1 launch hero line, three value cards, CTA into the drop."
+  },
+  "33 Delivery and Returns": {
+    "ids": {
+      "Mobile": "122:6179",
+      "Tablet": "122:6348",
+      "Desktop": "122:6504"
+    },
+    "note": "Delivery options as a table on tablet/desktop and cards on mobile. Returns, refunds, exchanges and faulty items in plain English, consistent with the 14-17 returns flow (30 days, free drop-off, \u00a34.95 collection, 5-10 working days). Canvas note flags that rates and the exchanges decision need commercial sign-off."
+  },
+  "34 Contact": {
+    "ids": {
+      "Mobile": "123:6104",
+      "Tablet": "123:6261",
+      "Desktop": "123:6424"
+    },
+    "note": "Form on Form Field instances plus a reason select, with a 320px side column: response times, other ways to reach us, registered address, and a nudge to self-serve in the account. Side-column rows stack label over value so phrases do not wrap mid-word at that width."
+  },
+  "35 Legal": {
+    "ids": {
+      "Mobile": "123:6540",
+      "Tablet": "123:6678",
+      "Desktop": "123:6822"
+    },
+    "note": "Privacy Policy shown; Terms, Cookie Policy and Accessibility use the same shell with a different document column. The document rail reuses Account Nav Item (rail on tablet/desktop, wrapping tabs on mobile) \u2014 the same grammar as the account area. Canvas note flags that the copy needs legal review."
+  },
+  "content_page_shell": {
+    "note": "makeShell(bp, width, x, y, name, pad, maxW) \u2014 Announcement Bar instance + Header (Breakpoint variant) + 'Page content' + Footer (Breakpoint variant), with screen.counterAxisAlignItems='CENTER' and a FIXED-width content column on desktop so the column centres. FILL children ignore counter-axis alignment, so the bars still span full width. Used by 23, 32, 33, 34, 35 \u2014 reuse it for any further content page."
+  },
+  "storefront_17_coverage": {
+    "covered": "\u00a717 items 1-28 and 30-35",
+    "gaps": [
+      "item 29 Order tracking \u2014 currently folded into 13 Order Detail (tracking number + Track parcel); decide whether a dedicated tracking screen is needed",
+      "System states still missing: loading, offline/retry, unauthorized, webhook/order processing delayed, page-level validation failure"
+    ]
+  },
+  "admin_foundations": {
+    "page": "02 \u00b7 Admin & System States",
+    "Status Badge": {
+      "setId": "125:26",
+      "props": [
+        "Label#125:0",
+        "Tone"
+      ],
+      "tones": [
+        "Success",
+        "Attention",
+        "Danger",
+        "Neutral",
+        "Info"
+      ],
+      "note": "Dot is supporting only \u2014 the word in the label carries the meaning, so it survives greyscale. Attention is Oxblood via the new Semantic/status/attention token, NOT Antique Gold. Keep labels short (Failed, To pack) or they clip in narrow table columns."
+    },
+    "Admin Nav Item": {
+      "setId": "125:37",
+      "props": [
+        "Label#125:6",
+        "CountText#125:9",
+        "Count#125:12",
+        "State"
+      ],
+      "note": "Dark rail item. Current = filled Deep Espresso surface + gold rule + SemiBold, three signals. Optional count for queues."
+    },
+    "new_token": "Semantic/status/attention -> Accent/Oxblood",
+    "shell": "makeAdminShell(bp, width, x, y, name, current, title, subtitle) \u2014 desktop is HORIZONTAL (240px black rail + FILL main with top bar and content); tablet/mobile replace the rail with a dark bar plus a wrapping chip strip. Nav groups: OVERVIEW / CATALOGUE / SALES / STORE."
+  },
+  "A01 Admin Sign In": {
+    "ids": {
+      "Mobile": "126:10",
+      "Tablet": "126:32",
+      "Desktop": "126:54"
+    },
+    "note": "Centred card on a Metheues Black ground so staff never confuse it with the customer sign-in. Carries the session-expiry and audit-log notice."
+  },
+  "A02 Dashboard": {
+    "ids": {
+      "Mobile": "126:76",
+      "Tablet": "126:309",
+      "Desktop": "126:555"
+    },
+    "note": "All seven \u00a79.1 figures: orders today, paid revenue, awaiting fulfilment, low-stock, sold-out, recent orders, returns awaiting review. Recent orders is a table on tablet/desktop and cards on mobile; metrics stack on mobile."
+  },
+  "admin_progress": {
+    "done": [
+      "A01",
+      "A02",
+      "A03",
+      "A04",
+      "A05",
+      "A06",
+      "A07",
+      "A08",
+      "A09",
+      "A10",
+      "A11",
+      "A12",
+      "A13",
+      "A14",
+      "A15",
+      "A16",
+      "A17",
+      "A18",
+      "A19",
+      "A20",
+      "A21",
+      "A22",
+      "A23"
+    ],
+    "remaining": []
+  },
+  "A03 T-shirts table": {
+    "ids": {
+      "Mobile": "128:259",
+      "Tablet": "128:430",
+      "Desktop": "128:645"
+    },
+    "note": "9 products covering every publish state: Published, Sold out, Draft, Scheduled, Archived."
+  },
+  "A07 Inventory table": {
+    "ids": {
+      "Mobile": "128:874",
+      "Tablet": "128:1033",
+      "Desktop": "128:1220"
+    },
+    "note": "Sorted lowest stock first, with threshold shown beside the count so Low is explainable rather than asserted. Footer carries the \u00a79.3 rules \u2014 stock never negative, manual changes need a reason and are audited."
+  },
+  "A11 Orders table": {
+    "ids": {
+      "Mobile": "128:1421",
+      "Tablet": "128:1606",
+      "Desktop": "128:1827"
+    },
+    "note": "Payment and fulfilment as separate badge columns per \u00a79.4, with the search and filter set the spec lists (order number/customer/email, payment, fulfilment, date range, country, sort)."
+  },
+  "admin_table_pattern": {
+    "note": "buildTable(cols, rows, avail, bp) with weighted columns \u2014 each column carries a w weight, converted to a FIXED px width from the available content width (desktop 1100, tablet 684) so columns align down the page instead of splitting evenly. buildCards(cols, rows) is the mobile fallback: first column becomes the heading, the rest collapse to a middot-separated meta line, badges move to their own row. Cells are either a string or {badge, tone}.",
+    "toolbar": "searchBox(placeholder) + filterSelect(label) chips in a wrapping toolbar; footer pairs a plain-language count with Previous/Next (Previous is Disabled on page one)."
+  },
+  "admin_breakpoint_decision": {
+    "decided_by": "user, 10 Sept",
+    "rule": "Admin screens are built at 1440 and 768 only. 390 is added ONLY for the handful that are genuinely phone jobs: Dashboard, Orders table, Order detail, Returns queue (plus Admin Sign In, T-shirts and Inventory, already built and kept).",
+    "reason": "Dense tables and multi-section editors fight a 390px screen; the T-shirt editor alone has eleven sections. Phone versions of all 23 would cost real time and produce screens nobody maintains.",
+    "mobile_boards_to_build": [
+      "A12 Order details",
+      "A17 Returns queue"
+    ],
+    "no_mobile": [
+      "A04",
+      "A05",
+      "A06",
+      "A08",
+      "A09",
+      "A10",
+      "A13",
+      "A14",
+      "A15",
+      "A16",
+      "A18",
+      "A19",
+      "A20",
+      "A21",
+      "A22",
+      "A23"
+    ]
+  },
+  "A04 Edit T-shirt": {
+    "ids": {
+      "Tablet": "131:835",
+      "Desktop": "131:1321"
+    },
+    "note": "All eleven \u00a79.2 sections. Main column carries 01 Basic information, 02 Description and story, 03 Images, 05 Fit and garment spec, 06 Colours and sizes, 07 SKUs/prices/inventory, 08 Care, 09 Delivery data; the 340px side rail carries 11 Publishing, 04 Collection and style, 10 SEO preview, plus a 'Worth a look' pre-publish checklist and an archiving explanation. Section numbers appear on BOTH columns so the split across two columns stays traceable against the spec. Desktop 1440x3515; tablet stacks to one column.",
+    "notable": "Fit and garment spec is labelled as the source the size guide reads from, so the two never drift. Archiving copy states existing orders keep their own snapshot."
+  },
+  "A05 Product image manager": {
+    "ids": {
+      "Tablet": "134:1169",
+      "Desktop": "134:1352"
+    },
+    "note": "Ordered grid with the first tile ringed as primary, a selected-image rail carrying alt text, colour assignment and file metadata, and a guidance card that names the one image blocking publish. Alt-text helper says what it is FOR (describe it for someone who cannot see it) rather than just demanding a value."
+  },
+  "A06 Generate variants": {
+    "ids": {
+      "Tablet": "134:1549",
+      "Desktop": "134:1623"
+    },
+    "note": "Dialog over a black scrim. Colour x size matrix marks each cell new or exists, so the destructive question ('will this overwrite my stock?') is answered before the button is pressed. SKU pattern with a worked example; new variants default to inactive with zero stock."
+  },
+  "A08 Adjust stock": {
+    "ids": {
+      "Tablet": "134:1697",
+      "Desktop": "134:1769"
+    },
+    "note": "Add / Remove / Set-to as Selectable Options, required reason, optional note, and a live result line ('Stock goes from 2 to 14'). States the \u00a79.3 rule that a removal larger than stock is REJECTED rather than clamped to zero, and shows the exact audit-log line that will be written."
+  },
+  "admin_dialog_pattern": {
+    "note": "dialogFrame(name, w, x, y, cardW) \u2014 a full-width frame filled Metheues Black standing in for the dimmed admin page, with a centred Soft Cream card. dialogHead(box, title, sub) adds the title, one explanatory line and a rule. Every destructive or auditable dialog ends with the literal audit-log line it will write."
+  },
+  "catalogue_consistency_pass": {
+    "when": "10 Sept, before A12",
+    "problem": "The storefront order and return screens named products (Origin Tee, Meridian Tee, Atelier Tee) that did not exist in the admin catalogue built later (Origin Story Tee, Nightshift Oversized Tee, Frequency One Tee). Same orders, different products.",
+    "fix": "Ran one find-and-replace across pages 01 and 02: 173 text nodes on 45 screens. Names mapped to catalogue names; prices mapped to catalogue prices (Frequency One \u00a368, Nightshift \u00a374, Origin Story \u00a368, Essential \u00a358).",
+    "knock_on": "The sweep also rewrote totals in the bag/checkout/confirmation flow, breaking their arithmetic (lines summed \u00a3268, total read \u00a3284). Reverted \u00a3284->\u00a3268 and \u00a347.33->\u00a344.67 on screens 05-09 only. The checkout basket is a DIFFERENT basket from order MC-10482 and does not need to match it.",
+    "canonical_totals": {
+      "MC-10482": "\u00a3284.00 = Origin Story Tee Bone/M x2 (\u00a3136) + Nightshift Oversized Tee Black/L x2 (\u00a3148)",
+      "MC-10231": "\u00a3210.00 = Frequency One Tee Ivory/M (\u00a368) + Origin Story Tee Bone/L (\u00a368) + Nightshift Oversized Tee Black/M (\u00a374)",
+      "RET-4471": "\u00a3142.00 = Frequency One Tee (\u00a368) + Nightshift Oversized Tee (\u00a374)",
+      "checkout basket (05-09)": "\u00a3268.00 = Frequency One Tee x2 (\u00a3136) + Nightshift Oversized Tee (\u00a374) + Essential Heavyweight Tee (\u00a358)"
+    },
+    "lesson": "A global find-and-replace across a design file will hit arithmetic it does not understand. After any sweep, re-read every total and check it against its own line items."
+  },
+  "A12 Order details": {
+    "ids": {
+      "Mobile": "139:1379",
+      "Tablet": "139:1620",
+      "Desktop": "139:1861"
+    },
+    "note": "Every \u00a79.4 requirement: customer and delivery, immutable item snapshot (stated as such on the screen), Stripe payment intent, fulfilment timeline, internal notes marked never-shown-to-customer, tracking, cancel/refund controls, audit history. Cancel/refund copy states the stock consequence \u2014 full cancel returns stock, partial refund does NOT."
+  },
+  "A13 Fulfilment": {
+    "ids": {
+      "Tablet": "139:2116",
+      "Desktop": "139:2295"
+    },
+    "note": "\u00a79.5 pick-pack flow. Pick list keys on exact colour/size with SKU and shelf location; Mark packed is Disabled until every line is ticked, with the reason stated. Explains that packing sends nothing \u2014 the dispatch email fires only when tracking is added, so a packed box sitting overnight never emails a day early."
+  },
+  "A14 Add tracking": {
+    "ids": {
+      "Tablet": "141:1683",
+      "Desktop": "141:1859"
+    },
+    "note": "Carrier, number and an auto-filled link, plus a preview of the exact email the customer receives. States that this IS the dispatch email \u2014 no separate send button \u2014 so the model matches A13."
+  },
+  "A15 Cancel order": {
+    "ids": {
+      "Tablet": "141:1734",
+      "Desktop": "141:1910"
+    },
+    "note": "Four consequences spelled out with tone dots: money out (red), stock back (green), customer emailed, status locked. Required reason, plus type-the-order-number confirmation with the primary button Disabled until it matches. Ends with the literal audit line."
+  },
+  "A16 Refund": {
+    "ids": {
+      "Tablet": "141:1791",
+      "Desktop": "141:1967"
+    },
+    "note": "Full vs partial as Selectable Options. Restock is a SEPARATE unticked checkbox \u2014 refunding money and putting goods back on the shelf are different events, often days apart, and conflating them is how stock counts drift. Type-the-amount confirmation; Disabled until it matches."
+  },
+  "open_question_danger_button": {
+    "question": "The Button component has Primary / Secondary / Ghost only \u2014 no destructive style. Cancel and Refund currently rely on copy, consequence lists and a typed confirmation rather than a red button.",
+    "options": [
+      "Leave as is \u2014 the typed confirmation is the real guard",
+      "Add a Danger style to the Button set (3 new variants: Danger x Default/Hover/Disabled)"
+    ],
+    "status": "not raised with user yet \u2014 mention when convenient"
+  },
+  "A17 Returns queue": {
+    "ids": {
+      "Mobile": "143:1783",
+      "Tablet": "143:1924",
+      "Desktop": "143:2093"
+    },
+    "note": "Sorted so anything waiting on you sits at the top, not newest-first. Five rows covering every state: waiting, in transit, received, refunded, rejected. Footer states the 5-day escalation rule."
+  },
+  "A19 Customers": {
+    "ids": {
+      "Tablet": "143:2276",
+      "Desktop": "143:2465"
+    },
+    "note": "Verified / Unverified / Guest as an Account column. Footer explains that guests are matched by email so their orders still group, but they cannot sign in until they register with the same address. Lifetime spend reconciles with the order data (Jordan \u00a3284 + \u00a3210 + \u00a368 = \u00a3562)."
+  },
+  "A18 Return details": {
+    "ids": {
+      "Tablet": "144:2056",
+      "Desktop": "144:2278"
+    },
+    "note": "\u00a79.6 in full. Condition and the restock decision are PER ITEM, not per return \u2014 one T-shirt can go back on the shelf while the other does not. Approving is explicitly separated from refunding: approval records condition and applies restock, the refund is its own deliberate step and its button stays Disabled until the parcel is received and checked."
+  },
+  "A20 Customer details": {
+    "ids": {
+      "Tablet": "144:2514",
+      "Desktop": "144:2696"
+    },
+    "note": "Orders, returns, saved addresses, profile, consent and data requests. Contact preferences are READ-ONLY by design \u2014 changing consent from the admin side creates a record you cannot evidence. Data card states the one-month UK GDPR deadline and that erasure removes the profile, not the six-year sales history."
+  },
+  "A09 Collections": {
+    "ids": {
+      "Tablet": "145:2294",
+      "Desktop": "145:2426"
+    },
+    "note": "Drag-ordered list, four states (Live / Live / Scheduled / Hidden). Footer explains the three behaviours people get wrong: a T-shirt can sit in several collections, removing it does not unpublish it, and hiding a collection keeps its page reachable so shared links still work."
+  },
+  "A10 Collection editor": {
+    "ids": {
+      "Tablet": "145:2572",
+      "Desktop": "145:2762"
+    },
+    "note": "Basics, hero with required alt text, drag-ordered product list, publishing and SEO in the side rail."
+  },
+  "A21 Homepage content": {
+    "ids": {
+      "Tablet": "146:2536",
+      "Desktop": "146:2755"
+    },
+    "note": "All seven \u00a79.7 slots, numbered. States on the screen that section order, featured count and layout are fixed \u2014 the spec calls this a limited content system, not a page builder, and the UI says so rather than implying otherwise. Flags that the announcement threshold does NOT drive checkout."
+  },
+  "A22 Store settings": {
+    "ids": {
+      "Tablet": "146:2988",
+      "Desktop": "146:3214"
+    },
+    "note": "The numbers checkout actually uses: delivery options and the \u00a3150 threshold, return window and collection fee, VAT, Stripe, sender addresses, staff roles, maintenance mode. Several fields name the screen they must stay in step with (announcement bar, returns page), since nothing validates that automatically."
+  },
+  "A23 Audit log": {
+    "ids": {
+      "Tablet": "146:3454",
+      "Desktop": "146:3635"
+    },
+    "note": "Eight entries covering every auditable event \u00a79.6 requires: refund, stock adjustment, return, content publish, dispatch, archive, price change, sign-in. Stated as append-only \u2014 nobody, including the owner, can edit or remove an entry \u2014 and kept six years alongside order records."
+  },
+  "admin_complete": true,
+  "system_states": {
+    "page": "02 \u00b7 Admin & System States (below the admin screens, y=72000 onwards)",
+    "built": {
+      "S1 Loading": {
+        "ids": {
+          "Mobile": "148:3000",
+          "Desktop": "148:3120"
+        },
+        "note": "Listing skeleton shaped like the real content so nothing jumps on arrival. Caption records the rule: fade, never pulse, and hand over to S2 after ~10s."
+      },
+      "S2 Offline and retry": {
+        "ids": {
+          "Mobile": "148:3215",
+          "Desktop": "148:3333"
+        },
+        "note": "Names which side failed rather than 'something went wrong'. Backoff is visible (2/4/8/16s, then stop) and the bag is stated as safe on the device."
+      },
+      "S3 Unauthorized": {
+        "ids": {
+          "Mobile": "148:3410",
+          "Desktop": "148:3532"
+        },
+        "note": "Sign-in returns the person to the page they asked for, not the account home. Offers the guest-order lookup, because most people who hit this never made an account."
+      },
+      "S4 Order processing delayed": {
+        "ids": {
+          "Mobile": "148:3613",
+          "Desktop": "148:3745"
+        },
+        "note": "The webhook-delay state. Leads with 'payment taken, order coming', gives the Stripe payment reference that works before an order number exists, and says refreshing will not charge twice."
+      },
+      "S5 Validation failure": {
+        "ids": {
+          "Mobile": "148:3836",
+          "Desktop": "148:3992"
+        },
+        "note": "Page-level error summary above the form, in the SAME ORDER as the fields, each line linking to its field. Messages say what to do ('Enter a postcode'), not what is wrong. Uses the Form Field error variant; nothing the customer typed is cleared."
+      },
+      "S6 Not found": {
+        "ids": {
+          "Mobile": "148:4107",
+          "Desktop": "148:4220"
+        },
+        "note": "Explains that a missing product page usually means the drop sold through \u2014 more useful here than an apology. Caption records that 500 reuses the layout with a reference code."
+      }
+    },
+    "already_covered_elsewhere": {
+      "Empty": "05D-F Empty Bag, 22 Search no results, 30 empty-state variant",
+      "Success": "09 Order Confirmation, 16 Return Confirmation",
+      "Disabled": "Button State=Disabled throughout",
+      "Sold out": "Product Card Availability + Status Badge Danger",
+      "Low stock": "Status Badge Attention + A07 Inventory",
+      "Payment failed": "08E Payment failed \u2014 Mobile",
+      "Error": "S2 and S6"
+    }
+  },
+  "audit_pass": {
+    "when": "11 Sept, after all screens complete",
+    "checks_run": [
+      "text overflowing its auto-layout parent (clipping)",
+      "unbound pure-white frame fills (the createFrame default bug)",
+      "text below 12px on the storefront",
+      "empty text nodes",
+      "duplicate top-level names"
+    ],
+    "results": {
+      "clipped_text": "23 found, 23 fixed by setting layoutSizingHorizontal='FILL'. Re-verified: 0 remaining. Affected 04C, 09C, 11C, 13C, 18C, 15B/C, 16B/C, 17B/C, A02C, A12C, S2B, S4A/B.",
+      "unbound_white_fills": "0 \u2014 the recurring createFrame default-fill bug is fully cleared from the file.",
+      "small_text": "784 hits, all legitimate 10-11px uppercase eyebrow and meta labels. NOT a defect: \u00a713 lists WCAG 2.2 AA behaviours but does NOT set a 16px minimum \u2014 that was my own convention from the Stitch-era prompts. Left as is.",
+      "empty_text": "25, all inside component instances where a text property is intentionally blank (empty input values, unpriced Selectable Options). Not defects.",
+      "duplicate_names": "6 \u2014 these are the S1-S6 canvas caption text nodes, identical across the mobile and desktop pair. Not duplicate screens."
+    }
+  },
+  "component_descriptions": {
+    "status": "all 15 components carry a handoff description",
+    "content": "Each says what the variants mean, the rule behind the design, and the trap to avoid \u2014 e.g. Button records that there is deliberately no destructive style; Footer records the 4.97:1 on-dark text token; Checkbox records the minHeight-not-resize rule; Status Badge records that Attention is Oxblood, never Antique Gold."
+  },
+  "decisions_closed": {
+    "order_tracking_item_29": "Folded into 13 Order Detail rather than built as its own screen. Order Detail already carries carrier, tracking number, a Track parcel action and the fulfilment timeline; a separate screen would duplicate that and add a navigation step. Revisit only if the courier integration returns richer scan data worth its own page.",
+    "danger_button": "Not added. Cancel and Refund rely on a consequence list plus a typed confirmation, which is the stronger guard. Adding a Danger style would mean 3 new variants on a component used file-wide \u2014 offer it to the user rather than doing it silently."
+  },
+  "published_artifact": {
+    "url": "https://claude.ai/code/artifact/9a553610-ec2d-434e-85b5-a07a689a512b",
+    "version": 3,
+    "file": "/mnt/user-data/outputs/metheues-screen-inventory.html",
+    "what": "Handoff index, not a gap tracker any more. Every \u00a717 screen with its breakpoints and a deep link to the desktop board, the 16 components, and the pre-ship notes (placeholder imagery, three sets of numbers needing sign-off, the threshold that appears in three places, audit results, rules that must survive into build, and what was deliberately not built).",
+    "note": "Republish by passing the same file path in this conversation, or the url from any other."
+  },
+  "session_state": "Design complete. DB live on Supabase (afzuhymegntqjwtdkmfb) with 5 migrations, guarantees verified. App: checkout + Stripe webhook routes written. Next: returns route, guest lookup, Resend emails, catalogue pages.",
+  "token_export": {
+    "where": "/mnt/user-data/outputs/metheues-tokens/",
+    "files": [
+      "tokens.css",
+      "tokens.ts",
+      "README.md"
+    ],
+    "generated": "12 Sept 2026, read from the Figma variables rather than retyped",
+    "structure": "Primitives (raw palette, never referenced by components) and semantic tokens (what a colour is FOR, the only layer components touch).",
+    "carries": "The four rules most likely to break in code: Stone fails AA on dark (use #8A8178), gold is brand accent only, colour is never the sole signal, 44px minimum targets. Plus breakpoints, gutters, spacing, radius and the type roles as actually built.",
+    "warning": "No sync with Figma. A value changed in one must be changed in the other."
+  },
+  "prototype": {
+    "built": "12 Sept 2026",
+    "totals": {
+      "storefront": "143 clickable nodes, 42 destinations",
+      "admin_and_states": "176 clickable nodes, 22 destinations",
+      "all": "319 connections"
+    },
+    "flows": {
+      "Buy a T-shirt \u2014 desktop": {
+        "start": "38:190",
+        "url": "https://www.figma.com/proto/9SzUlTWGVKOCkAULkbqOsr/?node-id=38-190&starting-point-node-id=38-190",
+        "path": "Homepage -> The First Drop -> Product Detail -> Add to Bag drawer -> Bag -> Information -> Delivery -> Payment -> Confirmation, with every Back wired"
+      },
+      "Account and returns \u2014 desktop": {
+        "start": "100:3082",
+        "url": "https://www.figma.com/proto/9SzUlTWGVKOCkAULkbqOsr/?node-id=100-3082&starting-point-node-id=100-3082",
+        "path": "Account Overview -> Orders -> Order Detail -> Start a Return -> Review -> Confirmation -> Return Details; the account rail is live on all nine account screens"
+      },
+      "Buy a T-shirt \u2014 mobile": {
+        "start": "28:2",
+        "url": "https://www.figma.com/proto/9SzUlTWGVKOCkAULkbqOsr/?node-id=28-2&starting-point-node-id=28-2"
+      },
+      "Account and returns \u2014 mobile": {
+        "start": "100:2774",
+        "url": "https://www.figma.com/proto/9SzUlTWGVKOCkAULkbqOsr/?node-id=100-2774&starting-point-node-id=100-2774"
+      },
+      "Run the shop \u2014 admin": {
+        "start": "126:54",
+        "url": "https://www.figma.com/proto/9SzUlTWGVKOCkAULkbqOsr/?node-id=126-54&starting-point-node-id=126-54",
+        "path": "Sign in -> Dashboard -> Orders -> Order details -> Fulfilment -> Add tracking; also cancel and refund dialogs, the catalogue editor chain, and the returns and customers tables. The admin rail is live on all 16 desktop screens."
+      },
+      "System states": {
+        "start": "148:3120",
+        "url": "https://www.figma.com/proto/9SzUlTWGVKOCkAULkbqOsr/?node-id=148-3120&starting-point-node-id=148-3120"
+      }
+    },
+    "how_built": "Reactions set directly on Button, Product Card, Account Nav Item and Admin Nav Item INSTANCES, plus the first row frame of each admin table. No hotspot rectangles \u2014 the prototype clicks the real controls, so it stays correct if a screen is rearranged.",
+    "transition": "SMART_ANIMATE, EASE_OUT, 250ms throughout.",
+    "known_gaps": [
+      "Self-links were rejected by Figma (a nav item pointing at its own page) \u2014 correct behaviour, nothing to fix.",
+      "Header navigation and the search overlay are not wired; they would need hotspots over icons inside the Header component.",
+      "Disabled buttons are deliberately not wired \u2014 Start a return on Order Detail, Mark packed on Fulfilment, the refund button on Return details."
+    ]
+  },
+  "CORRECTION_design_not_complete": {
+    "when": "12 Sept",
+    "what": "I stated the design was complete. It was not \u2014 \u00a714 requires nine transactional email templates and none are designed.",
+    "missing": [
+      "Verify email",
+      "Password reset",
+      "Order confirmation",
+      "Cancellation confirmation",
+      "Dispatch and tracking",
+      "Refund completed",
+      "Return request received",
+      "Return approved",
+      "Return rejected"
+    ],
+    "constraint": "Metheues branding; must not expose internal notes or operational data (\u00a714). Note that admin screens carry internal notes marked never-shown-to-customer \u2014 the email templates must honour that.",
+    "why_it_matters": "\u00a718 definition of done includes 'Confirmation, dispatch, return and refund emails work.'"
+  },
+  "transactional_email": {
+    "page": "03 \u00b7 Transactional Email",
+    "built": "12 Sept 2026 \u2014 all nine \u00a714 templates",
+    "ids": {
+      "E1 Verify email": "164:11",
+      "E2 Password reset": "164:30",
+      "E3 Order confirmation": "164:49",
+      "E4 Dispatch and tracking": "164:84",
+      "E5 Cancellation confirmation": "164:114",
+      "E6 Return request received": "165:10",
+      "E7 Return approved": "165:42",
+      "E8 Refund completed": "165:70",
+      "E9 Return rejected": "165:102",
+      "Build notes": "167:10"
+    },
+    "template": "680px board (inbox ground) holding a 600px card: preheader line, black wordmark header, body, optional ivory data panel, CTA, small print, footer with company details and why-you-got-this. Each board carries a canvas note explaining its one design decision.",
+    "decisions": [
+      "E2 never reveals whether the address has an account \u2014 the copy reads identically either way.",
+      "E5 and E7 have no CTA. There is nothing for the customer to do and a button would only lead to a page repeating the email.",
+      "E7 sends when the refund has actually left (A16), not on approval (A18) \u2014 approval and refund are separate events in the admin.",
+      "E4 sends when tracking is added (A14). It cannot exist before a real tracking number does.",
+      "E9 states the specific finding, returns the item at our cost, and offers a route to challenge. No policy code, no apology theatre.",
+      "E3 mirrors 09 Order Confirmation exactly \u2014 same order number, items and total. If screen and email disagree the customer trusts neither."
+    ],
+    "build_notes_on_canvas": [
+      "Bodoni Moda and Manrope will NOT render in most clients \u2014 wordmark as an image, body on a real fallback stack",
+      "600px, table layout, inline styles; Outlook renders through Word",
+      "The preheader is real content and needs a hidden element, not a client fallback",
+      "Gmail and Apple Mail force-invert in dark mode \u2014 the black header will change; type hierarchy must carry the layout alone",
+      "\u00a714: never expose internal notes, condition findings as internal text, or audit entries"
+    ]
+  },
+  "database": {
+    "where": "/mnt/user-data/outputs/metheues-db/",
+    "files": [
+      "001_schema.sql",
+      "002_rls.sql",
+      "003_functions.sql",
+      "README.md"
+    ],
+    "status": "WRITTEN, NOT APPLIED to Supabase \u2014 awaiting review",
+    "guarantees_made_structural": {
+      "stock never negative": "CHECK (stock_quantity >= 0); an oversell raises rather than clamping",
+      "stock decreases exactly once": "unique index on inventory_adjustments (order_id, variant_id, kind); the decrement inserts first, so a replayed webhook inserts nothing and updates nothing",
+      "one checkout, one order": "webhook_events.stripe_event_id is the PK; record the event before doing the work",
+      "server-authoritative price": "price_cart(jsonb) takes only variant ids and quantities, returns real prices from the DB",
+      "audit is append-only": "triggers block UPDATE and DELETE on audit_logs"
+    },
+    "other_decisions": [
+      "Money is integer pence everywhere",
+      "order_items are snapshot columns, not joins \u2014 this is what makes archiving safe",
+      "orders and order_items carry CHECKs that the totals add up",
+      "product_images.alt_text NOT NULL (\u00a713)",
+      "inventory_adjustments.reason NOT NULL (\u00a79.3)",
+      "inactive variants stay readable so sold-out sizes render disabled (\u00a78.4)"
+    ],
+    "known_gap": "Guest order lookup cannot work through RLS \u2014 needs a server route taking order number AND email with the service role. A policy matching on email alone would expose every guest order.",
+    "still_app_level": [
+      "Stripe signature verification against the raw body",
+      "rate limiting",
+      "Zod on every mutation",
+      "return window counted from delivery"
+    ],
+    "applied": {
+      "project": "Metheues Clothings",
+      "project_id": "afzuhymegntqjwtdkmfb",
+      "region": "eu-west-2 (London)",
+      "org": "dodomiyake's Org (Pro) \u2014 $10/month for this project",
+      "migrations": [
+        "001_schema",
+        "002_rls",
+        "003_integrity_functions",
+        "004_lock_down_functions"
+      ],
+      "date": "12 Sept 2026"
+    },
+    "security_finding": {
+      "what": "001-003 left decrement_stock_for_order, restock_for_order and price_cart callable by anon over /rest/v1/rpc. They are SECURITY DEFINER, so anyone could have moved stock.",
+      "cause": "Postgres grants EXECUTE to PUBLIC by default and Supabase exposes public functions as RPC. I did not revoke.",
+      "found_by": "Supabase security advisor, run straight after applying",
+      "fixed_by": "004_lock_down_functions \u2014 revoke from public/anon/authenticated, grant to service_role only",
+      "rule": "Every SECURITY DEFINER function needs an explicit REVOKE unless the whole internet should call it."
+    },
+    "verified": {
+      "stock decreases exactly once": "PASS \u2014 first call updated 1 row, stock 3->1; replay returned 0 rows, stock still 1, one adjustment row",
+      "stock cannot go negative": "PASS \u2014 selling 5 against stock 1 raised 'Oversell on order ...: stock would go negative' rather than clamping",
+      "server-authoritative price": "PASS \u2014 price_cart ignored a unit_price_pence of 1 in the payload and returned 6800 from the database",
+      "test data": "removed; all tables back to zero rows",
+      "note": "First smoke test returned a false negative \u2014 the function was called in the same statement as the CTE inserts, so it could not see rows a sibling CTE had written. Re-tested as separate statements."
+    },
+    "remaining_advisories": [
+      "is_staff/is_owner callable over RPC \u2014 intentional, needed by RLS policies, reports only on the caller",
+      "citext installed in public schema \u2014 namespace hygiene, left alone because columns already depend on the type",
+      "webhook_events has RLS with no policy \u2014 intentional deny-all"
+    ]
+  },
+  "app": {
+    "where": "/mnt/user-data/outputs/metheues-app/",
+    "files": [
+      "app/api/checkout/route.ts",
+      "app/api/stripe/webhook/route.ts",
+      "lib/supabase/server.ts",
+      "lib/supabase/public.ts",
+      "lib/money.ts",
+      ".env.example",
+      "README.md"
+    ],
+    "deps": [
+      "@supabase/supabase-js",
+      "@supabase/ssr",
+      "stripe",
+      "zod"
+    ],
+    "migration_005": "order_number and return_number now default from Postgres sequences (MC-10001+, RET-4400+). App-side generation can race; a sequence cannot. Gaps from rolled-back checkouts are intentional \u2014 reusing a number would attach a new order to an old paper trail.",
+    "checkout_route": "Zod .strict() schema accepting ONLY variant_id + quantity, so a request carrying a price is rejected rather than ignored. Prices from price_cart(), delivery from store_settings. Rejects if the priced line count differs from what was asked for \u2014 the basket changed under the customer.",
+    "webhook_route": "Raw body via req.text() for signature verification; claim-before-work via webhook_events PK; handles checkout.session.completed, charge.refunded, checkout.session.expired.",
+    "bug_found_and_fixed": {
+      "what": "A handler that threw after claiming the event left the claim row in place. Stripe retries, the duplicate guard returns 200, the work never happens and nothing reports it \u2014 a paid order sitting unfulfilled with no stock movement and no error.",
+      "fix": "The catch block deletes the claim row before returning 500, so the retry can redo the work. Safe because the order update is idempotent and decrement_stock_for_order has its own unique-index guard."
+    },
+    "deliberate": [
+      "An oversell does NOT fail the webhook \u2014 the payment is real and the order must exist, so it is saved and written to audit_logs for a human.",
+      "charge.refunded does NOT restock \u2014 refund and goods returning are separate events, matching A16.",
+      "lib/supabase/server.ts starts with import 'server-only' so a service key leaking into a client component fails the build."
+    ]
+  },
+  "phases": {
+    "version_control": {
+      "status": "complete",
+      "repo_path": "/mnt/user-data/outputs/metheues",
+      "bundle": "/mnt/user-data/outputs/metheues.bundle",
+      "branch": "main",
+      "head": "40dfcc3",
+      "commits": [
+        "17e3071 Add the database schema, RLS and integrity functions",
+        "fcd256a Revoke public EXECUTE on the SECURITY DEFINER functions",
+        "8e24b1e Generate order and return numbers from sequences",
+        "3c99772 Add the design tokens exported from the Figma file",
+        "60101a9 Add the Supabase clients and money helpers",
+        "df0da48 Add POST /api/checkout",
+        "4fcbe4b Add the Stripe webhook handler",
+        "df2fce8 Record what is not built yet in the README",
+        "0565f51 Add rate limiting, counted in Postgres rather than in memory",
+        "8228b30 Add guest order lookup",
+        "4d7887d Add POST /api/returns",
+        "afb47e6 Seed store_settings, and stop treating a missing row as permission",
+        "40dfcc3 Rate limit checkout, and bring the README up to date"
+      ],
+      "not_pushed_reason": "No gh CLI (proxy returns 403 for cli.github.com) and no credentials. Bundle handed to user to clone and push.",
+      "hazards": [
+        "git in /mnt/user-data/outputs cannot write a bundle directly (Bad file descriptor on pack-objects). Build the bundle in /tmp, then cp it across.",
+        "git refuses to operate in /mnt/attach/outputs without: git config --global --add safe.directory <path>"
+      ]
+    },
+    "server_routes_2": {
+      "status": "complete",
+      "migrations_applied": [
+        "006_rate_limits",
+        "007_request_return",
+        "008_store_settings_seed"
+      ],
+      "routes": [
+        "app/api/orders/lookup/route.ts",
+        "app/api/returns/route.ts"
+      ],
+      "lib": [
+        "lib/rate-limit.ts"
+      ],
+      "verified_against_live_db": [
+        "rate_limit_hit: 7 calls at limit 5 -> true x5 then false x2",
+        "anon/authenticated cannot EXECUTE rate_limit_hit or request_return; service_role can",
+        "request_return happy path -> RET-4400",
+        "request_return raises on: foreign line item, over-quantity, closed window, unpaid order",
+        "after 4 raises, returns table held exactly 1 row (rollback is real)",
+        "window runs from delivered_at: order placed 120d ago, delivered 2d ago, accepted",
+        "all test rows deleted; orders/order_items/returns/return_items/fulfilments/rate_limits back to 0"
+      ],
+      "bugs_found": [
+        "store_settings had zero rows. request_return read NULL return_window_days; now() > ts + make_interval(days=>NULL) is NULL, so the IF never fired = unlimited return window, silently. Seeded in 008 and the function now raises if unset."
+      ],
+      "open_advisor_lints": [
+        "is_owner/is_staff executable by anon+authenticated - reviewed in 004, intentional",
+        "rate_limits + webhook_events RLS enabled with no policy - INFO, intentional",
+        "citext extension in public schema - WARN, pre-existing, not addressed"
+      ],
+      "placeholders_needing_owner_decision": [
+        "return_window_days=30 (UK minimum is 14; policy unreviewed)",
+        "contact_email hello@metheues.com, from_email orders@metheues.com - domain unconfirmed, must be verified in Resend"
+      ]
+    }
+  }
+}
