@@ -1,0 +1,106 @@
+/* Metheues Clothings — design tokens
+   Generated from the Figma file 9SzUlTWGVKOCkAULkbqOsr on 12 September 2026.
+   These values ARE the design. If one changes here, change it in Figma too —
+   there is no sync between the two.
+
+   Two layers, and the distinction matters:
+     Primitives  — the raw palette. Never reference these in a component.
+     Semantic    — what a colour is FOR. Components use only these, so a
+                   palette change lands everywhere at once.
+*/
+
+:root {
+  /* ---- primitives: colour ---- */
+  --mc-black:            #12100E; /* Metheues Black */
+  --mc-espresso:         #2B160F; /* Deep Espresso */
+  --mc-ivory:            #F7F2E8; /* Warm Ivory */
+  --mc-cream:            #FFFDF8; /* Soft Cream */
+  --mc-sand:             #DDD4C7;
+  --mc-stone:            #68635D;
+  --mc-stone-on-dark:    #8A8178; /* see contrast note below */
+  --mc-gold:             #B58A3C; /* Antique Gold — brand accent ONLY */
+  --mc-oxblood:          #6D2633;
+  --mc-forest:           #276749;
+  --mc-red:              #B42318;
+
+  /* ---- semantic: what each colour is for ---- */
+  --mc-bg-page:          var(--mc-ivory);
+  --mc-bg-surface:       var(--mc-cream);
+  --mc-bg-inverse:       var(--mc-black);
+
+  --mc-text-primary:     var(--mc-black);
+  --mc-text-muted:       var(--mc-stone);
+  --mc-text-inverse:     var(--mc-cream);
+  --mc-text-muted-inverse: var(--mc-stone-on-dark);
+
+  --mc-border-default:   var(--mc-sand);
+  --mc-border-strong:    var(--mc-black);
+
+  --mc-action-primary-bg:   var(--mc-black);
+  --mc-action-primary-text: var(--mc-cream);
+
+  --mc-focus-ring:       var(--mc-black);
+  --mc-status-success:   var(--mc-forest);
+  --mc-status-attention: var(--mc-oxblood);
+  --mc-status-error:     var(--mc-red);
+
+  /* ---- spacing ---- */
+  --mc-space-2xs: 4px;
+  --mc-space-xs:  8px;
+  --mc-space-sm:  12px;
+  --mc-space-md:  16px;
+  --mc-space-lg:  24px;
+  --mc-space-xl:  32px;
+  --mc-space-2xl: 48px;
+  --mc-space-3xl: 64px;
+
+  /* ---- radius ---- */
+  --mc-radius-none: 0;
+  --mc-radius-sm:   2px;  /* inputs, tags, image placeholders */
+  --mc-radius-md:   4px;  /* cards and panels */
+  --mc-radius-lg:   8px;
+
+  /* ---- type ---- */
+  --mc-font-display: "Bodoni Moda", Didot, "Times New Roman", serif;
+  --mc-font-body:    "Manrope", ui-sans-serif, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+
+  /* roles as built, not an abstract scale */
+  --mc-type-page-title:    52px; /* 38px at 390 */
+  --mc-type-section:       26px;
+  --mc-type-card-title:    20px;
+  --mc-type-subhead:       17px;
+  --mc-type-body:          15px;
+  --mc-type-body-lead:     16px;
+  --mc-type-meta:          13px;
+  --mc-type-caption:       12px;
+  --mc-type-label:         11px; /* uppercase, letter-spacing 1.2–1.4 */
+  --mc-type-tag:           10px; /* uppercase, letter-spacing 1–1.2 */
+
+  /* ---- layout ---- */
+  --mc-touch-min:    44px; /* every interactive target, no exceptions */
+  --mc-bp-mobile:   390px;
+  --mc-bp-tablet:   768px;
+  --mc-bp-desktop: 1440px;
+
+  /* page gutters used in the designs */
+  --mc-gutter-mobile:  20px;
+  --mc-gutter-tablet:  32px;
+  --mc-gutter-desktop: 48px;
+}
+
+/* CONTRAST — the one pairing that is easy to get wrong.
+   --mc-stone (#68635D) on --mc-black is 3.2:1 and FAILS WCAG AA.
+   Supporting text on any dark ground must use --mc-text-muted-inverse
+   (#8A8178, 4.97:1). This is why the footer and the admin rail use a
+   different muted colour from the rest of the site.
+
+   ACCENT — --mc-gold is a brand accent: the atelier tagline, a policy link,
+   the ADMIN wordmark, the current-item rule in the admin rail. It is never
+   focus, never a warning, never a selected state (MVP §6). Focus is
+   --mc-focus-ring; "needs attention" is --mc-status-attention.
+
+   COLOUR IS NEVER THE ONLY SIGNAL. Every status dot is paired with a word,
+   every error with text, every current nav item with weight and a rule as
+   well as a fill. The designs still read correctly in greyscale — keep it
+   that way.
+*/
