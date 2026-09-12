@@ -3,11 +3,10 @@ import Stripe from 'stripe';
 import { createServiceClient } from '@/lib/supabase/server';
 import { sendTransactionalEmail } from '@/lib/email/send';
 import { buildOrderConfirmationEmail } from '@/lib/email/templates/order-confirmation';
+import { getStripeClient } from '@/lib/stripe/client';
 
 // Node runtime, not edge: the Stripe SDK needs Node crypto to verify signatures.
 export const runtime = 'nodejs';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 export async function POST(req: NextRequest) {
   // ---------------------------------------------------------------------
@@ -23,7 +22,7 @@ export async function POST(req: NextRequest) {
 
   let event: Stripe.Event;
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripeClient().webhooks.constructEvent(
       raw,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!,

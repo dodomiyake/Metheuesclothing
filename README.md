@@ -13,6 +13,8 @@ T-shirt-first storefront and admin, built to the MVP v2.0 specification.
 ```
 supabase/migrations/   schema, RLS, integrity functions
 app/api/               checkout, Stripe webhook, order lookup, returns
+app/layout.tsx, page.tsx   root shell; page.tsx is a placeholder until the
+                           catalogue exists
 lib/                   Supabase clients, money helpers, transactional email
 design/tokens/         CSS and TS tokens exported from Figma
 ```
@@ -24,6 +26,15 @@ npm install
 cp .env.example .env.local   # fill in the server-only keys
 npm run dev
 ```
+
+`npm run build` and `npm run typecheck` both run clean without any secrets
+set — the routes that need them (checkout, the webhook, rate limiting) throw
+their own clear error at request time instead (`SUPABASE_SERVICE_ROLE_KEY is
+not set`, etc.), never at import or build time. Stripe and Resend clients are
+constructed lazily for the same reason: a `new Stripe(...)` at module scope
+used to throw during `next build`'s page-data collection, which happens
+before any request and without .env.local necessarily loaded — see
+`lib/stripe/client.ts` and `lib/email/client.ts`.
 
 The Supabase URL and publishable key are already in `.env.example`. The
 service-role key, Stripe keys and Resend key are not, and must never be

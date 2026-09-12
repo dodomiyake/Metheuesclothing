@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import Stripe from 'stripe';
 import { createServiceClient } from '@/lib/supabase/server';
 import { rateLimit, LIMITS } from '@/lib/rate-limit';
+import { getStripeClient } from '@/lib/stripe/client';
 
 export const runtime = 'nodejs';
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
 /**
  * §12: "Accept only variant ID and quantity during checkout creation."
@@ -126,7 +124,7 @@ export async function POST(req: NextRequest) {
   );
 
   // ---- hand the server's numbers to Stripe ----
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripeClient().checkout.sessions.create({
     mode: 'payment',
     customer_email: email,
     line_items: priced.map((l: any) => ({
