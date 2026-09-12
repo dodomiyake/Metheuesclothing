@@ -14,10 +14,22 @@ import { NextResponse, type NextRequest } from 'next/server';
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+  // Fail open, deliberately -- same reasoning as lib/rate-limit.ts. This
+  // middleware sits in front of nearly every route (the matcher in
+  // middleware.ts excludes only static assets), so a missing or bad env var
+  // here must not take the whole site down, including pages that touch no
+  // Supabase data at all. The cost of failing open is a session that stops
+  // refreshing until it's fixed -- recoverable. A middleware crash is not:
+  // it was a site-wide 500 the one time this shipped without the guard.
+  if (!url || !key) {
+    return supabaseResponse;
+  }
+
+  try {
+    const supabase = createServerClient(url, key, {
       cookies: {
         getAll() {
           return request.cookies.getAll();
@@ -30,11 +42,13 @@ export async function updateSession(request: NextRequest) {
           );
         },
       },
-    },
-  );
+    });
 
-  // Do not remove: this is what actually triggers the refresh.
-  await supabase.auth.getUser();
+    // Do not remove: this is what actually triggers the refresh.
+    await supabase.auth.getUser();
+  } catch {
+    return NextResponse.next({ request });
+  }
 
   return supabaseResponse;
 }
