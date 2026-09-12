@@ -44,3 +44,26 @@ because a constraint cannot be forgotten in a refactor:
   quantities. Nothing priceable comes from the browser.
 
 Each is verified, not assumed — see `supabase/migrations/README.md`.
+
+## What is not here yet
+
+Code still to write:
+
+- `POST /api/returns`
+- Guest order lookup — must take order number **and** email, run through a
+  server route on the service role, and be rate limited. There is deliberately
+  no RLS policy for it: a policy matching on email alone would let anyone who
+  guesses an address read that customer's orders. See the note in
+  `supabase/migrations/002_rls.sql`.
+- Resend wiring for the nine templates. E3 (order confirmation) goes where the
+  TODO sits in the webhook handler.
+- Rate limiting on checkout and on auth.
+- The catalogue, product, bag and account pages themselves.
+
+Not code, and blocking launch rather than blocking development:
+
+- Product photography.
+- Verified garment measurements per §8.5. The size tables in the design are
+  placeholders and must not ship as-is.
+- Real delivery rates, and confirmation of the £150 free-delivery threshold.
+- Legal review of the privacy and returns copy.
