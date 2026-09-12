@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import Stripe from 'stripe';
 import { createServiceClient } from '@/lib/supabase/server';
+import { rateLimit, LIMITS } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -33,6 +34,12 @@ const CheckoutRequest = z
   .strict();
 
 export async function POST(req: NextRequest) {
+  // Generous on purpose. Someone whose card is declined twice and who retries is
+  // a customer, not an attacker; the thing being limited here is a script
+  // creating hundreds of pending orders and Stripe sessions.
+  const limited = await rateLimit(req, 'checkout', LIMITS.checkout);
+  if (limited) return limited;
+
   const parsed = CheckoutRequest.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });

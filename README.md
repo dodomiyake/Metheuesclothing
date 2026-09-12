@@ -12,7 +12,7 @@ T-shirt-first storefront and admin, built to the MVP v2.0 specification.
 
 ```
 supabase/migrations/   schema, RLS, integrity functions
-app/api/               checkout and Stripe webhook
+app/api/               checkout, Stripe webhook, order lookup, returns
 lib/                   Supabase clients, money helpers
 design/tokens/         CSS and TS tokens exported from Figma
 ```
@@ -43,21 +43,26 @@ because a constraint cannot be forgotten in a refactor:
 - **Price is server-authoritative** — `price_cart()` accepts only variant IDs and
   quantities. Nothing priceable comes from the browser.
 
+Two more the same way:
+
+- **A guest proves order number and email together** — there is no RLS policy
+  that would let either alone identify a customer, and every failure returns one
+  identical message so the endpoint cannot be used to enumerate order numbers.
+- **A return is all-or-nothing** — `request_return()` validates and inserts in
+  one transaction, so a rejected line cannot leave an empty return behind.
+
 Each is verified, not assumed — see `supabase/migrations/README.md`.
 
 ## What is not here yet
 
 Code still to write:
 
-- `POST /api/returns`
-- Guest order lookup — must take order number **and** email, run through a
-  server route on the service role, and be rate limited. There is deliberately
-  no RLS policy for it: a policy matching on email alone would let anyone who
-  guesses an address read that customer's orders. See the note in
-  `supabase/migrations/002_rls.sql`.
 - Resend wiring for the nine templates. E3 (order confirmation) goes where the
   TODO sits in the webhook handler.
-- Rate limiting on checkout and on auth.
+- Rate limiting on the auth routes. Checkout, order lookup and returns already
+  have it; the budgets live in `LIMITS` in `lib/rate-limit.ts`.
+- The admin side of returns: receiving, approving or rejecting, and the restock
+  decision. `return_items.restock` stays false until a human sets it.
 - The catalogue, product, bag and account pages themselves.
 
 Not code, and blocking launch rather than blocking development:
