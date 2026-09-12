@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/server';
 import { rateLimit, LIMITS } from '@/lib/rate-limit';
+import { sendTransactionalEmail } from '@/lib/email/send';
+import { buildReturnReceivedEmail } from '@/lib/email/templates/return-received';
 
 export const runtime = 'nodejs';
 
@@ -63,7 +65,7 @@ export async function POST(req: NextRequest) {
   // thing standing between a guessed order number and a stranger's return.
   const { data: order } = await db
     .from('orders')
-    .select('id')
+    .select('id, order_number')
     .eq('order_number', order_number)
     .eq('email', email)
     .maybeSingle();
@@ -100,9 +102,52 @@ export async function POST(req: NextRequest) {
 
   const created = Array.isArray(data) ? data[0] : data;
 
-  // Return labels are deferred (§ "Automatic return labels are deferred"), so
-  // there is no label URL here yet. The customer gets the number and the
-  // instructions; E6 is the email that carries the address to post it to.
+  // E6 return request received. Labels are deferred (see request_return's
+  // comment), so this cannot carry a return address — it says a human will
+  // follow up, which is true, instead of printing one that would not be.
+  const { data: returnItems } = await db
+    .from('return_items')
+    .select('quantity, reason, order_items(product_name, colour, size)')
+    .eq('return_id', created.return_id);
+
+  const { data: settings } = await db
+    .from('store_settings')
+    .select('contact_email')
+    .single();
+
+  if (returnItems && settings) {
+    const confirmationEmail = buildReturnReceivedEmail(
+      order,
+      created,
+      returnItems.map((ri: any) => ({
+        quantity: ri.quantity,
+        reason: ri.reason,
+        product_name: ri.order_items.product_name,
+        colour: ri.order_items.colour,
+        size: ri.order_items.size,
+      })),
+      settings.contact_email,
+    );
+    await sendTransactionalEmail(db, {
+      template: 'E6 return request received',
+      to: email,
+      subject: confirmationEmail.subject,
+      html: confirmationEmail.html,
+      text: confirmationEmail.text,
+      entityType: 'return',
+      entityId: created.return_id,
+    });
+  } else {
+    await db.from('audit_logs').insert({
+      actor_label: 'System',
+      action: 'email_delivery_failed',
+      entity_type: 'return',
+      entity_id: created.return_id,
+      summary:
+        'E6 return request received not sent: could not load return items or store_settings.',
+    });
+  }
+
   return NextResponse.json(
     { return_number: created.return_number, status: 'requested' },
     { status: 201 },

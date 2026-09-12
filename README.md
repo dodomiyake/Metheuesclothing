@@ -57,9 +57,10 @@ Each is verified, not assumed — see `supabase/migrations/README.md`.
 
 Code still to write:
 
-- Resend wiring for the remaining eight templates. E3 (order confirmation) is
-  built and sends from the webhook handler; `lib/email/layout.ts` has the
-  shared chrome the other eight should reuse rather than duplicate.
+- Resend wiring for the remaining seven templates. E3 (order confirmation)
+  and E6 (return request received) are built and wired into the webhook and
+  `POST /api/returns`; `lib/email/layout.ts` has the shared chrome the rest
+  should reuse rather than duplicate.
 - Rate limiting on the auth routes. Checkout, order lookup and returns already
   have it; the budgets live in `LIMITS` in `lib/rate-limit.ts`.
 - The admin side of returns: receiving, approving or rejecting, and the restock
