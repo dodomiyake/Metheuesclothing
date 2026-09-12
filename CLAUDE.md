@@ -67,20 +67,33 @@ Worth reading before repeating them.
 
 ## State
 
-Done: schema + RLS + integrity functions (migrations 001–008, all applied),
+Done: schema + RLS + integrity functions (migrations 001–009, all applied),
 checkout, Stripe webhook, guest order lookup, returns, rate limiting, design
-tokens, E3 order confirmation and E6 return request received emails. The §18
-guarantees were verified against the live database rather than assumed — see
-`supabase/migrations/README.md`.
+tokens, E3 order confirmation and E6 return request received emails, the
+Next.js scaffold (it never existed as a committed package.json until now —
+see the "scaffold" commit), and auth — register, sign in/out, forgot/reset
+password, all rate limited, all under `app/(auth)/` and `app/api/auth/`.
+Migration 009 added the `handle_new_user` trigger profiles always needed and
+never had; see its comment for why that was the same class of bug as
+store_settings having no row. The §18 guarantees were verified against the
+live database rather than assumed — see `supabase/migrations/README.md`
+(stale as of 003 — it predates 004–009 and is due a rewrite, not a launch
+blocker).
 
 Next: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
-Most need a caller that does not exist yet: E1/E2 need auth routes, E4/E5/E7
-need the admin order actions (dispatch, cancel), E8 needs the admin refund
-action, E9 needs the admin return decision — build the template alongside the
-route that triggers it, the way E3 and E6 went in, rather than ahead of it.
-Also still open: auth rate limiting, and the catalogue, product, bag and
-account pages.
+E1/E2 (verify email, password reset) now have a caller — Supabase Auth sends
+its own default email today; routing that through our Resend templates
+instead needs a Supabase Auth "send email" hook, a dashboard-level setting,
+not application code — flag it for the owner rather than guessing at hook
+config against the live project. E4/E5/E7 need the admin order actions
+(dispatch, cancel), E8 needs the admin refund action, E9 needs the admin
+return decision — build each template alongside the route that triggers it,
+the way E3 and E6 went in. Also still open: the admin side of returns (the
+E7-vs-"Return approved" naming in design-system-state.json's own decisions
+list doesn't match its own id map — worth confirming with the design owner
+before building the approve/reject function, not guessing), and the
+catalogue, product, bag and account pages.
 
 Blocked on the owner, not on code: photography, verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real

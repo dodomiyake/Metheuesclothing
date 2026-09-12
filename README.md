@@ -12,10 +12,13 @@ T-shirt-first storefront and admin, built to the MVP v2.0 specification.
 
 ```
 supabase/migrations/   schema, RLS, integrity functions
-app/api/               checkout, Stripe webhook, order lookup, returns
+app/api/               checkout, Stripe webhook, order lookup, returns, auth
+app/(auth)/            sign in, register, forgot/reset password — 460px card
+app/auth/callback/     lands every emailed auth link, exchanges its code
 app/layout.tsx, page.tsx   root shell; page.tsx is a placeholder until the
                            catalogue exists
 lib/                   Supabase clients, money helpers, transactional email
+middleware.ts           refreshes the Supabase session cookie every request
 design/tokens/         CSS and TS tokens exported from Figma
 ```
 
@@ -71,12 +74,16 @@ Code still to write:
 - Resend wiring for the remaining seven templates. E3 (order confirmation)
   and E6 (return request received) are built and wired into the webhook and
   `POST /api/returns`; `lib/email/layout.ts` has the shared chrome the rest
-  should reuse rather than duplicate.
-- Rate limiting on the auth routes. Checkout, order lookup and returns already
-  have it; the budgets live in `LIMITS` in `lib/rate-limit.ts`.
+  should reuse rather than duplicate. E1 (verify email) and E2 (password
+  reset) still send as Supabase Auth's own default email, not our branded
+  template — redirecting those through Resend needs a Supabase Auth "send
+  email" hook, which is a project-level setting only the Supabase dashboard
+  can turn on, not something further application code unlocks.
 - The admin side of returns: receiving, approving or rejecting, and the restock
   decision. `return_items.restock` stays false until a human sets it.
-- The catalogue, product, bag and account pages themselves.
+- The catalogue, product, bag and account pages themselves. Auth (register,
+  sign in/out, forgot/reset password) is built — `app/(auth)/` and
+  `app/api/auth/`, rate limited the same way checkout and returns are.
 
 Not code, and blocking launch rather than blocking development:
 

@@ -74,4 +74,9 @@ export const LIMITS = {
   orderLookup: { limit: 5, windowSeconds: 300 },
   returns: { limit: 5, windowSeconds: 300 },
   newsletter: { limit: 3, windowSeconds: 3600 },
+  /** Tight, and keyed by email as well as IP (rateLimit's extraKey) — a
+   * guessable credential check, same reasoning as orderLookup. */
+  signIn: { limit: 8, windowSeconds: 300 },
+  register: { limit: 5, windowSeconds: 3600 },
+  passwordReset: { limit: 5, windowSeconds: 3600 },
 } as const;
