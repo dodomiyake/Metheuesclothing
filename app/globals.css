@@ -135,6 +135,82 @@ svg {
   }
 }
 
+/* ---- shop listing: persistent rail at desktop, a discovery bar +
+   full-screen filter sheet below it (03A/B/C, 03D — the tablet screen
+   uses the same discovery-bar-and-sheet pattern as mobile, not a shrunk
+   rail) ---- */
+.mc-shop-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.mc-filter-rail {
+  display: none;
+}
+.mc-discovery-bar {
+  display: flex;
+}
+@media (min-width: 1440px) {
+  .mc-shop-layout {
+    flex-direction: row;
+    gap: var(--mc-space-2xl);
+  }
+  .mc-filter-rail {
+    display: flex;
+  }
+  .mc-discovery-bar {
+    display: none;
+  }
+}
+
+.mc-filter-sheet {
+  display: none;
+}
+.mc-filter-sheet[data-open='true'] {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  inset: 0;
+  background: var(--mc-bg-page);
+  z-index: 30;
+  overflow-y: auto;
+}
+@media (min-width: 1440px) {
+  /* Rail replaces the sheet at desktop -- never show it here, even if it
+     was left open from a narrower viewport before a resize. */
+  .mc-filter-sheet {
+    display: none !important;
+  }
+}
+
+.mc-desktop-sort {
+  display: none;
+}
+@media (min-width: 1440px) {
+  .mc-desktop-sort {
+    display: flex;
+  }
+}
+
+.mc-product-grid-shop {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px 12px;
+  width: 100%;
+}
+@media (min-width: 600px) {
+  .mc-product-grid-shop {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 40px 20px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-product-grid-shop {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 48px 24px;
+  }
+}
+
 /* ---- product detail: single column until there's room for two ---- */
 .mc-product-grid {
   display: grid;

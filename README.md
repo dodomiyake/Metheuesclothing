@@ -100,20 +100,32 @@ Code still to write:
   `app/(site)/(auth)/` and `app/api/auth/`, rate limited the same way
   checkout and returns are, including the resend-with-cooldown pattern
   from 27/28's design states.
-- The catalogue and bag (`app/(site)/shop/`, `app/(site)/bag/`) are built
-  but were **not** checked against their real Figma screens the way the
-  auth cluster now is — they're still the earlier, token-styled
-  approximation (no header/footer chrome beyond what `app/(site)/layout.tsx`
-  now wraps everything in, no filters/sorting/search, no image gallery,
-  add-to-bag as inline text rather than a side panel/bottom sheet, cart as
-  localStorage rather than server-side). Every price the bag shows is
-  re-fetched from `product_variants` on load and is still only a display
-  convenience — `POST /api/checkout` reprices from `price_cart()`
-  regardless of what the browser sent, same as always. `app/(site)/
-  track-order/` is in the same state: functional, wired to real routes
-  (`POST /api/orders/lookup`, `POST /api/returns`), not yet checked
-  against its actual Figma screens (12 Orders / 13 Order Detail /
-  14-17 Returns).
+- The shop listing (`app/(site)/shop/page.tsx`) is now matched against
+  the real screens (03A/B/C, node 51:531/50:406/47:287) rather than the
+  earlier token-styled approximation: breadcrumb, a persistent filter rail
+  at 1440px+ and a discovery-bar-and-sheet pattern below it (03D, node
+  53:674), removable active-filter chips, sort, and New/Limited
+  Edition/Low stock/Sold out labels on the product card. Every filter is
+  real — Size/Colour read `product_variants`, Fit reads `products.fit`,
+  Collection reads `product_collections`/`collections` (empty today, so
+  that group renders nothing rather than fake options), Availability is
+  `stock_quantity > 0`. The design's "Design style" filter group
+  (Graphic/Essential/Limited) has no backing column anywhere in the
+  schema and is deliberately omitted rather than faked. Colour swatches
+  are small flat-colour dots keyed by colour name, not the real exported
+  asset — same network-block caveat as `components/site/icons.tsx`.
+  Product detail (`app/(site)/shop/[slug]/`) and the bag
+  (`app/(site)/bag/`) have not had this pass yet — still no image
+  gallery, add-to-bag as inline text rather than a side panel/bottom
+  sheet, cart as localStorage rather than server-side. Every price the
+  bag shows is re-fetched from `product_variants` on load and is still
+  only a display convenience — `POST /api/checkout` reprices from
+  `price_cart()` regardless of what the browser sent, same as always.
+  `app/(site)/track-order/` is in the same state: functional, wired to
+  real routes (`POST /api/orders/lookup`, `POST /api/returns`), not yet
+  checked against its actual Figma screens (12 Orders / 13 Order Detail /
+  14-17 Returns — those are the signed-in account version; a guest-lookup
+  equivalent may not exist as its own Figma screen at all).
 - The site header/footer/announcement bar (`components/site/`) are matched
   to Figma nodes 10:2 / 21:66 / 24:2, with one disclosed gap: the search,
   account and bag icons are hand-authored stand-ins, not the real exported

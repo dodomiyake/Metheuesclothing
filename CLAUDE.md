@@ -82,9 +82,9 @@ Worth reading before repeating them.
   not sufficient: they make a page look like it belongs to the system
   without making it the actual screen. `get_design_context` per screen
   (loading `figma-design-to-code` first, per its own gate) is what closed
-  the gap for auth; `app/(site)/shop/`, `app/(site)/bag/` and
-  `app/(site)/track-order/` have not had that pass yet and read as generic
-  because of it.
+  the gap for auth; the shop listing has since had the same pass (see
+  State below) but `app/(site)/shop/[slug]/`, `app/(site)/bag/` and
+  `app/(site)/track-order/` have not and read as generic because of it.
 
 ## State
 
@@ -137,12 +137,18 @@ self-service way to become staff by design (see README) — someone with
 database access has to run one UPDATE on `profiles` before the admin
 screens can be walked through for real.
 
-Next, top of the list: pull the real Figma screens (get_design_context,
-`figma-design-to-code` skill loaded first) for `app/(site)/shop/`,
-`app/(site)/bag/`, `app/(site)/track-order/` and `app/admin/sign-in/` the
-same way the auth cluster just got — those four are still the
-token-styled-but-not-design-matched state the whole codebase was in before
-this pass. Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
+Next: the shop listing (`app/(site)/shop/page.tsx`) has now had the real-Figma
+pass (03A/B/C + the 03D filter sheet, node 51:531/50:406/47:287/53:674) —
+real filters (Size/Colour/Fit/Collection/Availability, all reading actual
+columns; "Design style" omitted, no backing column anywhere), New/Limited
+Edition/Low stock/Sold out derived from real data, a persistent rail at
+1440px+ and the discovery-bar-and-sheet pattern below it. Still pending the
+same treatment: `app/(site)/shop/[slug]/` (product detail, 04A/B/C),
+`app/(site)/bag/` (05A/B/C), `app/(site)/track-order/` (guest lookup — may
+not have its own Figma screen; 12/13/14-17 are the signed-in account
+version) and `app/admin/sign-in/` (A01, node 126:10/32/54). Pull each with
+get_design_context (`figma-design-to-code` skill loaded first) the same way
+shop and auth did. Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
 E1/E2 (verify email, password reset) now have a caller — Supabase Auth sends
 its own default email today; routing that through our Resend templates
