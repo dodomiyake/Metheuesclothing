@@ -9,7 +9,7 @@ export const runtime = 'nodejs';
 const RegisterRequest = z
   .object({
     email: z.string().email(),
-    password: z.string().min(8).max(72),
+    password: z.string().min(10).max(72),
     full_name: z.string().trim().min(1).max(200).optional(),
     marketing_opt_in: z.boolean().optional(),
   })

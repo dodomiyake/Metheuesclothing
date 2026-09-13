@@ -13,15 +13,21 @@ T-shirt-first storefront and admin, built to the MVP v2.0 specification.
 ```
 supabase/migrations/   schema, RLS, integrity functions
 app/api/               checkout, Stripe webhook, order lookup, returns, auth,
-                        admin catalogue writes
-app/(auth)/            sign in, register, forgot/reset password — 460px card
-app/auth/callback/     lands every emailed auth link, exchanges its code
-app/admin/              staff-only: T-shirts, variants/stock, inventory
-app/shop/               product listing and detail — the customer catalogue
-app/bag/                cart (localStorage) through to Stripe Checkout
-app/track-order/        guest order lookup into a return request
-app/layout.tsx, page.tsx   root shell; page.tsx is a placeholder until the
-                           homepage exists
+                        admin catalogue writes, newsletter
+app/(site)/            everything with the storefront header/footer/
+                        announcement bar — home, shop, bag, track-order,
+                        (auth)/*
+app/(site)/(auth)/     sign in, register, forgot/reset password, verify
+                       email — 460px column, matched to the real Figma
+                       screens (10A/10D, 27, 28), not just the design tokens
+app/auth/callback/     lands every emailed auth link, exchanges its code,
+                       routes to the right state (verified/expired) on 27/28
+app/admin/              staff-only: T-shirts, variants/stock, inventory —
+                        its own black-rail chrome, deliberately not
+                        components/site's storefront header/footer
+components/site/       Header, Footer, AnnouncementBar shared by every
+                        app/(site)/ page — see the note in icons.tsx before
+                        assuming those icons are the real Figma exports
 lib/                   Supabase clients, money helpers, transactional email
 lib/admin/              staff-session check, the product/variant zod schema
 lib/bag/                localStorage cart — display only, never priced from
@@ -89,22 +95,32 @@ Code still to write:
 - The admin side of returns: receiving, approving or rejecting, and the restock
   decision. `return_items.restock` stays false until a human sets it.
 - The customer-facing account pages (profile, addresses, signed-in order
-  history — §8.10). Auth (register, sign in/out, forgot/reset password) is
-  built — `app/(auth)/` and `app/api/auth/`, rate limited the same way
-  checkout and returns are. The catalogue and bag are also built
-  (`app/shop/`, `app/bag/`) — reduced fidelity against §8.2/§8.4/§8.7: no
-  filters, sorting or search yet, no image gallery (no photography
-  exists), the add-to-bag confirmation is inline text rather than a side
-  panel/bottom sheet, and the bag's cart is localStorage rather than a
-  server-side bag a customer could pick up on another device. Every price
-  the bag shows is re-fetched from `product_variants` on load and is still
-  only a display convenience — `POST /api/checkout` reprices from
-  `price_cart()` regardless of what the browser sent, same as always.
-  `app/track-order/` is the guest path into the same order data plus a
-  return request (`POST /api/orders/lookup` and `POST /api/returns`, both
-  built since early in this project's history with no page in front of
-  either until now) — no order detail page or tracking-number timeline
-  beyond what fits on this one page yet.
+  history — §8.10). Auth (register, sign in/out, forgot/reset password,
+  email verification) is built and matched to the actual Figma screens —
+  `app/(site)/(auth)/` and `app/api/auth/`, rate limited the same way
+  checkout and returns are, including the resend-with-cooldown pattern
+  from 27/28's design states.
+- The catalogue and bag (`app/(site)/shop/`, `app/(site)/bag/`) are built
+  but were **not** checked against their real Figma screens the way the
+  auth cluster now is — they're still the earlier, token-styled
+  approximation (no header/footer chrome beyond what `app/(site)/layout.tsx`
+  now wraps everything in, no filters/sorting/search, no image gallery,
+  add-to-bag as inline text rather than a side panel/bottom sheet, cart as
+  localStorage rather than server-side). Every price the bag shows is
+  re-fetched from `product_variants` on load and is still only a display
+  convenience — `POST /api/checkout` reprices from `price_cart()`
+  regardless of what the browser sent, same as always. `app/(site)/
+  track-order/` is in the same state: functional, wired to real routes
+  (`POST /api/orders/lookup`, `POST /api/returns`), not yet checked
+  against its actual Figma screens (12 Orders / 13 Order Detail /
+  14-17 Returns).
+- The site header/footer/announcement bar (`components/site/`) are matched
+  to Figma nodes 10:2 / 21:66 / 24:2, with one disclosed gap: the search,
+  account and bag icons are hand-authored stand-ins, not the real exported
+  assets — this sandbox's network egress blocks www.figma.com from every
+  tool that could fetch them (curl, WebFetch, `download_assets` all hit the
+  same wall the Supabase work did all session). See the comment in
+  `components/site/icons.tsx`.
 - Admin: T-shirts (create/edit), colours/sizes/stock and a read-only
   inventory view are built (A03, A04 MVP subset, A06, A07, A08) —
   `app/admin/`. Not built: the dashboard (A02), collections (A09/A10), the

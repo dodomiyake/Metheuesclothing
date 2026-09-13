@@ -75,6 +75,16 @@ Worth reading before repeating them.
   `app/shop/`, `app/bag/` and `app/admin/` now checks `error` and throws
   rather than falling through to the empty-state branch; `notFound()` is
   only called when `error` is absent AND the row is genuinely missing.
+- The auth screens were built styled with the design tokens (right colours,
+  right fonts, right spacing) but without ever pulling the actual Figma
+  layouts — no site header, no footer, no announcement bar, thinner copy,
+  a bordered-card treatment the design doesn't use. Tokens are necessary,
+  not sufficient: they make a page look like it belongs to the system
+  without making it the actual screen. `get_design_context` per screen
+  (loading `figma-design-to-code` first, per its own gate) is what closed
+  the gap for auth; `app/(site)/shop/`, `app/(site)/bag/` and
+  `app/(site)/track-order/` have not had that pass yet and read as generic
+  because of it.
 
 ## State
 
@@ -83,15 +93,24 @@ checkout, Stripe webhook, guest order lookup, returns, rate limiting, design
 tokens, E3 order confirmation and E6 return request received emails, the
 Next.js scaffold (it never existed as a committed package.json until now —
 see the "scaffold" commit), auth — register, sign in/out, forgot/reset
-password, all rate limited, all under `app/(auth)/` and `app/api/auth/` —
-the admin catalogue MVP under `app/admin/`: T-shirts create/edit, colours/
-sizes/stock (A06+A08 combined into one page), and a read-only inventory view
-(A07) — the customer catalogue/bag under `app/shop/` and `app/bag/`,
-closing the loop from browsing to the checkout route that existed for
-months with no UI in front of it — and `app/track-order/`, doing the same
-for guest order lookup and return requests (POST /api/orders/lookup and
-POST /api/returns were both built early in this project's history and had
-no page calling either until now). Migration 009 added the `handle_new_user`
+password, email verification, all rate limited, matched against the real
+Figma screens (10A Sign In, 10D Create Account, 27 Password reset, 28 Email
+verification — all under `app/(site)/(auth)/` and `app/api/auth/`) rather
+than just styled with tokens, the admin catalogue MVP under `app/admin/`:
+T-shirts create/edit, colours/sizes/stock (A06+A08 combined into one page),
+and a read-only inventory view (A07) — the customer catalogue/bag under
+`app/(site)/shop/` and `app/(site)/bag/`, closing the loop from browsing to
+the checkout route that existed for months with no UI in front of it — and
+`app/(site)/track-order/`, doing the same for guest order lookup and return
+requests (POST /api/orders/lookup and POST /api/returns were both built
+early in this project's history and had no page calling either until now).
+The shop/bag/track-order pages have NOT had the same real-Figma pass the
+auth cluster just got — see "Things that have already gone wrong" above.
+Also added: `components/site/` (Header, Footer, AnnouncementBar, shared by
+every `app/(site)/` page — matched to Figma nodes 10:2/21:66/24:2, icons
+excepted, see icons.tsx), and `POST /api/newsletter` wiring up
+`LIMITS.newsletter`, which had sat unused in lib/rate-limit.ts since it was
+first written. Migration 009 added the `handle_new_user`
 trigger profiles always needed and never had; migration 010 added
 `adjust_stock()`, the SECURITY DEFINER function manual stock changes go
 through, for the same reason 002_rls.sql gives staff no INSERT policy on
@@ -118,7 +137,12 @@ self-service way to become staff by design (see README) — someone with
 database access has to run one UPDATE on `profiles` before the admin
 screens can be walked through for real.
 
-Next: the remaining seven Resend templates (`lib/email/layout.ts` has the
+Next, top of the list: pull the real Figma screens (get_design_context,
+`figma-design-to-code` skill loaded first) for `app/(site)/shop/`,
+`app/(site)/bag/`, `app/(site)/track-order/` and `app/admin/sign-in/` the
+same way the auth cluster just got — those four are still the
+token-styled-but-not-design-matched state the whole codebase was in before
+this pass. Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
 E1/E2 (verify email, password reset) now have a caller — Supabase Auth sends
 its own default email today; routing that through our Resend templates

@@ -4,7 +4,7 @@ import { createRouteHandlerClient } from '@/lib/supabase/route-handler';
 
 export const runtime = 'nodejs';
 
-const ResetPasswordRequest = z.object({ password: z.string().min(8).max(72) }).strict();
+const ResetPasswordRequest = z.object({ password: z.string().min(10).max(72) }).strict();
 
 export async function POST(req: NextRequest) {
   const parsed = ResetPasswordRequest.safeParse(await req.json().catch(() => null));
