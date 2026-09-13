@@ -24,10 +24,12 @@ export function Footer() {
 
   return (
     <footer
+      className="mc-page-gutter"
       style={{
         background: 'var(--mc-bg-inverse)',
         color: 'var(--mc-text-muted-inverse)',
-        padding: '64px var(--mc-gutter-desktop) 32px',
+        paddingTop: 48,
+        paddingBottom: 32,
         fontFamily: 'var(--mc-font-body)',
       }}
     >
@@ -81,7 +83,7 @@ export function Footer() {
         )}
       </div>
 
-      <div style={{ display: 'flex', gap: 64, marginBottom: 48, flexWrap: 'wrap' }}>
+      <div className="mc-footer-columns" style={{ marginBottom: 48 }}>
         <FooterColumn
           title="Shop"
           links={[
@@ -119,7 +121,7 @@ export function Footer() {
         />
       </div>
 
-      <div style={{ display: 'flex', gap: 24, fontSize: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24 }}>
+      <div className="mc-footer-bottom" style={{ fontSize: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24 }}>
         <p style={{ flex: 1, margin: 0 }}>
           © 2026 Metheues Clothings · Registered in England and Wales · VAT registered
         </p>

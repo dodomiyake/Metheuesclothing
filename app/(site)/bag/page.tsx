@@ -107,7 +107,7 @@ export default function BagPage() {
 
   if (cart.length === 0) {
     return (
-      <main style={{ padding: 'var(--mc-space-xl) var(--mc-gutter-desktop)', fontFamily: 'var(--mc-font-body)' }}>
+      <main className="mc-page-gutter" style={{ paddingTop: 'var(--mc-space-xl)', paddingBottom: 'var(--mc-space-xl)', fontFamily: 'var(--mc-font-body)' }}>
         <h1 style={{ fontFamily: 'var(--mc-font-display)', fontSize: 'var(--mc-type-page-title)' }}>Bag</h1>
         <p style={{ color: 'var(--mc-text-muted)' }}>
           Your bag is empty. <Link href="/shop" style={{ color: 'var(--mc-text-primary)' }}>Continue shopping</Link>.
@@ -118,8 +118,10 @@ export default function BagPage() {
 
   return (
     <main
+      className="mc-page-gutter"
       style={{
-        padding: 'var(--mc-space-xl) var(--mc-gutter-desktop)',
+        paddingTop: 'var(--mc-space-xl)',
+        paddingBottom: 'var(--mc-space-xl)',
         fontFamily: 'var(--mc-font-body)',
         maxWidth: 720,
       }}

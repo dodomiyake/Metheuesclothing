@@ -53,7 +53,7 @@ export default async function ShopPage() {
   }
 
   return (
-    <main style={{ padding: 'var(--mc-space-xl) var(--mc-gutter-desktop)', fontFamily: 'var(--mc-font-body)' }}>
+    <main className="mc-page-gutter" style={{ paddingTop: 'var(--mc-space-xl)', paddingBottom: 'var(--mc-space-xl)', fontFamily: 'var(--mc-font-body)' }}>
       <h1 style={{ fontFamily: 'var(--mc-font-display)', fontSize: 'var(--mc-type-page-title)' }}>
         Shop
       </h1>

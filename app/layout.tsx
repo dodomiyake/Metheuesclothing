@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Bodoni_Moda, Manrope } from 'next/font/google';
 import '../design/tokens/tokens.css';
+import './globals.css';
 
 /**
  * design/tokens/tokens.css names Bodoni Moda and Manrope, but naming a

@@ -19,8 +19,10 @@ export default async function OrderConfirmationPage({
 
   return (
     <main
+      className="mc-page-gutter"
       style={{
-        padding: 'var(--mc-space-3xl) var(--mc-gutter-desktop)',
+        paddingTop: 'var(--mc-space-3xl)',
+        paddingBottom: 'var(--mc-space-3xl)',
         fontFamily: 'var(--mc-font-body)',
         maxWidth: 640,
         margin: '0 auto',

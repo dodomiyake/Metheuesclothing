@@ -39,11 +39,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
   return (
     <main
+      className="mc-page-gutter mc-product-grid"
       style={{
-        padding: 'var(--mc-space-xl) var(--mc-gutter-desktop)',
-        display: 'grid',
-        gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)',
-        gap: 'var(--mc-space-2xl)',
+        paddingTop: 'var(--mc-space-xl)',
+        paddingBottom: 'var(--mc-space-xl)',
         fontFamily: 'var(--mc-font-body)',
       }}
     >

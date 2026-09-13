@@ -1,0 +1,169 @@
+/* Base reset + the responsive behaviour nothing in this codebase had until
+   now: every page and every shared component (header, footer, announcement
+   bar) was built with fixed desktop-only inline styles -- a hardcoded
+   var(--mc-gutter-desktop) everywhere, and the header's nav+logo+icon row
+   with no wrap and no shrink allowance. Its intrinsic minimum width (~600px+
+   once you add up four unwrapping nav items, a non-shrinking wordmark and
+   three 44px icon buttons) is wider than a 390px phone, so the whole
+   document overflowed horizontally on every single page -- not just the
+   header looked wrong, everything below it did too, pushed into that same
+   too-wide box with a blank void down the right side of the viewport.
+   design/tokens/tokens.css has always defined --mc-gutter-mobile (20px) and
+   --mc-gutter-tablet (32px) for exactly this; nothing ever referenced them
+   until this file. */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  max-width: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+/* ---- page gutter -- replaces every hardcoded var(--mc-gutter-desktop) ---- */
+.mc-page-gutter {
+  padding-left: var(--mc-gutter-mobile);
+  padding-right: var(--mc-gutter-mobile);
+}
+@media (min-width: 768px) {
+  .mc-page-gutter {
+    padding-left: var(--mc-gutter-tablet);
+    padding-right: var(--mc-gutter-tablet);
+  }
+}
+@media (min-width: 1440px) {
+  .mc-page-gutter {
+    padding-left: var(--mc-gutter-desktop);
+    padding-right: var(--mc-gutter-desktop);
+  }
+}
+
+/* ---- header ---- */
+.mc-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--mc-space-sm);
+}
+
+.mc-nav-toggle {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--mc-text-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+@media (min-width: 768px) {
+  .mc-nav-toggle {
+    display: none;
+  }
+}
+
+.mc-header-nav {
+  display: none;
+}
+.mc-header-nav[data-open='true'] {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--mc-bg-page);
+  border-bottom: 1px solid var(--mc-border-default);
+  padding: var(--mc-space-sm) var(--mc-gutter-mobile) var(--mc-space-md);
+  gap: var(--mc-space-md);
+  z-index: 20;
+}
+@media (min-width: 768px) {
+  .mc-header-nav {
+    display: flex !important;
+    position: static;
+    flex-direction: row;
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 0;
+    gap: var(--mc-space-md);
+    white-space: nowrap;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-header-nav {
+    gap: var(--mc-space-lg);
+  }
+}
+
+.mc-header-logo {
+  flex-shrink: 0;
+}
+
+.mc-header-icons {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+@media (min-width: 768px) {
+  .mc-header-icons {
+    flex: 1;
+  }
+}
+
+/* ---- product detail: single column until there's room for two ---- */
+.mc-product-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--mc-space-xl);
+}
+@media (min-width: 768px) {
+  .mc-product-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--mc-space-2xl);
+  }
+}
+
+/* ---- footer ---- */
+.mc-footer-columns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mc-space-lg);
+}
+@media (min-width: 600px) {
+  .mc-footer-columns {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--mc-space-2xl);
+  }
+}
+
+.mc-footer-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mc-space-xs);
+}
+@media (min-width: 600px) {
+  .mc-footer-bottom {
+    flex-direction: row;
+    gap: var(--mc-space-lg);
+  }
+}

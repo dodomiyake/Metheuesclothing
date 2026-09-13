@@ -95,7 +95,7 @@ export default function TrackOrderPage() {
 
   if (!order) {
     return (
-      <main style={{ padding: 'var(--mc-space-xl) var(--mc-gutter-desktop)', fontFamily: 'var(--mc-font-body)', maxWidth: 480 }}>
+      <main className="mc-page-gutter" style={{ paddingTop: 'var(--mc-space-xl)', paddingBottom: 'var(--mc-space-xl)', fontFamily: 'var(--mc-font-body)', maxWidth: 480 }}>
         <h1 style={{ fontFamily: 'var(--mc-font-display)', fontSize: 'var(--mc-type-page-title)' }}>
           Track your order
         </h1>
@@ -134,7 +134,7 @@ export default function TrackOrderPage() {
   }
 
   return (
-    <main style={{ padding: 'var(--mc-space-xl) var(--mc-gutter-desktop)', fontFamily: 'var(--mc-font-body)', maxWidth: 720 }}>
+    <main className="mc-page-gutter" style={{ paddingTop: 'var(--mc-space-xl)', paddingBottom: 'var(--mc-space-xl)', fontFamily: 'var(--mc-font-body)', maxWidth: 720 }}>
       <h1 style={{ fontFamily: 'var(--mc-font-display)', fontSize: 'var(--mc-type-page-title)' }}>
         Order {order.order_number}
       </h1>

@@ -7,10 +7,12 @@
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <main
+      className="mc-page-gutter"
       style={{
         display: 'flex',
         justifyContent: 'center',
-        padding: '56px var(--mc-gutter-desktop) 72px',
+        paddingTop: 56,
+        paddingBottom: 72,
         background: 'var(--mc-bg-page)',
       }}
     >
