@@ -19,6 +19,7 @@ app/auth/callback/     lands every emailed auth link, exchanges its code
 app/admin/              staff-only: T-shirts, variants/stock, inventory
 app/shop/               product listing and detail — the customer catalogue
 app/bag/                cart (localStorage) through to Stripe Checkout
+app/track-order/        guest order lookup into a return request
 app/layout.tsx, page.tsx   root shell; page.tsx is a placeholder until the
                            homepage exists
 lib/                   Supabase clients, money helpers, transactional email
@@ -87,18 +88,23 @@ Code still to write:
   can turn on, not something further application code unlocks.
 - The admin side of returns: receiving, approving or rejecting, and the restock
   decision. `return_items.restock` stays false until a human sets it.
-- The customer-facing account pages (profile, addresses, order history).
-  Auth (register, sign in/out, forgot/reset password) is built —
-  `app/(auth)/` and `app/api/auth/`, rate limited the same way checkout and
-  returns are. The catalogue and bag are also built (`app/shop/`,
-  `app/bag/`) — reduced fidelity against §8.2/§8.4/§8.7: no filters,
-  sorting or search yet, no image gallery (no photography exists), the
-  add-to-bag confirmation is inline text rather than a side panel/bottom
-  sheet, and the bag's cart is localStorage rather than a server-side bag
-  a customer could pick up on another device. Every price the bag shows is
-  re-fetched from `product_variants` on load and is still only a display
-  convenience — `POST /api/checkout` reprices from `price_cart()` regardless
-  of what the browser sent, same as always.
+- The customer-facing account pages (profile, addresses, signed-in order
+  history — §8.10). Auth (register, sign in/out, forgot/reset password) is
+  built — `app/(auth)/` and `app/api/auth/`, rate limited the same way
+  checkout and returns are. The catalogue and bag are also built
+  (`app/shop/`, `app/bag/`) — reduced fidelity against §8.2/§8.4/§8.7: no
+  filters, sorting or search yet, no image gallery (no photography
+  exists), the add-to-bag confirmation is inline text rather than a side
+  panel/bottom sheet, and the bag's cart is localStorage rather than a
+  server-side bag a customer could pick up on another device. Every price
+  the bag shows is re-fetched from `product_variants` on load and is still
+  only a display convenience — `POST /api/checkout` reprices from
+  `price_cart()` regardless of what the browser sent, same as always.
+  `app/track-order/` is the guest path into the same order data plus a
+  return request (`POST /api/orders/lookup` and `POST /api/returns`, both
+  built since early in this project's history with no page in front of
+  either until now) — no order detail page or tracking-number timeline
+  beyond what fits on this one page yet.
 - Admin: T-shirts (create/edit), colours/sizes/stock and a read-only
   inventory view are built (A03, A04 MVP subset, A06, A07, A08) —
   `app/admin/`. Not built: the dashboard (A02), collections (A09/A10), the

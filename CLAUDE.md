@@ -86,9 +86,12 @@ see the "scaffold" commit), auth — register, sign in/out, forgot/reset
 password, all rate limited, all under `app/(auth)/` and `app/api/auth/` —
 the admin catalogue MVP under `app/admin/`: T-shirts create/edit, colours/
 sizes/stock (A06+A08 combined into one page), and a read-only inventory view
-(A07) — and the customer catalogue/bag under `app/shop/` and `app/bag/`,
+(A07) — the customer catalogue/bag under `app/shop/` and `app/bag/`,
 closing the loop from browsing to the checkout route that existed for
-months with no UI in front of it. Migration 009 added the `handle_new_user`
+months with no UI in front of it — and `app/track-order/`, doing the same
+for guest order lookup and return requests (POST /api/orders/lookup and
+POST /api/returns were both built early in this project's history and had
+no page calling either until now). Migration 009 added the `handle_new_user`
 trigger profiles always needed and never had; migration 010 added
 `adjust_stock()`, the SECURITY DEFINER function manual stock changes go
 through, for the same reason 002_rls.sql gives staff no INSERT policy on
@@ -130,10 +133,13 @@ list doesn't match its own id map — worth confirming with the design owner
 before building the approve/reject function, not guessing), the admin
 dashboard/collections/orders/customers/settings screens (A02, A09/A10,
 A11 onward), and the customer-facing account pages (profile, addresses,
-order history — now unblocked the same way the catalogue was, since
-they need auth, which exists). The catalogue and bag (`app/shop/`,
-`app/bag/`) are built but reduced-fidelity — see README's "What is not
-here yet" for exactly which parts of §8.2/§8.4/§8.7 are deferred.
+signed-in order history — now unblocked the same way the catalogue was,
+since they need auth, which exists). The catalogue, bag and guest order
+lookup+return (`app/shop/`, `app/bag/`, `app/track-order/`) are built but
+reduced-fidelity — see README's "What is not here yet" for exactly which
+parts of §8.2/§8.4/§8.7 are deferred. `app/track-order/` has no order
+detail page of its own (13 Order Detail) — everything it shows lives on
+the one lookup-result page.
 
 Blocked on the owner, not on code: photography, verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
