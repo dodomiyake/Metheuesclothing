@@ -29,7 +29,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AnnouncementBar thresholdPence={threshold} />
       <Header />
-      <div style={{ flex: '1 0 auto' }}>{children}</div>
+      <div style={{ flex: '1 0 auto', background: 'var(--mc-bg-page)' }}>{children}</div>
       <Footer />
     </div>
   );

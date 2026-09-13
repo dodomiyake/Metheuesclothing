@@ -25,6 +25,12 @@ body {
 
 body {
   overflow-x: hidden;
+  /* Baseline so any gap a page's own background doesn't reach (the flex
+     wrapper that pins the footer to the bottom on short pages, for one)
+     shows the site's actual background instead of browser-default white.
+     /admin sets its own explicit black-rail background on every screen, so
+     this never shows through there. */
+  background: var(--mc-bg-page);
 }
 
 img,
