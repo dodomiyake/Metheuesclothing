@@ -61,8 +61,13 @@
   --mc-radius-lg:   8px;
 
   /* ---- type ---- */
-  --mc-font-display: "Bodoni Moda", Didot, "Times New Roman", serif;
-  --mc-font-body:    "Manrope", ui-sans-serif, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
+  /* var(--font-display) / var(--font-body) are set by next/font/google in
+     app/layout.tsx, which actually loads Bodoni Moda and Manrope -- naming
+     them here alone never did. The named fallbacks after them only apply
+     before that variable exists (a .css file opened outside the app, or a
+     future consumer that doesn't run through the root layout). */
+  --mc-font-display: var(--font-display), "Bodoni Moda", Didot, "Times New Roman", serif;
+  --mc-font-body:    var(--font-body), "Manrope", ui-sans-serif, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
 
   /* roles as built, not an abstract scale */
   --mc-type-page-title:    52px; /* 38px at 390 */
