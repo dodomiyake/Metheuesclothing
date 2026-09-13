@@ -20,12 +20,17 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   // its own authoritative read and does not depend on this succeeding.
   const threshold = !error && settings ? settings.free_delivery_threshold_pence : 15000;
 
+  // A short page (this placeholder home page, an empty bag, a one-field
+  // lookup form) left blank browser chrome below the footer instead of the
+  // footer sitting at the bottom of the viewport. flex column + flex:1 on
+  // the content area pins it there without affecting pages long enough to
+  // push it down themselves.
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AnnouncementBar thresholdPence={threshold} />
       <Header />
-      {children}
+      <div style={{ flex: '1 0 auto' }}>{children}</div>
       <Footer />
-    </>
+    </div>
   );
 }
