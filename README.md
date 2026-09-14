@@ -118,30 +118,49 @@ Code still to write:
   reusable component, so a downloaded copy couldn't represent every real
   product's actual colour set the way the CSS-driven dots already do.
   Product detail (`app/(site)/shop/[slug]/`) is now matched against
-  04A/B/C (node 60:878/58:783/54:703 — Desktop and Mobile pulled
-  directly, Tablet inferred from design-system-state.json's own summary
-  of it): a thumbnail-rail gallery, Add to Bag chips matching the real
-  Filter Chip component, stock state and a sold-out-sizes line derived
-  from `stock_quantity` vs `low_stock_threshold`, a sticky mobile/tablet
-  purchase bar that appears once the panel's own button scrolls out of
-  view, a three-column specification section, a design-story band and a
-  related-products grid. The design's Print method/placement rows have
-  no backing column anywhere and are omitted; Care stays one combined
-  block (`care_instructions`) rather than the design's four separate
+  04A/B/C (node 60:878/58:783/54:703, all three pulled directly — an
+  earlier pass inferred Tablet from a design-system-state.json summary
+  instead, got the gallery/spec layout wrong, and was caught and fixed by
+  actually pulling it): a thumbnail-rail gallery, Add to Bag chips
+  matching the real Filter Chip component, stock state and a
+  sold-out-sizes line derived from `stock_quantity` vs
+  `low_stock_threshold`, a sticky mobile/tablet purchase bar that appears
+  once the panel's own button scrolls out of view, a three-column
+  specification section, a design-story band and a related-products grid.
+  The design's Print method/placement rows have no backing column
+  anywhere and are omitted; Care stays one combined block
+  (`care_instructions`) rather than the design's four separate
   Wash/Dry/Tumble/Iron rows; delivery and returns pull
   `store_settings.free_delivery_threshold_pence` and `.return_window_days`
   live rather than the design's unverified Estimate/Carrier rows. Still
   an image well placeholder, and add-to-bag confirms inline rather than
-  the design's side panel/bottom sheet. The bag (`app/(site)/bag/`) has
-  not had this pass yet — cart stays localStorage rather than
-  server-side. Every price the bag shows is re-fetched from
-  `product_variants` on load and is still only a display convenience —
-  `POST /api/checkout` reprices from `price_cart()` regardless of what
-  the browser sent, same as always.
-  `app/(site)/track-order/` is in the same state: functional, wired to
-  real routes (`POST /api/orders/lookup`, `POST /api/returns`), not yet
-  checked against its actual Figma screens (12 Orders / 13 Order Detail /
-  14-17 Returns — those are the signed-in account version; a guest-lookup
+  the design's side panel/bottom sheet. The bag (`app/(site)/bag/`) is
+  matched against 05A/B/C (node 72:1215/69:1101/65:993, all three pulled
+  directly): a real Quantity Control stepper (decrement/quantity/increment,
+  disabled at the checkout API's own 1/10 bounds) instead of a number
+  input, Ghost/Secondary/Primary buttons matching the real Button
+  component, and Desktop's own "N items · M T-shirts" subtitle/Estimated
+  VAT row/delivery-banner-hosted Continue-shopping vs. Tablet and Mobile's
+  summary-hosted one — genuinely three layouts, not one CSS breakpoint.
+  Two disclosed deviations from what the screens show: none of the three
+  depict an email field (moving its collection to Stripe's own hosted
+  page would leave `orders.email` unknown until the webhook fires, which
+  ripples into guest order lookup and the confirmation email — a real
+  architecture question for the owner, not something to infer from one
+  screen's omission) or a next-day delivery choice (a real, working,
+  priced option the checkout API already supports, kept as a compact
+  opt-in rather than deleted to match a screen that simply doesn't depict
+  that state); the delivery banner also drops the design's carrier/ETA
+  line for the same blocked-on-owner reason product detail's spec section
+  omits its own. Cart still stays localStorage rather than server-side.
+  Every price the bag shows is re-fetched from `product_variants` on load
+  and is still only a display convenience — `POST /api/checkout` reprices
+  from `price_cart()` regardless of what the browser sent, same as always.
+  `app/(site)/track-order/` is in the same reduced-fidelity state as the
+  bag used to be: functional, wired to real routes (`POST
+  /api/orders/lookup`, `POST /api/returns`), not yet checked against its
+  actual Figma screens (12 Orders / 13 Order Detail / 14-17 Returns —
+  those are the signed-in account version; a guest-lookup
   equivalent may not exist as its own Figma screen at all).
 - The site header/footer/announcement bar (`components/site/`) are matched
   to Figma nodes 10:2 / 21:66 / 24:2, including the real exported icon
