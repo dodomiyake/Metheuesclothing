@@ -156,12 +156,27 @@ Code still to write:
   Every price the bag shows is re-fetched from `product_variants` on load
   and is still only a display convenience — `POST /api/checkout` reprices
   from `price_cart()` regardless of what the browser sent, same as always.
-  `app/(site)/track-order/` is in the same reduced-fidelity state as the
-  bag used to be: functional, wired to real routes (`POST
-  /api/orders/lookup`, `POST /api/returns`), not yet checked against its
-  actual Figma screens (12 Orders / 13 Order Detail / 14-17 Returns —
-  those are the signed-in account version; a guest-lookup
-  equivalent may not exist as its own Figma screen at all).
+  `app/(site)/track-order/` has had its own pass too. There is genuinely
+  no guest-lookup Figma screen — confirmed by pulling "12 Orders"' (the
+  signed-in Orders list) metadata rather than trusting the uncertainty
+  noted elsewhere: it carries only a small CTA pointing a guest
+  elsewhere, not a lookup form — so the form itself reuses the auth
+  cluster's own Form Field/Button styling
+  (`app/(site)/form-styles.ts`, moved up from `(auth)/` so a fifth real
+  consumer outside auth doesn't read as a layering mistake). The result
+  view rebuilds 13 Order Detail (node 103:3631) with the account-only
+  chrome stripped out (nav rail, "Your account" breadcrumb, "All orders"
+  link — none apply to a guest with no account): a real 5-step progress
+  timeline from `payment_status`/`fulfilment_status`/`fulfilments`,
+  Estimated VAT computed from `store_settings.vat_rate_basis_points`
+  rather than a static "Included" label, and Start a Return gated on real
+  `delivered_at`/`return_window_days` matching what `request_return()`
+  itself enforces server-side rather than the mockup's hardcoded "30
+  days". The design's Payment section (card brand/last4, billing address)
+  and its Cancel-order action are omitted rather than faked or
+  dead-ended: `payments.card_brand`/`.card_last4` and
+  `orders.billing_address` exist as columns but no code path ever writes
+  to them, and there is no cancel-order route to ever enable that button.
 - The site header/footer/announcement bar (`components/site/`) are matched
   to Figma nodes 10:2 / 21:66 / 24:2, including the real exported icon
   assets (search, account, bag, dismiss) in `components/site/icons.tsx` —
