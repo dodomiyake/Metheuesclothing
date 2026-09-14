@@ -407,3 +407,77 @@ svg {
     gap: var(--mc-space-lg);
   }
 }
+
+/* ---- bag (05A/B/C) ----
+   Verified against all three pulled screens, not inferred: Desktop's
+   summary card is 380px wide with an "Estimated VAT" row Tablet/Mobile
+   omit, and its "Continue shopping" action lives inside the delivery
+   banner as a Ghost button; Tablet's summary is 268px with Continue
+   shopping as a full-width Secondary button inside the card itself;
+   Mobile stacks summary and actions as separate full-width blocks. Same
+   two-instances-toggled-by-breakpoint pattern as product detail's gallery
+   thumbnails, since "Continue shopping" needs to exist in a different
+   parent at desktop than at tablet/mobile, not just a different layout of
+   the same parent. */
+.mc-bag-layout {
+  display: flex;
+  flex-direction: column;
+}
+@media (min-width: 768px) {
+  .mc-bag-layout {
+    flex-direction: row;
+    gap: var(--mc-space-2xl);
+    align-items: flex-start;
+  }
+}
+
+.mc-bag-summary {
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .mc-bag-summary {
+    width: 268px;
+    flex-shrink: 0;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-bag-summary {
+    width: 380px;
+  }
+}
+
+.mc-bag-vat-row {
+  display: none;
+}
+@media (min-width: 1440px) {
+  .mc-bag-vat-row {
+    display: flex;
+  }
+}
+
+.mc-bag-tshirt-count {
+  display: none;
+}
+@media (min-width: 1440px) {
+  .mc-bag-tshirt-count {
+    display: inline;
+  }
+}
+
+.mc-bag-continue-desktop {
+  display: none;
+}
+@media (min-width: 1440px) {
+  .mc-bag-continue-desktop {
+    display: inline-flex;
+  }
+}
+
+.mc-bag-continue-aside {
+  display: flex;
+}
+@media (min-width: 1440px) {
+  .mc-bag-continue-aside {
+    display: none;
+  }
+}
