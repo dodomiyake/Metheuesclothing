@@ -481,3 +481,37 @@ svg {
     display: none;
   }
 }
+
+/* ---- order detail (13 Order Detail, reused for track-order's guest
+   result view -- see that page's own comment on why there's no dedicated
+   guest-lookup screen to pull instead) ----
+   "Desktop is two-column ... capped at maxWidth 1000; tablet and mobile
+   stack" per design-system-state.json's own note -- unlike PDP/bag, the
+   split only happens at 1440px, not 768px. */
+.mc-order-detail-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--mc-space-lg);
+  width: 100%;
+  max-width: 1000px;
+}
+@media (min-width: 1440px) {
+  .mc-order-detail-layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 40px;
+  }
+}
+
+.mc-order-detail-side {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--mc-space-lg);
+}
+@media (min-width: 1440px) {
+  .mc-order-detail-side {
+    width: 320px;
+    flex-shrink: 0;
+  }
+}

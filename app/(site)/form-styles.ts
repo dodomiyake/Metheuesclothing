@@ -3,8 +3,11 @@ import type { CSSProperties } from 'react';
 /**
  * Matches Figma's Form Field / Button components (nodes 16:22 / 9:20, file
  * 9SzUlTWGVKOCkAULkbqOsr) and the auth screens' head/divider/small-print
- * treatment (e.g. 95:2620 Sign In) — shared across the four auth pages so
- * one file drifting out of sync with the design isn't a risk in four places.
+ * treatment (e.g. 95:2620 Sign In) — shared across the four auth pages and
+ * track-order's guest lookup form (which has no Figma screen of its own,
+ * see that page's comment) so one file drifting out of sync with the
+ * design isn't a risk in five places. Moved up from (auth)/ to (site)/ so
+ * a non-auth consumer importing it doesn't read as a layering mistake.
  */
 export const fieldStyle: CSSProperties = {
   display: 'flex',

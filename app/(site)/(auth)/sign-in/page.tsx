@@ -15,7 +15,7 @@ import {
   dividerStyle,
   smallPrintStyle,
   errorStyle,
-} from '../form-styles';
+} from '../../form-styles';
 
 /** Figma 10A — Sign In (node 95:2620, file 9SzUlTWGVKOCkAULkbqOsr). */
 export default function SignInPage() {

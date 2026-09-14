@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { buttonStyle, fieldStyle, labelStyle, inputStyle } from '../form-styles';
+import { buttonStyle, fieldStyle, labelStyle, inputStyle } from '../../form-styles';
 
 export function ExpiredVerificationForm() {
   const [email, setEmail] = useState('');

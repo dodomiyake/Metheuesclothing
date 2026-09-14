@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
 
   if (!order) return NextResponse.json(REJECTION, { status: 404 });
 
-  const [{ data: items }, { data: fulfilments }] = await Promise.all([
+  const [{ data: items }, { data: fulfilments }, { data: settings }] = await Promise.all([
     db
       .from('order_items')
       .select('id, product_name, colour, size, quantity, unit_price_pence, line_total_pence')
@@ -68,6 +68,10 @@ export async function POST(req: NextRequest) {
       .select('carrier, tracking_number, tracking_url, shipped_at, delivered_at')
       .eq('order_id', order.id)
       .order('shipped_at', { ascending: false }),
+    // Same values the design's Order Detail screen shows (return window,
+    // VAT-included line) -- real store_settings, not hardcoded like the
+    // mockup's "30 days after that" text.
+    db.from('store_settings').select('return_window_days, vat_rate_basis_points').single(),
   ]);
 
   // The order's own UUID is not returned; the customer never needs it, and every
@@ -82,5 +86,6 @@ export async function POST(req: NextRequest) {
     order: safeOrder,
     items: items ?? [],
     fulfilments: fulfilments ?? [],
+    settings: settings ?? { return_window_days: 30, vat_rate_basis_points: 2000 },
   });
 }

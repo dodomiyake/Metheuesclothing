@@ -14,7 +14,7 @@ import {
   titleStyle,
   subtextStyle,
   smallPrintStyle,
-} from '../form-styles';
+} from '../../form-styles';
 
 /**
  * Figma 27 — Password reset, States 1 and 2 (node 96:2731, file

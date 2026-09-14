@@ -12,7 +12,7 @@ import {
   titleStyle,
   subtextStyle,
   errorStyle,
-} from '../form-styles';
+} from '../../form-styles';
 
 /**
  * Figma 27 — Password reset, States 3 and 4 (node 96:2731). State 4 shows

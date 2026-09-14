@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { buttonStyle, ghostButtonStyle, titleStyle, subtextStyle } from '../form-styles';
+import { buttonStyle, ghostButtonStyle, titleStyle, subtextStyle } from '../../form-styles';
 import { ExpiredVerificationForm } from './expired-form';
 
 /**

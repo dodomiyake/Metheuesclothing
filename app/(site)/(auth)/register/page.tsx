@@ -15,7 +15,7 @@ import {
   dividerStyle,
   smallPrintStyle,
   errorStyle,
-} from '../form-styles';
+} from '../../form-styles';
 
 /** Figma 10D — Create Account (node 95:2970, file 9SzUlTWGVKOCkAULkbqOsr). */
 export default function RegisterPage() {
