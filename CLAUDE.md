@@ -82,8 +82,8 @@ Worth reading before repeating them.
   not sufficient: they make a page look like it belongs to the system
   without making it the actual screen. `get_design_context` per screen
   (loading `figma-design-to-code` first, per its own gate) is what closed
-  the gap for auth; the shop listing has since had the same pass (see
-  State below) but `app/(site)/shop/[slug]/`, `app/(site)/bag/` and
+  the gap for auth; the shop listing and product detail have since had
+  the same pass (see State below) but `app/(site)/bag/` and
   `app/(site)/track-order/` have not and read as generic because of it.
 
 ## State
@@ -142,13 +142,23 @@ pass (03A/B/C + the 03D filter sheet, node 51:531/50:406/47:287/53:674) —
 real filters (Size/Colour/Fit/Collection/Availability, all reading actual
 columns; "Design style" omitted, no backing column anywhere), New/Limited
 Edition/Low stock/Sold out derived from real data, a persistent rail at
-1440px+ and the discovery-bar-and-sheet pattern below it. Still pending the
-same treatment: `app/(site)/shop/[slug]/` (product detail, 04A/B/C),
-`app/(site)/bag/` (05A/B/C), `app/(site)/track-order/` (guest lookup — may
-not have its own Figma screen; 12/13/14-17 are the signed-in account
-version) and `app/admin/sign-in/` (A01, node 126:10/32/54). Pull each with
+1440px+ and the discovery-bar-and-sheet pattern below it. Product detail
+(`app/(site)/shop/[slug]/`) has had the same pass (04A/B/C, node
+60:878/58:783/54:703 — Desktop and Mobile pulled directly, Tablet inferred
+from design-system-state.json's own summary of it): the Add to Bag chips
+match the real Filter Chip component, stock state and the sold-out-sizes
+line are derived from stock_quantity vs low_stock_threshold rather than a
+generic toggle, a sticky mobile/tablet purchase bar appears once the panel
+scrolls out of view, and the specification section pulls delivery/returns
+from `store_settings` live rather than the design's unverified
+Estimate/Carrier rows — Print method/placement and the four separate
+Care rows stay omitted for the same no-backing-column reason as shop's
+"Design style" filter. Still pending the same treatment: `app/(site)/bag/`
+(05A/B/C), `app/(site)/track-order/` (guest lookup — may not have its own
+Figma screen; 12/13/14-17 are the signed-in account version) and
+`app/admin/sign-in/` (A01, node 126:10/32/54). Pull each with
 get_design_context (`figma-design-to-code` skill loaded first) the same way
-shop and auth did. Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
+shop, product detail and auth did. Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
 E1/E2 (verify email, password reset) now have a caller — Supabase Auth sends
 its own default email today; routing that through our Resend templates

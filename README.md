@@ -114,13 +114,27 @@ Code still to write:
   schema and is deliberately omitted rather than faked. Colour swatches
   are small flat-colour dots keyed by colour name, not the real exported
   asset — same network-block caveat as `components/site/icons.tsx`.
-  Product detail (`app/(site)/shop/[slug]/`) and the bag
-  (`app/(site)/bag/`) have not had this pass yet — still no image
-  gallery, add-to-bag as inline text rather than a side panel/bottom
-  sheet, cart as localStorage rather than server-side. Every price the
-  bag shows is re-fetched from `product_variants` on load and is still
-  only a display convenience — `POST /api/checkout` reprices from
-  `price_cart()` regardless of what the browser sent, same as always.
+  Product detail (`app/(site)/shop/[slug]/`) is now matched against
+  04A/B/C (node 60:878/58:783/54:703 — Desktop and Mobile pulled
+  directly, Tablet inferred from design-system-state.json's own summary
+  of it): a thumbnail-rail gallery, Add to Bag chips matching the real
+  Filter Chip component, stock state and a sold-out-sizes line derived
+  from `stock_quantity` vs `low_stock_threshold`, a sticky mobile/tablet
+  purchase bar that appears once the panel's own button scrolls out of
+  view, a three-column specification section, a design-story band and a
+  related-products grid. The design's Print method/placement rows have
+  no backing column anywhere and are omitted; Care stays one combined
+  block (`care_instructions`) rather than the design's four separate
+  Wash/Dry/Tumble/Iron rows; delivery and returns pull
+  `store_settings.free_delivery_threshold_pence` and `.return_window_days`
+  live rather than the design's unverified Estimate/Carrier rows. Still
+  an image well placeholder, and add-to-bag confirms inline rather than
+  the design's side panel/bottom sheet. The bag (`app/(site)/bag/`) has
+  not had this pass yet — cart stays localStorage rather than
+  server-side. Every price the bag shows is re-fetched from
+  `product_variants` on load and is still only a display convenience —
+  `POST /api/checkout` reprices from `price_cart()` regardless of what
+  the browser sent, same as always.
   `app/(site)/track-order/` is in the same state: functional, wired to
   real routes (`POST /api/orders/lookup`, `POST /api/returns`), not yet
   checked against its actual Figma screens (12 Orders / 13 Order Detail /
