@@ -211,49 +211,127 @@ svg {
   }
 }
 
-/* ---- product detail (04A/B/C) ---- */
+/* ---- product detail (04A/B/C) ----
+   The gallery's thumbnail treatment is three genuinely different layouts,
+   verified against each pulled screen rather than assumed from one: Mobile
+   (54:703) has no thumbnail rail at all, just the single image; Tablet
+   (58:783) has 4 thumbnails (Back/Print/Fabric/Model -- no separate Front,
+   the main image already is the front view) in a row BELOW the image;
+   Desktop (60:878) has 5 thumbnails (Front/Back/Print/Fabric/Model) in a
+   column BESIDE the image. An earlier pass got this wrong by assuming
+   Tablet reused Desktop's side rail starting at 768px -- both thumbnail
+   sets exist in the DOM and are toggled by breakpoint, the same pattern
+   shop/page.tsx already uses for its rail vs. discovery-bar split, because
+   the two sets have different content (thumbnail count/labels), not just
+   different layout, so CSS alone can't switch between them. */
 .mc-pdp-gallery {
   display: flex;
-  flex-direction: column-reverse;
-  gap: 12px;
+  flex-direction: column;
   width: 100%;
 }
-.mc-pdp-thumbs {
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-  overflow-x: auto;
+.mc-pdp-main-image {
   width: 100%;
+  aspect-ratio: 4 / 5;
 }
-.mc-pdp-thumbs > * {
-  flex: 0 0 72px;
+.mc-pdp-thumbs-tablet {
+  display: none;
+}
+.mc-pdp-thumbs-desktop {
+  display: none;
 }
 @media (min-width: 768px) {
+  .mc-pdp-thumbs-tablet {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    margin-top: 12px;
+    width: 100%;
+  }
+  .mc-pdp-thumbs-tablet > * {
+    flex: 1 1 0;
+  }
+}
+@media (min-width: 1440px) {
   .mc-pdp-gallery {
     flex-direction: row;
     align-items: flex-start;
+    gap: 12px;
   }
-  .mc-pdp-thumbs {
+  .mc-pdp-main-image {
+    flex: 1;
+  }
+  .mc-pdp-thumbs-tablet {
+    display: none;
+  }
+  .mc-pdp-thumbs-desktop {
+    display: flex;
     flex-direction: column;
-    overflow-x: visible;
+    gap: 12px;
     width: 88px;
     flex-shrink: 0;
-  }
-  .mc-pdp-thumbs > * {
-    flex: 0 0 auto;
-    width: 100%;
+    order: -1;
   }
 }
 
+/* Product specification: Mobile stacks all three blocks in the order
+   Delivery and returns, Fabric and construction, Care (verified against
+   54:703); Tablet groups Fabric alone in column one and Delivery+Care
+   stacked in column two (58:783); Desktop splits into three equal columns
+   in reading order Fabric, Delivery, Care (60:878). Explicit grid
+   placement reproduces the Tablet grouping without a wrapper element --
+   `order` alone can't put two items in one column and a third in another
+   on a 2-column grid. */
 .mc-pdp-spec {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 40px;
+  gap: 32px;
+}
+.mc-pdp-spec-fabric {
+  order: 2;
+}
+.mc-pdp-spec-delivery {
+  order: 1;
+}
+.mc-pdp-spec-care {
+  order: 3;
+}
+@media (min-width: 768px) {
+  .mc-pdp-spec {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 40px 48px;
+  }
+  .mc-pdp-spec-fabric {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    order: initial;
+  }
+  .mc-pdp-spec-delivery {
+    grid-column: 2;
+    grid-row: 1;
+    order: initial;
+  }
+  .mc-pdp-spec-care {
+    grid-column: 2;
+    grid-row: 2;
+    order: initial;
+  }
 }
 @media (min-width: 1440px) {
   .mc-pdp-spec {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 48px;
+  }
+  .mc-pdp-spec-fabric {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .mc-pdp-spec-delivery {
+    grid-column: 2;
+    grid-row: auto;
+  }
+  .mc-pdp-spec-care {
+    grid-column: 3;
+    grid-row: auto;
   }
 }
 

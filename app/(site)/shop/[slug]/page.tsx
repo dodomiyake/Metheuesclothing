@@ -25,7 +25,12 @@ type RelatedRow = {
 
 type CollectionLinkRow = { product_id: string; collections: { slug: string; name: string } | null };
 
-const THUMB_LABELS = ['Front', 'Back', 'Print', 'Fabric', 'Model'];
+// Verified against each pulled screen, not assumed: Desktop (60:878) has a
+// Front thumb because the rail sits beside the main image; Tablet (58:783)
+// doesn't, because its thumbnails sit below the same image that already
+// shows the front view. Mobile (54:703) has neither -- see globals.css.
+const DESKTOP_THUMB_LABELS = ['Front', 'Back', 'Print', 'Fabric', 'Model'];
+const TABLET_THUMB_LABELS = ['Back', 'Print', 'Fabric', 'Model'];
 
 /**
  * §8.3 product detail (04A/B/C — Figma node 60:878/58:783/54:703), rebuilt
@@ -147,28 +152,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       <div className="mc-page-gutter mc-product-grid" style={{ paddingBottom: 'var(--mc-space-2xl)' }}>
         <div className="mc-pdp-gallery">
-          <div className="mc-pdp-thumbs">
-            {THUMB_LABELS.map((label) => (
-              <div
-                key={label}
-                style={{
-                  aspectRatio: '4 / 5',
-                  background: 'var(--mc-sand)',
-                  borderRadius: 'var(--mc-radius-sm)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 4,
-                }}
-              >
-                <span style={{ fontSize: 10, color: 'var(--mc-text-muted)', textAlign: 'center' }}>{label}</span>
-              </div>
+          <div className="mc-pdp-thumbs-desktop">
+            {DESKTOP_THUMB_LABELS.map((label) => (
+              <ThumbWell key={label} label={label} />
             ))}
           </div>
           <div
+            className="mc-pdp-main-image"
             style={{
-              flex: 1,
-              aspectRatio: '4 / 5',
               background: 'var(--mc-sand)',
               borderRadius: 'var(--mc-radius-md)',
               display: 'flex',
@@ -178,6 +169,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             }}
           >
             No product photography yet
+          </div>
+          <div className="mc-pdp-thumbs-tablet">
+            {TABLET_THUMB_LABELS.map((label) => (
+              <ThumbWell key={label} label={label} />
+            ))}
           </div>
         </div>
 
@@ -211,7 +207,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <div className="mc-page-gutter" style={{ paddingBottom: 'var(--mc-space-2xl)' }}>
         <section className="mc-pdp-spec">
           {fabricFields.length > 0 && (
-            <SpecColumn title="Fabric and construction">
+            <SpecColumn className="mc-pdp-spec-fabric" title="Fabric and construction">
               <dl style={dlStyle}>
                 {product.fit && <Row label="Fit" value={product.fit} />}
                 {product.composition && <Row label="Composition" value={product.composition} />}
@@ -222,7 +218,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
             </SpecColumn>
           )}
 
-          <SpecColumn title="Delivery and returns">
+          <SpecColumn className="mc-pdp-spec-delivery" title="Delivery and returns">
             <dl style={dlStyle}>
               <Row label="Free delivery" value={`Orders over ${formatPence(settings.free_delivery_threshold_pence)}`} />
               <Row label="Returns" value={`Accepted within ${settings.return_window_days} days`} />
@@ -230,7 +226,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           </SpecColumn>
 
           {product.care_instructions && (
-            <SpecColumn title="Care">
+            <SpecColumn className="mc-pdp-spec-care" title="Care">
               <p style={{ whiteSpace: 'pre-line', margin: 0 }}>{product.care_instructions}</p>
             </SpecColumn>
           )}
@@ -274,13 +270,39 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   );
 }
 
-function SpecColumn({ title, children }: { title: string; children: React.ReactNode }) {
+function SpecColumn({
+  className,
+  title,
+  children,
+}: {
+  className: string;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div>
+    <div className={className}>
       <h2 style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1.54px', textTransform: 'uppercase', color: 'var(--mc-text-muted)', margin: '0 0 16px' }}>
         {title}
       </h2>
       {children}
+    </div>
+  );
+}
+
+function ThumbWell({ label }: { label: string }) {
+  return (
+    <div
+      style={{
+        aspectRatio: '4 / 5',
+        background: 'var(--mc-sand)',
+        borderRadius: 'var(--mc-radius-sm)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 4,
+      }}
+    >
+      <span style={{ fontSize: 10, color: 'var(--mc-text-muted)', textAlign: 'center' }}>{label}</span>
     </div>
   );
 }
