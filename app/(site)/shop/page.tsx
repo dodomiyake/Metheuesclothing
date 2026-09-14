@@ -4,6 +4,7 @@ import { FilterGroups } from './filter-groups';
 import { DiscoveryBar } from './discovery-bar';
 import { SortSelect } from './sort-select';
 import { ProductCard, type ProductCardData } from './product-card';
+import { summarizeProduct } from '@/lib/shop/product-summary';
 import {
   activeFilterCount,
   clearAllHref,
@@ -11,8 +12,6 @@ import {
   getSelected,
   type ShopSearchParams,
 } from '@/lib/shop/filters';
-
-const NEW_WITHIN_DAYS = 14;
 
 type ProductRow = {
   id: string;
@@ -98,7 +97,6 @@ export default async function ShopPage({
     allCollectionNames.add(link.collections.name);
   }
 
-  const newCutoff = Date.now() - NEW_WITHIN_DAYS * 24 * 60 * 60 * 1000;
   const allSizes = new Set<string>();
   const allColours = new Set<string>();
   const allFits = new Set<string>();
@@ -116,13 +114,8 @@ export default async function ShopPage({
       }
       if (p.fit) allFits.add(p.fit);
 
-      const colours = [...new Set(vs.map((v) => v.colour))];
-      const minPrice = vs.length ? Math.min(...vs.map((v) => v.price_pence)) : 0;
-      const inStock = vs.some((v) => v.stock_quantity > 0);
-      const lowStock = inStock && vs.every((v) => v.stock_quantity === 0 || v.stock_quantity <= v.low_stock_threshold);
-      const isNew = p.published_at ? new Date(p.published_at).getTime() >= newCutoff : false;
       const collections = collectionsByProduct.get(p.id) ?? [];
-      const isLimitedEdition = collections.some((c) => c.toLowerCase().includes('limited'));
+      const summary = summarizeProduct(p.published_at, vs, collections);
 
       return {
         id: p.id,
@@ -130,12 +123,7 @@ export default async function ShopPage({
         name: p.name,
         fit: p.fit,
         collections,
-        minPrice,
-        colours,
-        inStock,
-        lowStock,
-        isNew,
-        isLimitedEdition,
+        ...summary,
       };
     },
   );

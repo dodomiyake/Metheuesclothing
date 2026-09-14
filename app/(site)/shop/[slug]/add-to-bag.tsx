@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { addToCart } from '@/lib/bag/cart';
 import { formatPence } from '@/lib/money';
@@ -11,16 +11,40 @@ type Variant = {
   size: string;
   price_pence: number;
   stock_quantity: number;
+  low_stock_threshold: number;
   is_active: boolean;
 };
 
+const chipStyle = (state: 'default' | 'selected' | 'disabled'): React.CSSProperties => ({
+  display: 'inline-flex',
+  alignItems: 'center',
+  minHeight: 44,
+  padding: state === 'selected' ? '12.5px 10px 12.5px 16px' : '12.5px 16px',
+  gap: 8,
+  borderRadius: 'var(--mc-radius-sm)',
+  border: `1px solid ${state === 'selected' ? 'var(--mc-border-strong)' : 'var(--mc-border-default)'}`,
+  background: state === 'selected' ? 'var(--mc-bg-inverse)' : 'none',
+  color: state === 'selected' ? 'var(--mc-text-inverse)' : state === 'disabled' ? 'var(--mc-text-muted)' : 'var(--mc-text-primary)',
+  fontFamily: 'var(--mc-font-body)',
+  fontSize: 14,
+  fontWeight: 500,
+  cursor: state === 'disabled' ? 'not-allowed' : 'pointer',
+});
+
 /**
- * §8.4's purchase-critical steps 5-9 (colour, size, Find Your Fit, stock
- * state, Add to Bag) and §8.6's add-to-bag confirmation — as an inline
- * confirmation rather than a side panel/bottom sheet, which is the one
- * piece of reduced fidelity here. "Find Your Fit" itself is left out: the
- * size guide would need verified garment measurements, which CLAUDE.md
- * says are placeholders that must not ship (§8.5).
+ * §8.4's purchase-critical steps (colour, size, stock state, Add to Bag) —
+ * rebuilt against 04A/B/C (Figma node 60:878/58:783/54:703) rather than the
+ * earlier token-styled version: chips match the real Filter Chip component
+ * (Default/Selected/Disabled), the sold-out-sizes helper line and stock
+ * state are built from real stock_quantity/low_stock_threshold rather than
+ * a generic "in stock"/"out of stock" toggle, and a sticky bottom bar
+ * (mobile/tablet only, CSS-gated off at 1440px+) appears once this panel's
+ * own Add to Bag button scrolls out of view. "Find your fit" stays
+ * non-interactive with a tooltip explaining why, the same treatment
+ * components/site/header.tsx already gives the inert search icon: a size
+ * guide needs verified garment measurements, which CLAUDE.md says are
+ * placeholders that must not ship (§8.5). The design's side-panel/bottom-
+ * sheet confirmation (§8.6) stays deferred — this is still an inline one.
  */
 export function AddToBag({
   productSlug,
@@ -38,22 +62,37 @@ export function AddToBag({
   const [size, setSize] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
   const [confirmation, setConfirmation] = useState<string | null>(null);
+  const [stickyVisible, setStickyVisible] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const variantFor = (c: string | null, s: string | null) =>
-    variants.find((v) => v.colour === c && v.size === s);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => setStickyVisible(!entry.isIntersecting), {
+      rootMargin: '0px 0px -1px 0px',
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
+  const variantFor = (c: string | null, s: string | null) => variants.find((v) => v.colour === c && v.size === s);
   const selected = variantFor(colour, size);
   const purchasable = variants.filter((v) => v.is_active && v.stock_quantity > 0);
 
+  const soldOutSizesForColour = colour
+    ? sizes.filter((s) => {
+        const v = variantFor(colour, s);
+        return !v || !v.is_active || v.stock_quantity < 1;
+      })
+    : [];
+
   if (purchasable.length === 0) {
     return (
-      <p style={{ fontFamily: 'var(--mc-font-body)', color: 'var(--mc-status-error)', fontWeight: 600 }}>
-        Sold out
-      </p>
+      <p style={{ fontFamily: 'var(--mc-font-body)', color: 'var(--mc-status-error)', fontWeight: 600 }}>Sold out</p>
     );
   }
 
-  function onAdd() {
+  function add() {
     if (!size) {
       setSizeError(true);
       return;
@@ -73,12 +112,20 @@ export function AddToBag({
     setConfirmation(`Added ${productName} — ${variant.colour} / ${variant.size} to your bag.`);
   }
 
+  const stockState = !selected
+    ? null
+    : selected.stock_quantity <= 0
+      ? { colour: 'var(--mc-status-error)', text: 'Out of stock in this size' }
+      : selected.stock_quantity <= selected.low_stock_threshold
+        ? { colour: 'var(--mc-status-attention)', text: `Low stock — ${selected.stock_quantity} left` }
+        : { colour: 'var(--mc-status-success)', text: 'In stock' };
+
   return (
-    <div style={{ fontFamily: 'var(--mc-font-body)' }}>
+    <div style={{ fontFamily: 'var(--mc-font-body)', display: 'flex', flexDirection: 'column', gap: 24 }}>
       {colours.length > 1 && (
-        <fieldset style={{ border: 'none', padding: 0, margin: '0 0 var(--mc-space-md)' }}>
-          <legend style={legendStyle}>Colour</legend>
-          <div style={{ display: 'flex', gap: 'var(--mc-space-2xs)', flexWrap: 'wrap' }}>
+        <fieldset style={{ border: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <legend style={legendStyle}>Colour{colour ? ` — ${colour}` : ''}</legend>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {colours.map((c) => (
               <button
                 key={c}
@@ -86,8 +133,9 @@ export function AddToBag({
                 onClick={() => {
                   setColour(c);
                   setSize(null);
+                  setSizeError(false);
                 }}
-                style={swatchStyle(c === colour)}
+                style={chipStyle(c === colour ? 'selected' : 'default')}
               >
                 {c}
               </button>
@@ -96,9 +144,26 @@ export function AddToBag({
         </fieldset>
       )}
 
-      <fieldset style={{ border: 'none', padding: 0, margin: '0 0 var(--mc-space-md)' }}>
-        <legend style={legendStyle}>Size</legend>
-        <div style={{ display: 'flex', gap: 'var(--mc-space-2xs)', flexWrap: 'wrap' }}>
+      <fieldset style={{ border: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <legend style={{ ...legendStyle, flex: 1 }}>Size</legend>
+          <span
+            title="Size guide coming soon — needs verified garment measurements"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              minHeight: 44,
+              padding: '0 24px',
+              color: 'var(--mc-text-muted)',
+              fontSize: 16,
+              fontWeight: 600,
+              cursor: 'default',
+            }}
+          >
+            Find your fit
+          </span>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {sizes.map((s) => {
             const variant = variantFor(colour, s);
             const available = Boolean(variant?.is_active && (variant?.stock_quantity ?? 0) > 0);
@@ -111,80 +176,101 @@ export function AddToBag({
                   setSize(s);
                   setSizeError(false);
                 }}
-                style={swatchStyle(s === size, !available)}
+                style={chipStyle(s === size ? 'selected' : available ? 'default' : 'disabled')}
               >
                 {s}
               </button>
             );
           })}
         </div>
+        {soldOutSizesForColour.length > 0 && colour && (
+          <p style={{ fontSize: 13, color: 'var(--mc-text-muted)', lineHeight: 1.5, margin: 0 }}>
+            {soldOutSizesForColour.join(' and ')} {soldOutSizesForColour.length > 1 ? 'are' : 'is'} sold out in {colour}.
+            Sizes stay visible so you can see the full range.
+          </p>
+        )}
         {sizeError && (
-          <p role="alert" style={{ color: 'var(--mc-status-error)', fontSize: 'var(--mc-type-caption)' }}>
+          <p role="alert" style={{ color: 'var(--mc-status-error)', fontSize: 13, margin: 0 }}>
             Choose a size before adding this T-shirt.
           </p>
         )}
       </fieldset>
 
-      {selected && (
-        <p style={{ fontSize: 'var(--mc-type-caption)', color: 'var(--mc-text-muted)' }}>
-          {selected.stock_quantity > 0
-            ? selected.stock_quantity <= 5
-              ? `Only ${selected.stock_quantity} left`
-              : 'In stock'
-            : 'Out of stock in this size'}
-        </p>
+      {stockState && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span aria-hidden style={{ width: 8, height: 8, borderRadius: '50%', background: stockState.colour, flexShrink: 0 }} />
+          <p style={{ fontSize: 15, fontWeight: 500, color: stockState.colour, margin: 0 }}>{stockState.text}</p>
+        </div>
       )}
 
-      <button type="button" onClick={onAdd} style={buttonStyle}>
-        Add to Bag
-      </button>
+      <div ref={sentinelRef}>
+        <button
+          type="button"
+          onClick={add}
+          style={{
+            width: '100%',
+            minHeight: 44,
+            padding: '0 24px',
+            background: 'var(--mc-action-primary-bg)',
+            color: 'var(--mc-action-primary-text)',
+            border: 'none',
+            borderRadius: 'var(--mc-radius-sm)',
+            fontFamily: 'var(--mc-font-body)',
+            fontSize: 16,
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          Add to Bag
+        </button>
+      </div>
 
       {confirmation && (
-        <p style={{ marginTop: 'var(--mc-space-sm)', fontSize: 'var(--mc-type-body)' }}>
+        <p style={{ fontSize: 15, margin: 0 }}>
           {confirmation}{' '}
           <Link href="/bag" style={{ color: 'var(--mc-text-primary)', fontWeight: 600 }}>
             View Bag
           </Link>
         </p>
       )}
+
+      <div className="mc-page-gutter mc-pdp-sticky-bar" data-visible={stickyVisible} style={{ paddingTop: 12, paddingBottom: 20 }}>
+        <div style={{ flex: 1 }}>
+          <p style={{ fontSize: 16, fontWeight: 500, color: 'var(--mc-text-primary)', margin: 0 }}>
+            {selected ? formatPence(selected.price_pence) : formatPence(variants[0]?.price_pence ?? 0)}
+          </p>
+          <p style={{ fontSize: 12, color: 'var(--mc-text-muted)', margin: 0 }}>
+            {colour ?? 'Choose colour'} · {size ? `Size ${size}` : 'Choose size'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={add}
+          style={{
+            minHeight: 44,
+            padding: '0 24px',
+            background: 'var(--mc-action-primary-bg)',
+            color: 'var(--mc-action-primary-text)',
+            border: 'none',
+            borderRadius: 'var(--mc-radius-sm)',
+            fontFamily: 'var(--mc-font-body)',
+            fontSize: 16,
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          Add to Bag
+        </button>
+      </div>
     </div>
   );
 }
 
-const legendStyle = {
-  fontSize: 'var(--mc-type-label)',
-  letterSpacing: '1px',
-  textTransform: 'uppercase' as const,
-  color: 'var(--mc-text-muted)',
-  marginBottom: 'var(--mc-space-2xs)',
-};
-
-function swatchStyle(active: boolean, disabled = false) {
-  return {
-    minHeight: 44,
-    minWidth: 44,
-    padding: '0 var(--mc-space-sm)',
-    border: `1px solid ${active ? 'var(--mc-border-strong)' : 'var(--mc-border-default)'}`,
-    borderRadius: 'var(--mc-radius-sm)',
-    background: active ? 'var(--mc-black)' : 'var(--mc-cream)',
-    color: active ? 'var(--mc-cream)' : disabled ? 'var(--mc-text-muted)' : 'var(--mc-text-primary)',
-    textDecoration: disabled ? 'line-through' : 'none',
-    cursor: disabled ? 'not-allowed' : 'pointer',
-    opacity: disabled ? 0.5 : 1,
-    fontFamily: 'var(--mc-font-body)',
-    fontSize: 'var(--mc-type-body)',
-  };
-}
-
-const buttonStyle = {
-  minHeight: 44,
-  padding: '0 var(--mc-space-xl)',
-  background: 'var(--mc-action-primary-bg)',
-  color: 'var(--mc-action-primary-text)',
-  border: 'none',
-  borderRadius: 'var(--mc-radius-sm)',
-  fontFamily: 'var(--mc-font-body)',
-  fontSize: 'var(--mc-type-body)',
+const legendStyle: React.CSSProperties = {
+  fontSize: 11,
   fontWeight: 600,
-  cursor: 'pointer',
+  letterSpacing: '1.54px',
+  textTransform: 'uppercase',
+  color: 'var(--mc-text-muted)',
+  padding: 0,
 };
