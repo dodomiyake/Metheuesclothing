@@ -26,8 +26,8 @@ app/admin/              staff-only: T-shirts, variants/stock, inventory —
                         its own black-rail chrome, deliberately not
                         components/site's storefront header/footer
 components/site/       Header, Footer, AnnouncementBar shared by every
-                        app/(site)/ page — see the note in icons.tsx before
-                        assuming those icons are the real Figma exports
+                        app/(site)/ page — icons.tsx has the real Figma
+                        exported icons
 lib/                   Supabase clients, money helpers, transactional email
 lib/admin/              staff-session check, the product/variant zod schema
 lib/bag/                localStorage cart — display only, never priced from
@@ -113,7 +113,10 @@ Code still to write:
   (Graphic/Essential/Limited) has no backing column anywhere in the
   schema and is deliberately omitted rather than faked. Colour swatches
   are small flat-colour dots keyed by colour name, not the real exported
-  asset — same network-block caveat as `components/site/icons.tsx`.
+  asset — a deliberate choice, not a blocked one: Figma's "Colours" asset
+  there is a flat mockup image of one product's example colours, not a
+  reusable component, so a downloaded copy couldn't represent every real
+  product's actual colour set the way the CSS-driven dots already do.
   Product detail (`app/(site)/shop/[slug]/`) is now matched against
   04A/B/C (node 60:878/58:783/54:703 — Desktop and Mobile pulled
   directly, Tablet inferred from design-system-state.json's own summary
@@ -141,12 +144,14 @@ Code still to write:
   14-17 Returns — those are the signed-in account version; a guest-lookup
   equivalent may not exist as its own Figma screen at all).
 - The site header/footer/announcement bar (`components/site/`) are matched
-  to Figma nodes 10:2 / 21:66 / 24:2, with one disclosed gap: the search,
-  account and bag icons are hand-authored stand-ins, not the real exported
-  assets — this sandbox's network egress blocks www.figma.com from every
-  tool that could fetch them (curl, WebFetch, `download_assets` all hit the
-  same wall the Supabase work did all session). See the comment in
-  `components/site/icons.tsx`.
+  to Figma nodes 10:2 / 21:66 / 24:2, including the real exported icon
+  assets (search, account, bag, dismiss) in `components/site/icons.tsx` —
+  earlier sessions had these as hand-authored stand-ins because this
+  sandbox's network egress blocked www.figma.com outright; that block has
+  since lifted (an environment/network-policy change, not a code change)
+  and the real assets are wired in. Menu stays hand-authored deliberately:
+  Figma builds it from three plain rectangles, not an exportable
+  vector/image node.
 - Admin: T-shirts (create/edit), colours/sizes/stock and a read-only
   inventory view are built (A03, A04 MVP subset, A06, A07, A08) —
   `app/admin/`. Not built: the dashboard (A02), collections (A09/A10), the

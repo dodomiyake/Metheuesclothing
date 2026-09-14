@@ -107,8 +107,10 @@ early in this project's history and had no page calling either until now).
 The shop/bag/track-order pages have NOT had the same real-Figma pass the
 auth cluster just got — see "Things that have already gone wrong" above.
 Also added: `components/site/` (Header, Footer, AnnouncementBar, shared by
-every `app/(site)/` page — matched to Figma nodes 10:2/21:66/24:2, icons
-excepted, see icons.tsx), and `POST /api/newsletter` wiring up
+every `app/(site)/` page — matched to Figma nodes 10:2/21:66/24:2, including
+the real exported icon assets in icons.tsx once this environment's
+www.figma.com network block lifted — see icons.tsx's own comment), and
+`POST /api/newsletter` wiring up
 `LIMITS.newsletter`, which had sat unused in lib/rate-limit.ts since it was
 first written. Migration 009 added the `handle_new_user`
 trigger profiles always needed and never had; migration 010 added
