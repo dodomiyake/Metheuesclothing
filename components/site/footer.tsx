@@ -3,9 +3,31 @@
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 
-/** Figma node 21:66. Supporting text on this dark ground uses the "on dark"
- * muted token specifically -- the pale-ground Stone fails AA here at 3.2:1
- * (design/tokens/tokens.css's own contrast note; CLAUDE.md rule 8). */
+/**
+ * Site footer — Figma set 21:66, all three Breakpoint variants pulled:
+ * Desktop 21:4 (1440x428), Tablet 23:2 (768x394), Mobile 21:35 (390x589).
+ *
+ * The link columns are a grid, and its three column counts reproduce the
+ * design's measured widths exactly rather than approximately:
+ *   mobile   2 cols, 32px gap → (350 - 32) / 2  = 159  ✓ (21:40 is 159 wide)
+ *   tablet   4 cols, 32px gap → (704 - 96) / 4  = 152  ✓ (23:7  is 152 wide)
+ *   desktop  4 cols, 64px gap → (1344 - 192) / 4 = 288 ✓ (21:9  is 288 wide)
+ * They were a single stacked column below 600px, which is the "2x2 on
+ * mobile" design-system-state.json has recorded all along and nothing
+ * implemented — a phone got one tall list instead of the designed pair.
+ *
+ * Supporting text on this dark ground uses the "on dark" muted token
+ * specifically — the pale-ground muted fails AA here (design/tokens's own
+ * contrast note; CLAUDE.md rule 8). Figma's component description still
+ * names the WARM palette's #8A8178 for this; the September recolour replaced
+ * it with #97A2AD and the description is simply stale.
+ *
+ * The newsletter FORM is a deliberate addition: 21:36 draws the heading and
+ * the copy but no input, and cutting a working signup to match a screen that
+ * doesn't depict one is the wrong direction — the same call the bag page
+ * documents for its own email field. The heading and copy do take the
+ * design's sizes (24/32/36 and 14).
+ */
 export function Footer() {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'sent'>('idle');
@@ -23,21 +45,10 @@ export function Footer() {
   }
 
   return (
-    <footer
-      className="mc-page-gutter"
-      style={{
-        background: 'var(--mc-bg-inverse)',
-        color: 'var(--mc-text-muted-inverse)',
-        paddingTop: 48,
-        paddingBottom: 32,
-        fontFamily: 'var(--mc-font-body)',
-      }}
-    >
-      <div style={{ marginBottom: 48 }}>
-        <p style={{ fontFamily: 'var(--mc-font-display)', fontSize: 32, color: 'var(--mc-text-inverse)', margin: '0 0 12px' }}>
-          Join the Metheues Frequency
-        </p>
-        <p style={{ fontSize: 15, margin: '0 0 16px' }}>
+    <footer className="mc-footer mc-page-gutter">
+      <div>
+        <p className="mc-footer-heading">Join the Metheues Frequency</p>
+        <p style={{ fontSize: 14, lineHeight: 1.45, margin: '0 0 16px' }}>
           Drop alerts and first access. No more than twice a month, and you can leave any time.
         </p>
         {status === 'sent' ? (
@@ -83,7 +94,7 @@ export function Footer() {
         )}
       </div>
 
-      <div className="mc-footer-columns" style={{ marginBottom: 48 }}>
+      <div className="mc-footer-columns">
         <FooterColumn
           title="Shop"
           links={[
@@ -121,8 +132,8 @@ export function Footer() {
         />
       </div>
 
-      <div className="mc-footer-bottom" style={{ fontSize: 12, borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 24 }}>
-        <p style={{ flex: 1, margin: 0 }}>
+      <div className="mc-footer-bottom" style={{ fontSize: 12 }}>
+        <p style={{ margin: 0 }}>
           © 2026 Metheues Clothings · Registered in England and Wales · VAT registered
         </p>
         <p style={{ margin: 0, whiteSpace: 'nowrap' }}>UK / GBP (£)</p>
@@ -133,14 +144,14 @@ export function Footer() {
 
 function FooterColumn({ title, links }: { title: string; links: [string, string][] }) {
   return (
-    <div style={{ flex: '1 0 0', minWidth: 140 }}>
+    <div className="mc-footer-column">
       <p
         style={{
           fontSize: 11,
           fontWeight: 600,
           letterSpacing: '1.32px',
           textTransform: 'uppercase',
-          margin: '0 0 12px',
+          margin: 0,
         }}
       >
         {title}
@@ -149,7 +160,7 @@ function FooterColumn({ title, links }: { title: string; links: [string, string]
         <Link
           key={label}
           href={href}
-          style={{ display: 'block', color: 'var(--mc-text-inverse)', fontSize: 14, textDecoration: 'none', marginBottom: 12 }}
+          style={{ color: 'var(--mc-text-inverse)', fontSize: 14, textDecoration: 'none' }}
         >
           {label}
         </Link>

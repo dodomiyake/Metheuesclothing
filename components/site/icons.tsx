@@ -81,10 +81,18 @@ export function DismissIcon() {
 
 const stroke = 'currentColor';
 
+/**
+ * The one icon here that is drawn rather than exported — Figma builds it from
+ * three plain rectangles (15:23–15:25) instead of a vector, so there is no
+ * asset to download. The geometry is theirs exactly: a 44px box holding three
+ * 20x1.25px rules inset 12px from the left, at y 16 / 22 / 28. It used to be
+ * a 20x20 icon with 16px rules 4px apart, which read visibly narrower and
+ * tighter than the design beside the exported search and bag glyphs.
+ */
 export function MenuIcon() {
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-      <path d="M2 6h16M2 10h16M2 14h16" stroke={stroke} strokeWidth="1.25" strokeLinecap="round" />
+    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 16.625h20M12 22.625h20M12 28.625h20" stroke={stroke} strokeWidth="1.25" />
     </svg>
   );
 }

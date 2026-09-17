@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { addToCart } from '@/lib/bag/cart';
 import { formatPence } from '@/lib/money';
+import { sortSizes } from '@/lib/shop/size-order';
 
 type Variant = {
   id: string;
@@ -56,7 +57,9 @@ export function AddToBag({
   variants: Variant[];
 }) {
   const colours = useMemo(() => [...new Set(variants.map((v) => v.colour))], [variants]);
-  const sizes = useMemo(() => [...new Set(variants.map((v) => v.size))], [variants]);
+  // Not the query's order: `size` is free text, so `.order('size')` gives
+  // back L, M, S, XL, XXL and the chips render in that order.
+  const sizes = useMemo(() => sortSizes(new Set(variants.map((v) => v.size))), [variants]);
 
   const [colour, setColour] = useState<string | null>(colours[0] ?? null);
   const [size, setSize] = useState<string | null>(null);

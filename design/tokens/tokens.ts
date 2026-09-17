@@ -57,7 +57,9 @@ export const font = {
 } as const;
 
 export const type = {
-  pageTitle: { size: 52, mobileSize: 38, font: font.display, weight: 400 },
+  /** The one role that changes with viewport. tokens.css declares it
+   * mobile-first and steps it up at 768/1440; these are the same numbers. */
+  pageTitle: { size: 34, tabletSize: 42, desktopSize: 52, font: font.display, weight: 400 },
   section:   { size: 26, font: font.display, weight: 400 },
   cardTitle: { size: 20, font: font.body, weight: 600 },
   subhead:   { size: 17, font: font.body, weight: 600 },

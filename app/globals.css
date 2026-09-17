@@ -56,13 +56,66 @@ svg {
   }
 }
 
-/* ---- header ---- */
+/* ---- header (Figma 15:32; Mobile 15:20 / Tablet 15:2 / Desktop 10:2) ----
+   Three columns: lead and utilities both FILL, wordmark HUGS between them.
+   That, and only that, is what centres the wordmark -- the component's own
+   description in Figma says so, and forbids making all three FILL. The
+   previous rules gave the lead column no width on mobile while utilities
+   carried three 44px icons, so the wordmark sat ~44px left of centre on
+   every phone screen in the site.
+
+   Padding is per-breakpoint and deliberately NOT .mc-page-gutter: 8px on
+   mobile, 16x12 on tablet, 48x20 on desktop. Only the desktop value
+   coincides with the gutter. These are what make the header the 60 / 68 /
+   84px the component set is drawn at. */
 .mc-header {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--mc-space-sm);
+  padding: 8px;
+  background: var(--mc-bg-page);
+  border-bottom: 1px solid var(--mc-border-default);
+  font-family: var(--mc-font-body);
+}
+@media (min-width: 768px) {
+  .mc-header {
+    padding: 12px 16px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-header {
+    padding: 20px var(--mc-gutter-desktop);
+  }
+}
+
+/* Every 44px icon target. Declared here rather than inline precisely so the
+   breakpoint rules below can hide one: an inline `display` beats them all. */
+.mc-icon-button {
+  display: flex;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--mc-text-primary);
+  text-decoration: none;
+}
+/* Search has no overlay built (§8.3 / screen 20), so it is inert rather than
+   a link to nowhere -- and says so with its cursor. */
+button.mc-icon-button[aria-label='Search'] {
+  cursor: default;
+}
+
+/* Lead column: menu (below 1440) + search (tablet only) + nav (desktop). */
+.mc-header-lead {
+  display: flex;
+  flex: 1 0 0;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
 }
 
 .mc-nav-toggle {
@@ -71,18 +124,58 @@ svg {
   height: 44px;
   align-items: center;
   justify-content: center;
+  padding: 0;
   background: none;
   border: none;
   color: var(--mc-text-primary);
   cursor: pointer;
   flex-shrink: 0;
 }
-@media (min-width: 768px) {
+@media (min-width: 1440px) {
   .mc-nav-toggle {
     display: none;
   }
 }
 
+/* Search appears in the lead column on TABLET ONLY. On desktop it is the
+   first utility instead (10:11), and mobile has no search at all -- which is
+   why there are two instances in the markup rather than one moved around. */
+.mc-header-search-lead {
+  display: none;
+}
+@media (min-width: 768px) {
+  .mc-header-search-lead {
+    display: flex;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-header-search-lead {
+    display: none;
+  }
+}
+
+.mc-header-search-util {
+  display: none;
+}
+@media (min-width: 1440px) {
+  .mc-header-search-util {
+    display: flex;
+  }
+}
+
+/* No account icon on mobile (15:20 has Bag alone); the drawer carries the
+   route instead. */
+.mc-header-account {
+  display: none;
+}
+@media (min-width: 768px) {
+  .mc-header-account {
+    display: flex;
+  }
+}
+
+/* The four nav links are inline only at 1440px+. Below that they live in the
+   drawer, which is our own pattern -- Figma has no nav-drawer node yet. */
 .mc-header-nav {
   display: none;
 }
@@ -95,44 +188,62 @@ svg {
   right: 0;
   background: var(--mc-bg-page);
   border-bottom: 1px solid var(--mc-border-default);
-  padding: var(--mc-space-sm) var(--mc-gutter-mobile) var(--mc-space-md);
+  /* 20px = the header's 8px padding + the menu glyph's 12px inset, so drawer
+     text starts on the same vertical line as the icon above it. */
+  padding: var(--mc-space-sm) 20px var(--mc-space-md);
   gap: var(--mc-space-md);
   z-index: 20;
 }
-@media (min-width: 768px) {
+@media (min-width: 1440px) {
   .mc-header-nav {
     display: flex !important;
     position: static;
     flex-direction: row;
-    flex: 1;
     background: none;
     border: none;
     padding: 0;
-    gap: var(--mc-space-md);
+    gap: 28px;
     white-space: nowrap;
   }
 }
+
+/* Account belongs to the drawer only -- at 1440px the icon is back. */
 @media (min-width: 1440px) {
-  .mc-header-nav {
-    gap: var(--mc-space-lg);
+  .mc-drawer-only {
+    display: none;
   }
 }
 
+/* Wordmark: hugs, and steps 18 / 22 / 26 with matching 8% tracking. */
 .mc-header-logo {
   flex-shrink: 0;
+  font-family: var(--mc-font-display);
+  font-size: 18px;
+  letter-spacing: 1.44px;
+  color: var(--mc-text-primary);
+  text-decoration: none;
+  white-space: nowrap;
+}
+@media (min-width: 768px) {
+  .mc-header-logo {
+    font-size: 22px;
+    letter-spacing: 1.76px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-header-logo {
+    font-size: 26px;
+    letter-spacing: 2.08px;
+  }
 }
 
 .mc-header-icons {
   display: flex;
+  flex: 1 0 0;
+  min-width: 0;
   align-items: center;
   justify-content: flex-end;
   gap: 4px;
-  flex-shrink: 0;
-}
-@media (min-width: 768px) {
-  .mc-header-icons {
-    flex: 1;
-  }
 }
 
 /* ---- shop listing: persistent rail at desktop, a discovery bar +
@@ -149,6 +260,69 @@ svg {
 }
 .mc-discovery-bar {
   display: flex;
+}
+
+/* Sort control (47:331): a Secondary Button whose width follows the CURRENT
+   sort, with the real <select> laid transparently over it. See
+   app/(site)/shop/sort-select.tsx for why a plain <select> could not be
+   used -- it sizes to its longest option and pushed the result count off a
+   390px screen. */
+.mc-sort {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* The design sizes this button at 154px for "Sort · Newest" and never
+     considers the longer price labels -- a real gap in the screen, not
+     something to pull. At 390 the bar has zero slack (20 + 110 + 12 + 154 +
+     12 + 62 + 20 = 390 exactly), so an uncapped "Sort · Price low to high"
+     took 211px and squeezed the result count out of existence. Capped at the
+     design's own width, the default sort renders pixel-identical and only a
+     non-default one truncates -- losing a word beats losing the count. */
+  min-width: 0;
+  max-width: 154px;
+  min-height: 44px;
+  padding: 0 24px;
+  border: 1px solid var(--mc-border-strong);
+  border-radius: var(--mc-radius-sm);
+  background: none;
+}
+
+@media (min-width: 768px) {
+  .mc-sort {
+    max-width: none;
+  }
+}
+
+.mc-sort-label {
+  min-width: 0;
+  font-family: var(--mc-font-body);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.32px;
+  color: var(--mc-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mc-sort select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: none;
+  cursor: pointer;
+  /* Safari refuses to shrink a select below its content width without this. */
+  appearance: none;
+}
+
+/* An opacity:0 select cannot show its own focus ring, so the wrapper wears
+   it -- keyboard users lose the control otherwise. */
+.mc-sort:has(select:focus-visible) {
+  outline: 2px solid var(--mc-focus-ring);
+  outline-offset: 2px;
 }
 @media (min-width: 1440px) {
   .mc-shop-layout {
@@ -383,27 +557,96 @@ svg {
 }
 
 /* ---- footer ---- */
-.mc-footer-columns {
+/* ---- footer (21:66; Mobile 21:35 / Tablet 23:2 / Desktop 21:4) ----
+   Section gaps and vertical padding are per-breakpoint, same as the header:
+   48/28 + 40 gap on mobile, 56/30 + 44 on tablet, 64/32 + 48 on desktop. */
+.mc-footer {
   display: flex;
   flex-direction: column;
-  gap: var(--mc-space-lg);
+  gap: 40px;
+  padding-top: 48px;
+  padding-bottom: 28px;
+  background: var(--mc-bg-inverse);
+  color: var(--mc-text-muted-inverse);
+  font-family: var(--mc-font-body);
 }
-@media (min-width: 600px) {
-  .mc-footer-columns {
-    flex-direction: row;
-    flex-wrap: wrap;
+@media (min-width: 768px) {
+  .mc-footer {
+    gap: 44px;
+    padding-top: 56px;
+    padding-bottom: 30px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-footer {
     gap: var(--mc-space-2xl);
+    padding-top: var(--mc-space-3xl);
+    padding-bottom: var(--mc-space-xl);
   }
 }
 
+.mc-footer-heading {
+  font-family: var(--mc-font-display);
+  font-size: 24px;
+  color: var(--mc-text-inverse);
+  margin: 0 0 10px;
+}
+@media (min-width: 768px) {
+  .mc-footer-heading {
+    font-size: 32px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-footer-heading {
+    font-size: 36px;
+  }
+}
+
+/* A grid, not wrapping flex: the column counts and gaps below reproduce the
+   designs' measured column widths exactly (159 / 152 / 288) -- see the note
+   in components/site/footer.tsx. */
+.mc-footer-columns {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--mc-space-xl);
+}
+@media (min-width: 768px) {
+  .mc-footer-columns {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (min-width: 1440px) {
+  .mc-footer-columns {
+    gap: var(--mc-space-3xl);
+  }
+}
+
+.mc-footer-column {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+@media (min-width: 1440px) {
+  .mc-footer-column {
+    gap: 12px;
+  }
+}
+
+/* Mobile stacks the two lines (21:63, gap 6); tablet and desktop put them on
+   one row with the currency pinned right (23:30 / 21:32). */
 .mc-footer-bottom {
   display: flex;
   flex-direction: column;
-  gap: var(--mc-space-xs);
+  gap: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: var(--mc-space-lg);
 }
-@media (min-width: 600px) {
+@media (min-width: 768px) {
   .mc-footer-bottom {
     flex-direction: row;
+    align-items: baseline;
+    justify-content: space-between;
     gap: var(--mc-space-lg);
   }
 }

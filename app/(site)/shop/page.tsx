@@ -5,6 +5,7 @@ import { DiscoveryBar } from './discovery-bar';
 import { SortSelect } from './sort-select';
 import { ProductCard, type ProductCardData } from './product-card';
 import { summarizeProduct } from '@/lib/shop/product-summary';
+import { sortSizes } from '@/lib/shop/size-order';
 import {
   activeFilterCount,
   clearAllHref,
@@ -172,7 +173,7 @@ export default async function ShopPage({
         params={params}
         resultCount={filtered.length}
         filterCount={filterCount}
-        availableSizes={[...allSizes]}
+        availableSizes={sortSizes(allSizes)}
         availableColours={[...allColours]}
         availableFits={[...allFits]}
         availableCollections={[...allCollectionNames]}
@@ -193,7 +194,7 @@ export default async function ShopPage({
           </div>
           <FilterGroups
             params={params}
-            availableSizes={[...allSizes]}
+            availableSizes={sortSizes(allSizes)}
             availableColours={[...allColours]}
             availableFits={[...allFits]}
             availableCollections={[...allCollectionNames]}

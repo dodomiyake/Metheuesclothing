@@ -47,10 +47,12 @@ export function DiscoveryBar({
           paddingBottom: 12,
         }}
       >
+        {/* Secondary Button, shrink-0 — 47:328. */}
         <button
           type="button"
           onClick={() => setOpen(true)}
           style={{
+            flexShrink: 0,
             minHeight: 44,
             padding: '0 24px',
             border: '1px solid var(--mc-border-strong)',
@@ -59,6 +61,7 @@ export function DiscoveryBar({
             fontFamily: 'var(--mc-font-body)',
             fontSize: 16,
             fontWeight: 600,
+            letterSpacing: '0.32px',
             cursor: 'pointer',
             whiteSpace: 'nowrap',
           }}
@@ -66,7 +69,19 @@ export function DiscoveryBar({
           Filter{filterCount ? ` · ${filterCount}` : ''}
         </button>
         <SortSelect />
-        <p style={{ flex: 1, textAlign: 'right', fontSize: 14, fontWeight: 500, color: 'var(--mc-text-muted)', margin: 0 }}>
+        {/* 47:334: flex 1 0 0, min-width 0, 13px Medium, right aligned. */}
+        <p
+          style={{
+            flex: '1 0 0',
+            minWidth: 0,
+            textAlign: 'right',
+            fontSize: 13,
+            fontWeight: 500,
+            color: 'var(--mc-text-muted)',
+            whiteSpace: 'nowrap',
+            margin: 0,
+          }}
+        >
           {resultCount} style{resultCount === 1 ? '' : 's'}
         </p>
       </div>

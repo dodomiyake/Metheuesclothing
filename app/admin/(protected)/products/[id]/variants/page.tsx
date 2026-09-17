@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
+import { compareSizes } from '@/lib/shop/size-order';
 import { VariantManager } from './variant-manager';
 
 export default async function ProductVariantsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -25,6 +26,13 @@ export default async function ProductVariantsPage({ params }: { params: Promise<
     .order('size');
   if (variantsError) throw new Error(`Could not load variants: ${variantsError.message}`);
 
+  // `.order('size')` is alphabetical on a free-text column, so staff read the
+  // stock list as L, M, S, XL, XXL. Colour stays the query's order; only the
+  // size within each colour is re-sorted. See lib/shop/size-order.ts.
+  const orderedVariants = [...(variants ?? [])].sort(
+    (a, b) => a.colour.localeCompare(b.colour, 'en') || compareSizes(a.size, b.size),
+  );
+
   return (
     <div style={{ padding: 'var(--mc-space-xl)' }}>
       <p style={{ fontFamily: 'var(--mc-font-body)', marginBottom: 0 }}>
@@ -35,7 +43,7 @@ export default async function ProductVariantsPage({ params }: { params: Promise<
       <h1 style={{ fontFamily: 'var(--mc-font-display)', fontSize: 'var(--mc-type-page-title)' }}>
         Colours, sizes and stock
       </h1>
-      <VariantManager productId={id} variants={variants ?? []} />
+      <VariantManager productId={id} variants={orderedVariants} />
     </div>
   );
 }

@@ -80,7 +80,17 @@
   --mc-font-body:    var(--font-body), "Manrope", ui-sans-serif, system-ui, "Segoe UI", Helvetica, Arial, sans-serif;
 
   /* roles as built, not an abstract scale */
-  --mc-type-page-title:    52px; /* 38px at 390 */
+  /* --mc-type-page-title is the ONE role that changes with viewport, and it
+     is declared mobile-first: 34px here, stepped up by the media queries at
+     the end of this file. It carried a desktop-only 52px and a comment
+     naming a 38px mobile size that nothing ever implemented, so every h1 on
+     every screen — shop, product detail, bag, track-order, order
+     confirmation, every admin page — rendered at 52px on a 390px phone. The
+     product detail title broke one word per line. The stepped values come
+     from the real mobile and tablet screens (05C/05B "Your Bag" 34/42,
+     04C/04B product name 34/36), not from taste. Every other role below is
+     one size at every breakpoint, which is what the designs show. */
+  --mc-type-page-title:    34px;
   --mc-type-section:       26px;
   --mc-type-card-title:    20px;
   --mc-type-subhead:       17px;
@@ -145,3 +155,20 @@
    well as a fill. The designs still read correctly in greyscale — keep it
    that way.
 */
+
+/* Page title, stepped up from the mobile value declared above. Redefining a
+   custom property inside a media query re-resolves it for every element that
+   references it, so this reaches all six h1 call sites without any of them
+   knowing a breakpoint exists — which is the point: a page should ask for
+   "the page title size" and get the right one. Breakpoints match
+   app/globals.css (768 / 1440), not arbitrary ones. */
+@media (min-width: 768px) {
+  :root {
+    --mc-type-page-title: 42px;
+  }
+}
+@media (min-width: 1440px) {
+  :root {
+    --mc-type-page-title: 52px;
+  }
+}

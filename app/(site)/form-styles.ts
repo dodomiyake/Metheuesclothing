@@ -91,9 +91,13 @@ export const headStyle: CSSProperties = {
   gap: 8,
 };
 
+/** The page title token, not a hardcoded 48px: this file is shared by every
+ * auth screen and track-order, and a literal here opted all six of them out
+ * of the viewport step tokens.css defines, so they stayed desktop-sized on a
+ * phone no matter what the token said. */
 export const titleStyle: CSSProperties = {
   fontFamily: 'var(--mc-font-display)',
-  fontSize: 48,
+  fontSize: 'var(--mc-type-page-title)',
   lineHeight: 1.1,
   color: 'var(--mc-text-primary)',
   margin: 0,

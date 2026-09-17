@@ -76,6 +76,32 @@ Worth reading before repeating them.
   `app/shop/`, `app/bag/` and `app/admin/` now checks `error` and throws
   rather than falling through to the empty-state branch; `notFound()` is
   only called when `error` is absent AND the row is genuinely missing.
+- Every screen was matched against its *desktop* Figma frame and the shared
+  chrome was matched against one breakpoint only, so the phone was never
+  actually the design. Three separate causes, all found together when the
+  owner said "the mobile view is a total mess":
+  (a) `--mc-type-page-title` was a flat 52px carrying a comment that named a
+  38px mobile size nothing implemented — every `h1` on the site rendered at
+  52px on a 390px phone, one word per line on the product title. It is now
+  declared mobile-first and stepped up at 768/1440, and redefining a custom
+  property in a media query reaches all six call sites without any of them
+  knowing a breakpoint exists. `form-styles.ts` had opted six screens out of
+  it entirely with a hardcoded `fontSize: 48`.
+  (b) Header and Footer have three real Breakpoint variants that differ in
+  *content*, not just size — mobile has one icon (Bag) against desktop's
+  three, and the footer's link columns are 2×2 on a phone. Both were built
+  from the desktop frame, so the wordmark sat 22px off centre (the 44px
+  imbalance the FILL columns exist to prevent) and the footer was one tall
+  stacked list. Pulling all six variants is what fixed it.
+  (c) Inline `display` beats every stylesheet rule, so the icon buttons'
+  inline `display: flex` silently defeated the media queries meant to hide
+  them per breakpoint — the fix measured as having changed nothing. Same
+  trap as the bag's Continue-shopping button. Anything a breakpoint hides
+  must not carry an inline `display`.
+- `product_variants.size` is free text, so `.order('size')` is alphabetical:
+  size chips, size filters and the admin stock list all read "L, M, S, XL,
+  XXL". Postgres can't fix it without an enum the schema doesn't have, so
+  `lib/shop/size-order.ts` does, with unknown values kept rather than dropped.
 - The auth screens were built styled with the design tokens (right colours,
   right fonts, right spacing) but without ever pulling the actual Figma
   layouts — no site header, no footer, no announcement bar, thinner copy,
@@ -180,8 +206,18 @@ real delivered_at/return_window_days matching what request_return()
 itself enforces — the design's Payment section (card brand/last4, billing
 address) and Cancel-order action are omitted, not faked or dead-ended:
 those columns and that route don't exist/are never written anywhere in
-the app. Only `app/admin/sign-in/` (A01, node 126:10/32/54) is still
-pending the same treatment. Pull it with get_design_context
+the app. The shared chrome has now had a real
+three-breakpoint pass of its own (Header 15:20/15:2/10:2, Footer
+21:35/23:2/21:4, all six pulled): per-breakpoint icon sets, padding and
+wordmark sizes, a footer grid whose column counts reproduce the designs'
+measured 159/152/288 widths exactly, and a page-title token that actually
+steps down — verified by measuring the live DOM at 390/768/1440, not by
+eye (wordmark offset 0 at all three, matching what design-system-state.json
+recorded years before anything implemented it). The mobile discovery bar's
+sort control was rebuilt as the Button the design draws rather than a bare
+`<select>`, which sized itself to its longest option and pushed the result
+count off a 390px screen. Only `app/admin/sign-in/` (A01, node
+126:10/32/54) is still pending the same treatment. Pull it with get_design_context
 (`figma-design-to-code` skill loaded first) the same way every other
 screen did — every node, not just the ones that seem safe to infer (the
 product detail Tablet mistake is worth re-reading before assuming any
