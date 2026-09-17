@@ -1,10 +1,17 @@
 /**
- * The design's colour swatch is an exported asset (Colours#20:8) this
- * sandbox's network block on figma.com prevents downloading -- same class
- * of gap as components/site/icons.tsx. A small coloured dot per real colour
- * name is a reasonable stand-in until the real asset can be fetched; it
- * only needs to cover the colours actual variants use, not guess at ones
- * that don't exist yet.
+ * These are GARMENT colours, not the brand palette, and the two are no
+ * longer the same thing — they happened to share hex values while the UI
+ * palette was warm, and the September 2026 cool recolour separated them.
+ * A T-shirt that comes in Ivory must still render an ivory dot even though
+ * no UI surface is ivory any more, so do NOT "fix" these to match
+ * design/tokens. They are keyed off product_variants.colour, so the right
+ * source for a correction is the actual fabric, not tokens.css.
+ *
+ * Figma's own swatch is an exported asset (Colours#20:8), but it is a flat
+ * mockup image of one product's example colours rather than a reusable
+ * component, so a dot per real colour name is the right implementation
+ * regardless: it covers whatever colours variants actually use instead of
+ * guessing at ones that don't exist yet.
  */
 const KNOWN: Record<string, string> = {
   black: '#12100E',

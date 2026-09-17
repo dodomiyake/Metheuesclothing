@@ -1,6 +1,9 @@
 # Metheues Clothings — design tokens
 
-Generated from the Figma file `9SzUlTWGVKOCkAULkbqOsr` on 12 September 2026.
+Generated from the Figma file `9SzUlTWGVKOCkAULkbqOsr` on 12 September 2026;
+recoloured cool on 17 September 2026 and pushed back into that file, so the
+two currently agree — including the Announcement Bar's accent ground and the
+admin rail's on-dark accent.
 
 - `tokens.css` — CSS custom properties. Drop into your global stylesheet.
 - `tokens.ts` — the same values as typed exports.
@@ -10,7 +13,7 @@ change it in the other.
 
 ## The two layers
 
-**Primitives** are the raw palette — `--mc-black`, `--mc-sand`. Never reference
+**Primitives** are the raw palette — `--mc-ink`, `--mc-mist`. Never reference
 these in a component.
 
 **Semantic tokens** say what a colour is *for* — `--mc-text-muted`,
@@ -20,16 +23,22 @@ find-and-replace across the codebase.
 
 ## Four rules that are easy to break
 
-**1. Stone fails on dark.** `#68635D` on Metheues Black is 3.2:1 and fails
-WCAG AA. Supporting text on any dark ground uses `--mc-text-muted-inverse`
-(`#8A8178`, 4.97:1). This is why the footer and the admin sidebar use a
-different muted colour from the rest of the site — it is not an inconsistency.
+**1. Two colours fail on dark, and both have a twin.** Slate `#5A646E` on
+Metheues Ink is 2.6:1; the accent `#2B3FD9` is worse at 2.4:1. On any dark
+ground use `--mc-text-muted-inverse` (`#97A2AD`, 7.18:1) and
+`--mc-accent-on-dark` (`#7C8CFF`, 6.26:1). This is why the footer, the admin
+rail and the email header use different values from the rest of the site — it
+is not an inconsistency. The accent half of this rule was learned the hard
+way: the first pass of the cool recolour left the email header's "CLOTHINGS"
+on the pale-ground accent and it was effectively invisible on black.
 
-**2. Gold is a brand accent, not a UI colour.** Antique Gold appears on the
-atelier tagline, policy links, the ADMIN wordmark and the current-item rule in
-the admin rail. It is never focus, never a warning, never a selected state
-(MVP §6). Focus is `--mc-focus-ring`; "needs attention" is
-`--mc-status-attention` (Oxblood).
+**2. Ultramarine is a brand accent, not a UI colour.** It carries the
+announcement bar's ground, the footer newsletter action, the ADMIN wordmark and
+the current-item rule in the admin rail. It is never focus, never a warning,
+never a selected state (MVP §6) — Filter Chip's selected state stays ink and
+Limited Edition stays `--mc-status-attention`, or the accent stops meaning
+"Metheues" and starts meaning "chosen". Focus is `--mc-focus-ring`; "needs
+attention" is `--mc-status-attention` (Ember).
 
 **3. Colour is never the only signal.** Every status dot is paired with a word,
 every error with text, every current nav item with weight and a rule as well as

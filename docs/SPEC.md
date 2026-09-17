@@ -227,18 +227,21 @@ Metheues Clothings should combine contemporary streetwear, music, identity and c
 
 | Role | Colour | Hex |
 |---|---|---:|
-| Primary | Metheues Black | `#12100E` |
-| Background | Warm Ivory | `#F7F2E8` |
-| Surface | Soft Cream | `#FFFDF8` |
-| Secondary | Deep Espresso | `#2B160F` |
-| Accent | Antique Gold | `#B58A3C` |
-| Editorial accent | Oxblood | `#6D2633` |
-| Success | Forest | `#276749` |
-| Error | Deep Red | `#B42318` |
-| Supporting text | Stone | `#68635D` |
-| Borders | Sand | `#DDD4C7` |
+| Primary | Metheues Ink | `#0F1318` |
+| Background | Cold Bone | `#F3F6F8` |
+| Surface | Chalk | `#FFFFFF` |
+| Secondary | Graphite | `#1E2630` |
+| Accent | Ultramarine | `#2B3FD9` |
+| Accent on dark | Ultramarine on Dark | `#7C8CFF` |
+| Editorial accent | Ember | `#AD3A0B` |
+| Success | Teal | `#10695F` |
+| Error | Crimson | `#C81E3C` |
+| Supporting text | Slate | `#5A646E` |
+| Borders | Mist | `#D5DBE1` |
 
-Antique Gold is a restrained brand accent, not the universal colour for focus, warnings and selected states.
+Recoloured cool on 17 September 2026. The warm palette this replaces (Metheues Black `#12100E` / Warm Ivory `#F7F2E8` / Antique Gold `#B58A3C`) was hex-for-hex the same recipe as two sibling brands — FeyseFit and Feyse Clothing Label — and Antique Gold failed AA as text at 2.82:1 on its own background. See `design/tokens/tokens.css` for the full rationale and the measured ratios.
+
+Ultramarine is a restrained brand accent, not the universal colour for focus, warnings and selected states. That limits which roles it may take, not how boldly it may be used in the ones it does: it carries the announcement bar, the newsletter action, the ADMIN wordmark and the admin rail's current-item rule. On any dark ground use Ultramarine on Dark — the pale-ground accent is 2.4:1 there.
 
 ### Typography
 

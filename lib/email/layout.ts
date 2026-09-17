@@ -17,11 +17,24 @@ const BODY_FONT =
   "ui-sans-serif, system-ui, 'Segoe UI', Helvetica, Arial, sans-serif";
 const DISPLAY_FONT = "Didot, 'Times New Roman', Times, serif";
 
-const BLACK = '#12100E';
-const CREAM = '#FFFDF8';
-const IVORY = '#F7F2E8';
-const SAND = '#DDD4C7';
-const STONE = '#68635D';
+/**
+ * The palette, hardcoded rather than read from design/tokens/tokens.css:
+ * email clients don't resolve CSS custom properties, so these are the one
+ * place in the codebase that legitimately repeats hex values. They must be
+ * updated by hand whenever the tokens change — they were missed on the
+ * first pass of the September 2026 cool recolour and stayed warm while
+ * every other surface moved.
+ *
+ * INK_ACCENT, not ACCENT, on the black header: the pale-ground accent is
+ * 2.4:1 there and effectively invisible, which is exactly what the
+ * --mc-accent-on-dark twin exists for in tokens.css.
+ */
+const BLACK = '#0F1318'; // --mc-ink
+const CREAM = '#FFFFFF'; // --mc-chalk
+const IVORY = '#F3F6F8'; // --mc-bone
+const SAND = '#D5DBE1'; // --mc-mist
+const STONE = '#5A646E'; // --mc-slate
+const ACCENT_ON_DARK = '#7C8CFF'; // --mc-ultramarine-on-dark
 
 export function renderEmailLayout(opts: {
   /** Shown by the inbox before the subject is opened; never seen once open. */
@@ -51,8 +64,11 @@ export function renderEmailLayout(opts: {
         <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px; max-width:600px; background-color:${CREAM};">
           <tr>
             <td align="center" style="background-color:${BLACK}; padding:28px 24px;">
-              <span style="font-family:${DISPLAY_FONT}; font-size:20px; letter-spacing:2px; color:${CREAM}; text-transform:uppercase;">
-                Metheues Clothings
+              <span style="font-family:${DISPLAY_FONT}; font-size:20px; letter-spacing:2px; color:${CREAM}; text-transform:uppercase; display:block;">
+                Metheues
+              </span>
+              <span style="font-family:${BODY_FONT}; font-size:11px; letter-spacing:3px; color:${ACCENT_ON_DARK}; text-transform:uppercase; display:block; padding-top:6px;">
+                Clothings
               </span>
             </td>
           </tr>

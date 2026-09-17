@@ -10,6 +10,12 @@ import { DismissIcon } from './icons';
  * change" (component description) — thresholdPence comes from the caller's
  * own store_settings read rather than being hardcoded here, which is what
  * makes that impossible to get out of sync.
+ *
+ * The ground is --mc-accent, not the ink 24:2 draws: a deliberate departure
+ * made when the palette was recoloured cool. This is the only surface that
+ * appears on every page, so it is where a brand accent earns the most, and
+ * §6 limits the accent's ROLES (never focus, warning or selected state)
+ * rather than its prominence. Type on it uses --mc-accent-text (7.46:1).
  */
 export function AnnouncementBar({ thresholdPence }: { thresholdPence: number }) {
   const [dismissed, setDismissed] = useState(false);
@@ -18,7 +24,7 @@ export function AnnouncementBar({ thresholdPence }: { thresholdPence: number }) 
   return (
     <div
       style={{
-        background: 'var(--mc-bg-inverse)',
+        background: 'var(--mc-accent)',
         display: 'flex',
         alignItems: 'center',
         paddingLeft: 16,
@@ -34,7 +40,7 @@ export function AnnouncementBar({ thresholdPence }: { thresholdPence: number }) 
             fontWeight: 600,
             letterSpacing: '1.44px',
             textTransform: 'uppercase',
-            color: 'var(--mc-text-inverse)',
+            color: 'var(--mc-accent-text)',
           }}
         >
           Free UK delivery on orders over {formatPence(thresholdPence)}
@@ -53,7 +59,7 @@ export function AnnouncementBar({ thresholdPence }: { thresholdPence: number }) 
           justifyContent: 'center',
           background: 'none',
           border: 'none',
-          color: 'var(--mc-text-inverse)',
+          color: 'var(--mc-accent-text)',
           cursor: 'pointer',
         }}
       >

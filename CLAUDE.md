@@ -47,7 +47,8 @@ or because the database enforces it and application code cannot opt out.
    leak.
 8. **Colour is never the only signal for state**, and interactive targets are
    44px minimum. `design/tokens/README.md` has the rest, including the one
-   palette correction: Stone `#68635D` fails AA on dark, use `#8A8178`.
+   palette correction: Slate `#5A646E` fails AA on dark, use `#97A2AD` — and
+   the accent has the same split, `#2B3FD9` on pale grounds, `#7C8CFF` on dark.
 
 ## Things that have already gone wrong
 

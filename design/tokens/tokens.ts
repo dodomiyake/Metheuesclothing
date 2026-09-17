@@ -1,43 +1,49 @@
 /**
  * Metheues Clothings — design tokens
- * Generated from Figma file 9SzUlTWGVKOCkAULkbqOsr, 12 September 2026.
+ * Generated from Figma file 9SzUlTWGVKOCkAULkbqOsr, 12 September 2026;
+ * recoloured cool on 17 September 2026.
  * Mirrors tokens.css. Keep the two in step.
  */
 
 export const primitive = {
-  black: '#12100E',
-  espresso: '#2B160F',
-  ivory: '#F7F2E8',
-  cream: '#FFFDF8',
-  sand: '#DDD4C7',
-  stone: '#68635D',
-  stoneOnDark: '#8A8178',
-  gold: '#B58A3C',
-  oxblood: '#6D2633',
-  forest: '#276749',
-  red: '#B42318',
+  ink: '#0F1318',
+  graphite: '#1E2630',
+  bone: '#F3F6F8',
+  chalk: '#FFFFFF',
+  mist: '#D5DBE1',
+  slate: '#5A646E',
+  slateOnDark: '#97A2AD',
+  ultramarine: '#2B3FD9',
+  ultramarineOnDark: '#7C8CFF',
+  teal: '#10695F',
+  ember: '#AD3A0B',
+  crimson: '#C81E3C',
 } as const;
 
 export const color = {
-  bg: { page: primitive.ivory, surface: primitive.cream, inverse: primitive.black },
+  bg: { page: primitive.bone, surface: primitive.chalk, inverse: primitive.ink },
   text: {
-    primary: primitive.black,
-    muted: primitive.stone,
-    inverse: primitive.cream,
-    /** Supporting text on dark grounds. primitive.stone fails AA there (3.2:1). */
-    mutedInverse: primitive.stoneOnDark,
+    primary: primitive.ink,
+    muted: primitive.slate,
+    inverse: primitive.chalk,
+    /** Supporting text on dark grounds. primitive.slate fails AA there (2.6:1). */
+    mutedInverse: primitive.slateOnDark,
   },
-  border: { default: primitive.sand, strong: primitive.black },
-  action: { primaryBg: primitive.black, primaryText: primitive.cream },
-  focus: { ring: primitive.black },
+  border: { default: primitive.mist, strong: primitive.ink },
+  action: { primaryBg: primitive.ink, primaryText: primitive.chalk },
+  focus: { ring: primitive.ink },
   status: {
-    success: primitive.forest,
-    /** Low stock, awaiting review, pending. Never gold. */
-    attention: primitive.oxblood,
-    error: primitive.red,
+    success: primitive.teal,
+    /** Low stock, awaiting review, pending. Never the accent. */
+    attention: primitive.ember,
+    error: primitive.crimson,
   },
   /** Brand accent only — never focus, warning or selection (MVP §6). */
-  accent: primitive.gold,
+  accent: primitive.ultramarine,
+  /** The accent on ink or graphite; the pale-ground one is 2.4:1 there. */
+  accentOnDark: primitive.ultramarineOnDark,
+  /** Type sitting ON an accent ground (announcement bar, newsletter action). */
+  accentText: primitive.chalk,
 } as const;
 
 export const space = { '2xs': 4, xs: 8, sm: 12, md: 16, lg: 24, xl: 32, '2xl': 48, '3xl': 64 } as const;

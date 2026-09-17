@@ -15,12 +15,13 @@
   /* ---- primitives: colour ---- */
   --mc-ink:              #0F1318; /* Metheues Ink */
   --mc-graphite:         #1E2630; /* Graphite — the second dark ground */
-  --mc-bone:             #EDF0F3; /* Cold Bone */
-  --mc-chalk:            #FAFBFC; /* Chalk */
-  --mc-mist:             #D3D9DF;
+  --mc-bone:             #F3F6F8; /* Cold Bone */
+  --mc-chalk:            #FFFFFF; /* Chalk */
+  --mc-mist:             #D5DBE1;
   --mc-slate:            #5A646E;
   --mc-slate-on-dark:    #97A2AD; /* see contrast note below */
   --mc-ultramarine:      #2B3FD9; /* Ultramarine — brand accent ONLY */
+  --mc-ultramarine-on-dark: #7C8CFF; /* same reason slate has an on-dark twin */
   --mc-teal:             #10695F;
   --mc-ember:            #AD3A0B;
   --mc-crimson:          #C81E3C;
@@ -40,6 +41,13 @@
 
   --mc-action-primary-bg:   var(--mc-ink);
   --mc-action-primary-text: var(--mc-chalk);
+
+  /* The brand accent, as semantic tokens so components never reach for the
+     primitive: --mc-accent on a pale ground, --mc-accent-on-dark on ink or
+     graphite, --mc-accent-text for type sitting ON an accent ground. */
+  --mc-accent:           var(--mc-ultramarine);
+  --mc-accent-on-dark:   var(--mc-ultramarine-on-dark);
+  --mc-accent-text:      var(--mc-chalk);
 
   --mc-focus-ring:       var(--mc-ink);
   --mc-status-success:   var(--mc-teal);
@@ -112,14 +120,25 @@
    equivalent pairing cleared AA by a hair (4.96:1); this one has real
    headroom, but the rule is unchanged.
 
-   ACCENT — --mc-ultramarine is a brand accent: the atelier tagline, a
-   policy link, the ADMIN wordmark, the current-item rule in the admin
-   rail. It is never focus, never a warning, never a selected state
-   (MVP §6). Focus is --mc-focus-ring; "needs attention" is
-   --mc-status-attention. It is also legible as text (6.52:1 on the page
-   ground) — the Antique Gold it replaces was 2.82:1 and would have failed
-   AA the moment it was used for that policy link, which is a large part of
-   why it never was.
+   ACCENT — use --mc-accent / --mc-accent-on-dark, never the primitive.
+   §6's rule is that the accent is "a restrained brand accent, not the
+   universal colour for focus, warnings and selected states" — a limit on
+   which ROLES it may take, not on how boldly it may be used in the ones
+   it does. So it carries identity where identity belongs: the
+   announcement bar's ground (the one surface on every page), the footer
+   newsletter's primary action, the ADMIN wordmark and the current-item
+   rule in the admin rail. It is still never focus (--mc-focus-ring),
+   never a warning (--mc-status-attention), and never an availability or
+   selected state — Filter Chip's selected state stays ink, and Limited
+   Edition stays --mc-status-attention, or the accent would stop meaning
+   "Metheues" and start meaning "chosen".
+
+   Ratios, computed not eyeballed: accent as text is 6.87:1 on the page
+   ground and 7.46:1 on surface; --mc-accent-text on an accent ground is
+   7.46:1; --mc-accent-on-dark is 6.26:1 on ink and 5.13:1 on graphite.
+   The Antique Gold this replaces was 2.82:1 on its own page ground and
+   would have failed AA the moment it was used for the policy link the old
+   note assigned it — a large part of why it never was used at all.
 
    COLOUR IS NEVER THE ONLY SIGNAL. Every status dot is paired with a word,
    every error with text, every current nav item with weight and a rule as

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
+import { AdminNavLink } from './admin-nav-link';
 
 /**
  * Gate for the whole /admin tree. A18/A01: staff never land on the customer
@@ -92,7 +93,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               padding: '0 var(--mc-space-sm) var(--mc-space-lg)',
             }}
           >
-            Metheues Admin
+            {/* The accent's sanctioned home on this screen (tokens.css) --
+                --mc-accent-on-dark, since the pale-ground accent is only
+                2.4:1 against this rail. */}
+            Metheues <span style={{ color: 'var(--mc-accent-on-dark)' }}>Admin</span>
           </div>
           <div
             style={{
@@ -127,26 +131,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </main>
       </div>
     </div>
-  );
-}
-
-function AdminNavLink({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link
-      href={href}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        padding: 'var(--mc-space-xs) var(--mc-space-sm)',
-        color: 'var(--mc-text-inverse)',
-        fontSize: 'var(--mc-type-body)',
-        textDecoration: 'none',
-        minHeight: 44,
-        lineHeight: '20px',
-      }}
-    >
-      {children}
-    </Link>
   );
 }
 

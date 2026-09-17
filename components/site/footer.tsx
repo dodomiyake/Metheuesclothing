@@ -67,8 +67,8 @@ export function Footer() {
               style={{
                 minHeight: 44,
                 padding: '0 20px',
-                background: 'var(--mc-chalk)',
-                color: 'var(--mc-ink)',
+                background: 'var(--mc-accent)',
+                color: 'var(--mc-accent-text)',
                 border: 'none',
                 borderRadius: 'var(--mc-radius-sm)',
                 fontFamily: 'var(--mc-font-body)',
