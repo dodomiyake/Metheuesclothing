@@ -158,7 +158,7 @@ function SignOutButton() {
         width: '100%',
         minHeight: 44,
         background: 'transparent',
-        border: '1px solid var(--mc-stone-on-dark)',
+        border: '1px solid var(--mc-slate-on-dark)',
         color: 'var(--mc-text-muted-inverse)',
         borderRadius: 'var(--mc-radius-sm)',
         fontFamily: 'var(--mc-font-body)',

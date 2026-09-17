@@ -155,7 +155,7 @@ function GenerateForm({ productId, existing }: { productId: string; existing: Va
                         <span
                           style={{
                             fontSize: 'var(--mc-type-caption)',
-                            color: exists ? 'var(--mc-text-muted)' : 'var(--mc-forest)',
+                            color: exists ? 'var(--mc-text-muted)' : 'var(--mc-teal)',
                             fontWeight: exists ? 400 : 700,
                           }}
                         >
@@ -273,8 +273,8 @@ function VariantRow({ variant }: { variant: Variant }) {
             padding: '2px 10px',
             borderRadius: 999,
             border: '1px solid var(--mc-border-default)',
-            background: active ? '#E4F1E8' : 'var(--mc-sand)',
-            color: active ? 'var(--mc-forest)' : 'var(--mc-stone)',
+            background: active ? '#E4F1E8' : 'var(--mc-mist)',
+            color: active ? 'var(--mc-teal)' : 'var(--mc-slate)',
             fontSize: 'var(--mc-type-caption)',
             fontWeight: 600,
             cursor: 'pointer',

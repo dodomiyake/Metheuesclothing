@@ -26,7 +26,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
     : product.lowStock
       ? { text: 'Low stock', bg: 'var(--mc-bg-surface)', fg: 'var(--mc-text-primary)' }
       : product.isLimitedEdition
-        ? { text: 'Limited Edition', bg: 'var(--mc-oxblood)', fg: 'var(--mc-text-inverse)' }
+        ? { text: 'Limited Edition', bg: 'var(--mc-ember)', fg: 'var(--mc-text-inverse)' }
         : product.isNew
           ? { text: 'New', bg: 'var(--mc-bg-inverse)', fg: 'var(--mc-text-inverse)' }
           : null;
@@ -36,7 +36,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       <div
         style={{
           aspectRatio: '4 / 5',
-          background: 'var(--mc-sand)',
+          background: 'var(--mc-mist)',
           position: 'relative',
           marginBottom: 12,
           opacity: product.inStock ? 1 : 0.55,

@@ -82,10 +82,10 @@ export default async function AdminInventoryPage() {
 }
 
 const TONES: Record<string, { bg: string; fg: string }> = {
-  danger: { bg: '#F5E6D8', fg: 'var(--mc-red)' },
-  attention: { bg: '#F5E6D8', fg: 'var(--mc-oxblood)' },
-  success: { bg: '#E4F1E8', fg: 'var(--mc-forest)' },
-  neutral: { bg: 'var(--mc-sand)', fg: 'var(--mc-stone)' },
+  danger: { bg: '#F5E6D8', fg: 'var(--mc-crimson)' },
+  attention: { bg: '#F5E6D8', fg: 'var(--mc-ember)' },
+  success: { bg: '#E4F1E8', fg: 'var(--mc-teal)' },
+  neutral: { bg: 'var(--mc-mist)', fg: 'var(--mc-slate)' },
 };
 
 function Badge({ tone, children }: { tone: keyof typeof TONES; children: React.ReactNode }) {

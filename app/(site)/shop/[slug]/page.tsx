@@ -160,7 +160,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           <div
             className="mc-pdp-main-image"
             style={{
-              background: 'var(--mc-sand)',
+              background: 'var(--mc-mist)',
               borderRadius: 'var(--mc-radius-md)',
               display: 'flex',
               alignItems: 'center',
@@ -240,7 +240,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               style={{
                 flex: 1,
                 aspectRatio: '4 / 5',
-                background: 'var(--mc-espresso)',
+                background: 'var(--mc-graphite)',
                 borderRadius: 'var(--mc-radius-md)',
               }}
             />
@@ -294,7 +294,7 @@ function ThumbWell({ label }: { label: string }) {
     <div
       style={{
         aspectRatio: '4 / 5',
-        background: 'var(--mc-sand)',
+        background: 'var(--mc-mist)',
         borderRadius: 'var(--mc-radius-sm)',
         display: 'flex',
         alignItems: 'center',

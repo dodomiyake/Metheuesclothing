@@ -1,7 +1,9 @@
 /* Metheues Clothings — design tokens
-   Generated from the Figma file 9SzUlTWGVKOCkAULkbqOsr on 12 September 2026.
-   These values ARE the design. If one changes here, change it in Figma too —
-   there is no sync between the two.
+   Palette generated from the Figma file 9SzUlTWGVKOCkAULkbqOsr on 12
+   September 2026; recoloured cool on 17 September 2026 (see the PALETTE
+   note below). These values ARE the design. If one changes here, change
+   it in Figma too — there is no sync between the two, and the Figma file
+   still carries the warm palette until someone updates it.
 
    Two layers, and the distinction matters:
      Primitives  — the raw palette. Never reference these in a component.
@@ -11,38 +13,38 @@
 
 :root {
   /* ---- primitives: colour ---- */
-  --mc-black:            #12100E; /* Metheues Black */
-  --mc-espresso:         #2B160F; /* Deep Espresso */
-  --mc-ivory:            #F7F2E8; /* Warm Ivory */
-  --mc-cream:            #FFFDF8; /* Soft Cream */
-  --mc-sand:             #DDD4C7;
-  --mc-stone:            #68635D;
-  --mc-stone-on-dark:    #8A8178; /* see contrast note below */
-  --mc-gold:             #B58A3C; /* Antique Gold — brand accent ONLY */
-  --mc-oxblood:          #6D2633;
-  --mc-forest:           #276749;
-  --mc-red:              #B42318;
+  --mc-ink:              #0F1318; /* Metheues Ink */
+  --mc-graphite:         #1E2630; /* Graphite — the second dark ground */
+  --mc-bone:             #EDF0F3; /* Cold Bone */
+  --mc-chalk:            #FAFBFC; /* Chalk */
+  --mc-mist:             #D3D9DF;
+  --mc-slate:            #5A646E;
+  --mc-slate-on-dark:    #97A2AD; /* see contrast note below */
+  --mc-ultramarine:      #2B3FD9; /* Ultramarine — brand accent ONLY */
+  --mc-teal:             #10695F;
+  --mc-ember:            #AD3A0B;
+  --mc-crimson:          #C81E3C;
 
   /* ---- semantic: what each colour is for ---- */
-  --mc-bg-page:          var(--mc-ivory);
-  --mc-bg-surface:       var(--mc-cream);
-  --mc-bg-inverse:       var(--mc-black);
+  --mc-bg-page:          var(--mc-bone);
+  --mc-bg-surface:       var(--mc-chalk);
+  --mc-bg-inverse:       var(--mc-ink);
 
-  --mc-text-primary:     var(--mc-black);
-  --mc-text-muted:       var(--mc-stone);
-  --mc-text-inverse:     var(--mc-cream);
-  --mc-text-muted-inverse: var(--mc-stone-on-dark);
+  --mc-text-primary:     var(--mc-ink);
+  --mc-text-muted:       var(--mc-slate);
+  --mc-text-inverse:     var(--mc-chalk);
+  --mc-text-muted-inverse: var(--mc-slate-on-dark);
 
-  --mc-border-default:   var(--mc-sand);
-  --mc-border-strong:    var(--mc-black);
+  --mc-border-default:   var(--mc-mist);
+  --mc-border-strong:    var(--mc-ink);
 
-  --mc-action-primary-bg:   var(--mc-black);
-  --mc-action-primary-text: var(--mc-cream);
+  --mc-action-primary-bg:   var(--mc-ink);
+  --mc-action-primary-text: var(--mc-chalk);
 
-  --mc-focus-ring:       var(--mc-black);
-  --mc-status-success:   var(--mc-forest);
-  --mc-status-attention: var(--mc-oxblood);
-  --mc-status-error:     var(--mc-red);
+  --mc-focus-ring:       var(--mc-ink);
+  --mc-status-success:   var(--mc-teal);
+  --mc-status-attention: var(--mc-ember);
+  --mc-status-error:     var(--mc-crimson);
 
   /* ---- spacing ---- */
   --mc-space-2xs: 4px;
@@ -93,16 +95,31 @@
   --mc-gutter-desktop: 48px;
 }
 
-/* CONTRAST — the one pairing that is easy to get wrong.
-   --mc-stone (#68635D) on --mc-black is 3.2:1 and FAILS WCAG AA.
-   Supporting text on any dark ground must use --mc-text-muted-inverse
-   (#8A8178, 4.97:1). This is why the footer and the admin rail use a
-   different muted colour from the rest of the site.
+/* PALETTE — recoloured cool on 17 September 2026. The warm palette it
+   replaces (Metheues Black #12100E / Warm Ivory #F7F2E8 / Antique Gold
+   #B58A3C) was, hex for hex, the same recipe as two sibling brands in the
+   same GitHub account: FeyseFit (#09090B / #FAF6EF / #B38601) and Feyse
+   Clothing Label (#1A1108 / #FAF6EE / #B9924F). Near-black ink, warm cream
+   ground, muted gold accent — three times over, with the backgrounds
+   within a few hex digits of each other. Cool ink, bone and ultramarine
+   break that recipe rather than producing a fourth variant of it.
 
-   ACCENT — --mc-gold is a brand accent: the atelier tagline, a policy link,
-   the ADMIN wordmark, the current-item rule in the admin rail. It is never
-   focus, never a warning, never a selected state (MVP §6). Focus is
-   --mc-focus-ring; "needs attention" is --mc-status-attention.
+   CONTRAST — the one pairing that is easy to get wrong.
+   --mc-slate (#5A646E) on --mc-ink is 2.6:1 and FAILS WCAG AA.
+   Supporting text on any dark ground must use --mc-text-muted-inverse
+   (#97A2AD, 7.18:1). This is why the footer and the admin rail use a
+   different muted colour from the rest of the site. The warm palette's
+   equivalent pairing cleared AA by a hair (4.96:1); this one has real
+   headroom, but the rule is unchanged.
+
+   ACCENT — --mc-ultramarine is a brand accent: the atelier tagline, a
+   policy link, the ADMIN wordmark, the current-item rule in the admin
+   rail. It is never focus, never a warning, never a selected state
+   (MVP §6). Focus is --mc-focus-ring; "needs attention" is
+   --mc-status-attention. It is also legible as text (6.52:1 on the page
+   ground) — the Antique Gold it replaces was 2.82:1 and would have failed
+   AA the moment it was used for that policy link, which is a large part of
+   why it never was.
 
    COLOUR IS NEVER THE ONLY SIGNAL. Every status dot is paired with a word,
    every error with text, every current nav item with weight and a rule as

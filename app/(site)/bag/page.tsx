@@ -293,7 +293,7 @@ function BagLineRow({
 }) {
   return (
     <div style={{ display: 'flex', gap: 16, padding: '20px 0', borderBottom: '1px solid var(--mc-border-default)' }}>
-      <div style={{ width: 88, aspectRatio: '4 / 5', background: 'var(--mc-sand)', flexShrink: 0 }} />
+      <div style={{ width: 88, aspectRatio: '4 / 5', background: 'var(--mc-mist)', flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
         <div style={{ display: 'flex', gap: 16 }}>
           <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>

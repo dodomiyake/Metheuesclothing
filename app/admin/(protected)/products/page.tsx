@@ -134,11 +134,11 @@ function Td({ children }: { children: React.ReactNode }) {
 }
 
 const TONES: Record<string, { bg: string; fg: string; label: string }> = {
-  draft: { bg: 'var(--mc-sand)', fg: 'var(--mc-black)', label: 'Draft' },
+  draft: { bg: 'var(--mc-mist)', fg: 'var(--mc-ink)', label: 'Draft' },
   scheduled: { bg: '#DCEBF7', fg: '#1E4F73', label: 'Scheduled' },
-  published: { bg: '#E4F1E8', fg: 'var(--mc-forest)', label: 'Published' },
-  archived: { bg: 'var(--mc-sand)', fg: 'var(--mc-stone)', label: 'Archived' },
-  sold_out: { bg: '#F5E6D8', fg: 'var(--mc-oxblood)', label: 'Sold out' },
+  published: { bg: '#E4F1E8', fg: 'var(--mc-teal)', label: 'Published' },
+  archived: { bg: 'var(--mc-mist)', fg: 'var(--mc-slate)', label: 'Archived' },
+  sold_out: { bg: '#F5E6D8', fg: 'var(--mc-ember)', label: 'Sold out' },
 };
 
 // The dot is decorative only -- the word carries the meaning (admin_foundations

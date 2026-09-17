@@ -69,7 +69,7 @@ export default function AdminSignInPage() {
           onSubmit={onSubmit}
           style={{
             fontFamily: 'var(--mc-font-body)',
-            background: 'var(--mc-espresso)',
+            background: 'var(--mc-graphite)',
             padding: 'var(--mc-space-xl)',
             borderRadius: 'var(--mc-radius-md)',
             boxSizing: 'border-box',
@@ -140,8 +140,8 @@ export default function AdminSignInPage() {
             style={{
               width: '100%',
               minHeight: 44,
-              background: 'var(--mc-cream)',
-              color: 'var(--mc-black)',
+              background: 'var(--mc-chalk)',
+              color: 'var(--mc-ink)',
               border: 'none',
               borderRadius: 'var(--mc-radius-sm)',
               fontFamily: 'var(--mc-font-body)',
@@ -173,10 +173,10 @@ const inputStyle: CSSProperties = {
   width: '100%',
   minHeight: 44,
   padding: '10px 12px',
-  border: '1px solid var(--mc-stone-on-dark)',
+  border: '1px solid var(--mc-slate-on-dark)',
   borderRadius: 'var(--mc-radius-sm)',
-  background: 'var(--mc-black)',
-  color: 'var(--mc-cream)',
+  background: 'var(--mc-ink)',
+  color: 'var(--mc-chalk)',
   fontFamily: 'var(--mc-font-body)',
   fontSize: 'var(--mc-type-body)',
   boxSizing: 'border-box',

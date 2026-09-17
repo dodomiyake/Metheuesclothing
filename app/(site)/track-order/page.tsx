@@ -244,7 +244,7 @@ export default function TrackOrderPage() {
             <Card title="Items in this order">
               {items.map((item) => (
                 <div key={item.id} style={{ display: 'flex', gap: 16, padding: '16px 0', borderBottom: '1px solid var(--mc-border-default)' }}>
-                  <div style={{ width: 64, height: 80, background: 'var(--mc-sand)', borderRadius: 'var(--mc-radius-sm)', flexShrink: 0 }} />
+                  <div style={{ width: 64, height: 80, background: 'var(--mc-mist)', borderRadius: 'var(--mc-radius-sm)', flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 15, fontWeight: 500, margin: '0 0 4px' }}>{item.product_name}</p>
                     <p style={{ fontSize: 13, color: 'var(--mc-text-muted)', margin: '0 0 4px' }}>
