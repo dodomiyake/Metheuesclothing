@@ -772,3 +772,37 @@ button.mc-icon-button[aria-label='Search'] {
     flex-shrink: 0;
   }
 }
+
+/* ---- admin sign in (A01; Mobile 126:10 / Tablet 126:32 / Desktop 126:54)
+   The three breakpoints are one screen at two card widths — 350 on mobile,
+   420 from 768 up — so this is a single layout with one width step rather
+   than three variants. The black is the PAGE; the card is white. An earlier
+   pass had that inverted (graphite card, dark inputs, white button), which
+   made the screen read as a dark-mode storefront rather than a staff door. */
+.mc-admin-signin {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--mc-bg-inverse);
+}
+
+.mc-admin-signin-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+  width: 350px;
+  max-width: 100%;
+  padding: 32px 28px;
+  background: var(--mc-bg-surface);
+  border-radius: var(--mc-radius-md);
+  box-sizing: border-box;
+}
+@media (min-width: 768px) {
+  .mc-admin-signin-card {
+    width: 420px;
+  }
+}

@@ -238,12 +238,28 @@ eye (wordmark offset 0 at all three, matching what design-system-state.json
 recorded years before anything implemented it). The mobile discovery bar's
 sort control was rebuilt as the Button the design draws rather than a bare
 `<select>`, which sized itself to its longest option and pushed the result
-count off a 390px screen. Only `app/admin/sign-in/` (A01, node
-126:10/32/54) is still pending the same treatment. Pull it with get_design_context
-(`figma-design-to-code` skill loaded first) the same way every other
-screen did — every node, not just the ones that seem safe to infer (the
-product detail Tablet mistake is worth re-reading before assuming any
-screen is close enough to guess). Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
+count off a 390px screen. `app/admin/sign-in/` has now had it too (A01, all three of
+126:10/32/54 pulled): the three breakpoints are one screen at two card
+widths (350 mobile, 420 from 768 up), and the earlier version had the
+central idea inverted — a graphite card with dark inputs and a white
+button, where the design is a WHITE card on a black page. Measured
+against the design at all three widths rather than eyeballed. Three
+departures, all deliberate and all narrowing a claim rather than
+widening one: the Default Form Field's border uses
+`--mc-border-control` (the Figma component was rebound to match, so the
+two do not diverge); "Forgotten your password?" keeps its underline,
+since ink-on-white text has no other affordance; and the small print is
+rewritten, because the design's version makes four security claims the
+system does not keep — no 12-hour session expiry exists (it is a
+Supabase Auth dashboard setting, flag it for the owner like the E1/E2
+send-email hook), sign-ins are not written to audit_logs, there is no
+admin refund action to log yet, and stock adjustments go to
+inventory_adjustments rather than audit_logs. What replaced it is the
+narrower true thing: audit_logs is append-only, enforced by the
+forbid_audit_mutation triggers. The password helper says 10, the real
+`z.string().min(10)`, not the design's 12.
+
+Every screen in the app has now had the real-Figma pass. Next: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
 E1/E2 (verify email, password reset) now have a caller — Supabase Auth sends
 its own default email today; routing that through our Resend templates
