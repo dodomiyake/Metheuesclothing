@@ -46,9 +46,19 @@ or because the database enforces it and application code cannot opt out.
    key, so importing it from a client component is a build error rather than a
    leak.
 8. **Colour is never the only signal for state**, and interactive targets are
-   44px minimum. `design/tokens/README.md` has the rest, including the one
-   palette correction: Slate `#5A646E` fails AA on dark, use `#97A2AD` — and
-   the accent has the same split, `#2B3FD9` on pale grounds, `#7C8CFF` on dark.
+   44px minimum. `design/tokens/README.md` has the rest. Three corrections
+   the palette enforces rather than suggests:
+   - Slate `#5F5F5F` fails AA on dark (2.4:1) — use `#A3A3A3` there.
+   - **The accent is a GROUND, never type on a pale surface.** Acid
+     `#D8F34A` on Paper is 1.26:1. `--mc-accent` is a fill, `--mc-accent-text`
+     (ink) is what sits on it, `--mc-accent-on-dark` is the accent used AS
+     type on ink or graphite. Figma's `Semantic/accent` has TEXT_FILL removed
+     from its scopes so the picker cannot offer the wrong one.
+   - **Two border tokens, and swapping them makes forms invisible.**
+     `--mc-border-control` (`#767676`) for inputs, selects, chips, steppers —
+     on a Paper ground a white control has 1.02:1 of fill contrast, so its
+     border is the only thing identifying it and WCAG 1.4.11 wants 3:1.
+     `--mc-border-default` (`#E0E0E0`) is decorative only.
 
 ## Things that have already gone wrong
 
@@ -102,6 +112,18 @@ Worth reading before repeating them.
   size chips, size filters and the admin stock list all read "L, M, S, XL,
   XXL". Postgres can't fix it without an enum the schema doesn't have, so
   `lib/shop/size-order.ts` does, with unknown values kept rather than dropped.
+- The palette was changed twice in one week because both times it was judged
+  from hex values and a token file rather than from a rendered page. Warm
+  gold was the same recipe as two sibling brands; its cool replacement
+  (ultramarine on a blue-grey ground) read as a SaaS dashboard — which only
+  became obvious when the real listing page was rendered side by side in
+  candidate palettes. Render the actual screen before choosing, not after.
+  The second swing also surfaced two things a hex swap alone would have
+  missed: native checkboxes and radios paint their checked state with the
+  BROWSER's accent (system blue) unless `accent-color` is set, so a blue tick
+  survived a palette with no blue in it; and dropping the tinted page ground
+  removed the fill contrast that had been identifying white inputs, which is
+  why `--mc-border-control` exists.
 - The auth screens were built styled with the design tokens (right colours,
   right fonts, right spacing) but without ever pulling the actual Figma
   layouts — no site header, no footer, no announcement bar, thinner copy,

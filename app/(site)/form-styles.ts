@@ -28,7 +28,7 @@ export const inputStyle: CSSProperties = {
   minHeight: 48,
   padding: '14px 16px',
   background: 'var(--mc-bg-surface)',
-  border: '1px solid var(--mc-border-default)',
+  border: '1px solid var(--mc-border-control)',
   borderRadius: 'var(--mc-radius-sm)',
   fontFamily: 'var(--mc-font-body)',
   fontSize: 16,

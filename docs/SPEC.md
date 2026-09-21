@@ -227,21 +227,26 @@ Metheues Clothings should combine contemporary streetwear, music, identity and c
 
 | Role | Colour | Hex |
 |---|---|---:|
-| Primary | Metheues Ink | `#0F1318` |
-| Background | Cold Bone | `#F3F6F8` |
+| Primary | Metheues Ink | `#0A0A0A` |
+| Background | Paper | `#FAFAFA` |
 | Surface | Chalk | `#FFFFFF` |
-| Secondary | Graphite | `#1E2630` |
-| Accent | Ultramarine | `#2B3FD9` |
-| Accent on dark | Ultramarine on Dark | `#7C8CFF` |
-| Editorial accent | Ember | `#AD3A0B` |
-| Success | Teal | `#10695F` |
-| Error | Crimson | `#C81E3C` |
-| Supporting text | Slate | `#5A646E` |
-| Borders | Mist | `#D5DBE1` |
+| Secondary | Graphite | `#191919` |
+| Accent (ground only) | Acid | `#D8F34A` |
+| Editorial accent | Ember | `#A33C0A` |
+| Success | Teal | `#0F6152` |
+| Error | Crimson | `#C4142F` |
+| Supporting text | Slate | `#5F5F5F` |
+| Supporting text on dark | Slate on Dark | `#A3A3A3` |
+| Decorative borders | Mist | `#E0E0E0` |
+| Control borders | Steel | `#767676` |
 
-Recoloured cool on 17 September 2026. The warm palette this replaces (Metheues Black `#12100E` / Warm Ivory `#F7F2E8` / Antique Gold `#B58A3C`) was hex-for-hex the same recipe as two sibling brands — FeyseFit and Feyse Clothing Label — and Antique Gold failed AA as text at 2.82:1 on its own background. See `design/tokens/tokens.css` for the full rationale and the measured ratios.
+Recoloured twice in September 2026. The original warm palette (Metheues Black `#12100E` / Warm Ivory `#F7F2E8` / Antique Gold `#B58A3C`) was hex-for-hex the same recipe as two sibling brands — FeyseFit and Feyse Clothing Label — and Antique Gold failed AA as text at 2.82:1. Its cool replacement (Ultramarine `#2B3FD9` on Cold Bone `#F3F6F8`) broke that recipe but landed on the SaaS one: saturated mid-blue on a blue-grey ground reads as developer tooling, not as a T-shirt label. See `design/tokens/tokens.css` for the full rationale and the measured ratios.
 
-Ultramarine is a restrained brand accent, not the universal colour for focus, warnings and selected states. That limits which roles it may take, not how boldly it may be used in the ones it does: it carries the announcement bar, the newsletter action, the ADMIN wordmark and the admin rail's current-item rule. On any dark ground use Ultramarine on Dark — the pale-ground accent is 2.4:1 there.
+Acid is a restrained brand accent, not the universal colour for focus, warnings and selected states. That limits which roles it may take, not how boldly it may be used in the ones it does: it carries the announcement bar, the newsletter action, the ADMIN wordmark and the admin rail's current-item rule.
+
+Acid is also a **ground, never type on a pale surface** — `#D8F34A` on Paper is 1.26:1. Ink on acid is 15.88:1 and acid on ink is 15.88:1, so it reads either as a fill with ink on it, or as type on a dark ground, and never as a pale-ground link colour.
+
+The two border roles are an accessibility split, not a stylistic one: on a Paper ground a white input has 1.02:1 of fill contrast, so its border is the only thing identifying it, and WCAG 1.4.11 requires that to clear 3:1. Steel is for control edges; Mist is decorative only.
 
 ### Typography
 

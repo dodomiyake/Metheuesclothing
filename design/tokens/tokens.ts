@@ -1,35 +1,38 @@
 /**
  * Metheues Clothings — design tokens
  * Generated from Figma file 9SzUlTWGVKOCkAULkbqOsr, 12 September 2026;
- * recoloured cool on 17 September 2026.
+ * recoloured cool on 17 September and stark on 21 September 2026.
  * Mirrors tokens.css. Keep the two in step.
  */
 
 export const primitive = {
-  ink: '#0F1318',
-  graphite: '#1E2630',
-  bone: '#F3F6F8',
+  ink: '#0A0A0A',
+  graphite: '#191919',
+  paper: '#FAFAFA',
   chalk: '#FFFFFF',
-  mist: '#D5DBE1',
-  slate: '#5A646E',
-  slateOnDark: '#97A2AD',
-  ultramarine: '#2B3FD9',
-  ultramarineOnDark: '#7C8CFF',
-  teal: '#10695F',
-  ember: '#AD3A0B',
-  crimson: '#C81E3C',
+  /** Decorative hairlines and image wells only — 1.26:1, never a control edge. */
+  mist: '#E0E0E0',
+  /** Control boundaries. 4.35:1 on paper, which WCAG 1.4.11 requires. */
+  steel: '#767676',
+  slate: '#5F5F5F',
+  slateOnDark: '#A3A3A3',
+  /** Brand accent. A GROUND on pale surfaces — 1.26:1 as text there. */
+  acid: '#D8F34A',
+  teal: '#0F6152',
+  ember: '#A33C0A',
+  crimson: '#C4142F',
 } as const;
 
 export const color = {
-  bg: { page: primitive.bone, surface: primitive.chalk, inverse: primitive.ink },
+  bg: { page: primitive.paper, surface: primitive.chalk, inverse: primitive.ink },
   text: {
     primary: primitive.ink,
     muted: primitive.slate,
     inverse: primitive.chalk,
-    /** Supporting text on dark grounds. primitive.slate fails AA there (2.6:1). */
+    /** Supporting text on dark grounds. primitive.slate fails AA there (2.4:1). */
     mutedInverse: primitive.slateOnDark,
   },
-  border: { default: primitive.mist, strong: primitive.ink },
+  border: { default: primitive.mist, control: primitive.steel, strong: primitive.ink },
   action: { primaryBg: primitive.ink, primaryText: primitive.chalk },
   focus: { ring: primitive.ink },
   status: {
@@ -38,12 +41,13 @@ export const color = {
     attention: primitive.ember,
     error: primitive.crimson,
   },
-  /** Brand accent only — never focus, warning or selection (MVP §6). */
-  accent: primitive.ultramarine,
-  /** The accent on ink or graphite; the pale-ground one is 2.4:1 there. */
-  accentOnDark: primitive.ultramarineOnDark,
+  /** Brand accent only — never focus, warning or selection (MVP §6). A FILL
+   * on pale surfaces, never type: acid on paper is 1.26:1. */
+  accent: primitive.acid,
+  /** The accent used AS type, on ink or graphite only (15.88:1 / 14.10:1). */
+  accentOnDark: primitive.acid,
   /** Type sitting ON an accent ground (announcement bar, newsletter action). */
-  accentText: primitive.chalk,
+  accentText: primitive.ink,
 } as const;
 
 export const space = { '2xs': 4, xs: 8, sm: 12, md: 16, lg: 24, xl: 32, '2xl': 48, '3xl': 64 } as const;

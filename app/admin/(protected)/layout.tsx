@@ -94,7 +94,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             }}
           >
             {/* The accent's sanctioned home on this screen (tokens.css) --
-                --mc-accent-on-dark, since the pale-ground accent is only
+                --mc-accent-on-dark, since the accent is a ground on pale surfaces and only
                 2.4:1 against this rail. */}
             Metheues <span style={{ color: 'var(--mc-accent-on-dark)' }}>Admin</span>
           </div>

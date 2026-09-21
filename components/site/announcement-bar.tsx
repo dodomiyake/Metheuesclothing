@@ -15,7 +15,8 @@ import { DismissIcon } from './icons';
  * made when the palette was recoloured cool. This is the only surface that
  * appears on every page, so it is where a brand accent earns the most, and
  * §6 limits the accent's ROLES (never focus, warning or selected state)
- * rather than its prominence. Type on it uses --mc-accent-text (7.46:1).
+ * rather than its prominence. Type on it uses --mc-accent-text (ink on
+ * acid, 15.88:1) -- acid is a ground here, never type.
  */
 export function AnnouncementBar({ thresholdPence }: { thresholdPence: number }) {
   const [dismissed, setDismissed] = useState(false);

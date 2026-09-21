@@ -23,7 +23,7 @@ const chipStyle = (state: 'default' | 'selected' | 'disabled'): React.CSSPropert
   padding: state === 'selected' ? '12.5px 10px 12.5px 16px' : '12.5px 16px',
   gap: 8,
   borderRadius: 'var(--mc-radius-sm)',
-  border: `1px solid ${state === 'selected' ? 'var(--mc-border-strong)' : 'var(--mc-border-default)'}`,
+  border: `1px solid ${state === 'selected' ? 'var(--mc-border-strong)' : 'var(--mc-border-control)'}`,
   background: state === 'selected' ? 'var(--mc-bg-inverse)' : 'none',
   color: state === 'selected' ? 'var(--mc-text-inverse)' : state === 'disabled' ? 'var(--mc-text-muted)' : 'var(--mc-text-primary)',
   fontFamily: 'var(--mc-font-body)',

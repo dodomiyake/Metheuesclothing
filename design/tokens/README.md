@@ -21,18 +21,31 @@ these in a component.
 reason a palette change lands everywhere at once instead of being a
 find-and-replace across the codebase.
 
-## Four rules that are easy to break
+## Five rules that are easy to break
 
-**1. Two colours fail on dark, and both have a twin.** Slate `#5A646E` on
-Metheues Ink is 2.6:1; the accent `#2B3FD9` is worse at 2.4:1. On any dark
-ground use `--mc-text-muted-inverse` (`#97A2AD`, 7.18:1) and
-`--mc-accent-on-dark` (`#7C8CFF`, 6.26:1). This is why the footer, the admin
-rail and the email header use different values from the rest of the site — it
-is not an inconsistency. The accent half of this rule was learned the hard
-way: the first pass of the cool recolour left the email header's "CLOTHINGS"
-on the pale-ground accent and it was effectively invisible on black.
+**1. Supporting text fails on dark and has a twin.** Slate `#5F5F5F` on
+Metheues Ink is 2.4:1. On any dark ground use `--mc-text-muted-inverse`
+(`#A3A3A3`, 7.85:1). This is why the footer, the admin rail and the email
+header use different values from the rest of the site — it is not an
+inconsistency. It was learned the hard way twice: the first pass of the cool
+recolour left the email header's "CLOTHINGS" on the pale-ground accent and it
+was effectively invisible on black.
 
-**2. Ultramarine is a brand accent, not a UI colour.** It carries the
+**1b. Acid is a GROUND, never type on a pale surface.** `#D8F34A` on Paper is
+1.26:1. The blue it replaced worked either way, so this is a new constraint
+and it is structural: `--mc-accent` is a fill, `--mc-accent-text` (ink,
+15.88:1) is what sits on that fill, and `--mc-accent-on-dark` is the accent
+used AS type, on ink or graphite only. There is no such thing as an accent
+link on a white page in this system.
+
+**1c. Two border tokens, and swapping them makes forms invisible.** The page
+ground is Paper and controls are white — 1.02:1 of fill contrast — so a
+control's border is the only thing identifying it, and WCAG 1.4.11 requires
+3:1. `--mc-border-control` (`#767676`, 4.35:1) is for inputs, selects, chips
+and steppers. `--mc-border-default` (`#E0E0E0`, 1.26:1) is decorative only:
+dividers, card outlines, image wells.
+
+**2. Acid is a brand accent, not a UI colour.** It carries the
 announcement bar's ground, the footer newsletter action, the ADMIN wordmark and
 the current-item rule in the admin rail. It is never focus, never a warning,
 never a selected state (MVP §6) — Filter Chip's selected state stays ink and

@@ -387,7 +387,7 @@ const inputStyle: CSSProperties = {
   width: '100%',
   minHeight: 44,
   padding: '10px 12px',
-  border: '1px solid var(--mc-border-default)',
+  border: '1px solid var(--mc-border-control)',
   borderRadius: 'var(--mc-radius-sm)',
   fontFamily: 'var(--mc-font-body)',
   fontSize: 'var(--mc-type-body)',

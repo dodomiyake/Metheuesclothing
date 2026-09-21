@@ -101,7 +101,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
                   height: 12,
                   borderRadius: '50%',
                   background: swatchColour(c),
-                  border: '1px solid var(--mc-border-default)',
+                  border: '1px solid var(--mc-border-control)',
                 }}
               />
             ))}

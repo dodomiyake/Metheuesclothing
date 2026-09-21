@@ -1,9 +1,9 @@
 /* Metheues Clothings — design tokens
    Palette generated from the Figma file 9SzUlTWGVKOCkAULkbqOsr on 12
-   September 2026; recoloured cool on 17 September 2026 (see the PALETTE
-   note below). These values ARE the design. If one changes here, change
-   it in Figma too — there is no sync between the two, and the Figma file
-   still carries the warm palette until someone updates it.
+   September 2026; recoloured cool on 17 September and stark on 21
+   September 2026 (see the PALETTE note below). These values ARE the
+   design. If one changes here, change it in Figma too — there is no sync
+   between the two, so the primitives there have to be revalued by hand.
 
    Two layers, and the distinction matters:
      Primitives  — the raw palette. Never reference these in a component.
@@ -13,21 +13,21 @@
 
 :root {
   /* ---- primitives: colour ---- */
-  --mc-ink:              #0F1318; /* Metheues Ink */
-  --mc-graphite:         #1E2630; /* Graphite — the second dark ground */
-  --mc-bone:             #F3F6F8; /* Cold Bone */
-  --mc-chalk:            #FFFFFF; /* Chalk */
-  --mc-mist:             #D5DBE1;
-  --mc-slate:            #5A646E;
-  --mc-slate-on-dark:    #97A2AD; /* see contrast note below */
-  --mc-ultramarine:      #2B3FD9; /* Ultramarine — brand accent ONLY */
-  --mc-ultramarine-on-dark: #7C8CFF; /* same reason slate has an on-dark twin */
-  --mc-teal:             #10695F;
-  --mc-ember:            #AD3A0B;
-  --mc-crimson:          #C81E3C;
+  --mc-ink:              #0A0A0A; /* Metheues Ink */
+  --mc-graphite:         #191919; /* the second dark ground */
+  --mc-paper:            #FAFAFA; /* Paper — the page ground */
+  --mc-chalk:            #FFFFFF; /* Chalk — panels and controls */
+  --mc-mist:             #E0E0E0; /* decorative hairlines and image wells */
+  --mc-steel:            #767676; /* control boundaries — see BORDERS below */
+  --mc-slate:            #5F5F5F;
+  --mc-slate-on-dark:    #A3A3A3; /* see contrast note below */
+  --mc-acid:             #D8F34A; /* Acid — brand accent, GROUND ONLY */
+  --mc-teal:             #0F6152;
+  --mc-ember:            #A33C0A;
+  --mc-crimson:          #C4142F;
 
   /* ---- semantic: what each colour is for ---- */
-  --mc-bg-page:          var(--mc-bone);
+  --mc-bg-page:          var(--mc-paper);
   --mc-bg-surface:       var(--mc-chalk);
   --mc-bg-inverse:       var(--mc-ink);
 
@@ -37,17 +37,18 @@
   --mc-text-muted-inverse: var(--mc-slate-on-dark);
 
   --mc-border-default:   var(--mc-mist);
+  --mc-border-control:   var(--mc-steel);
   --mc-border-strong:    var(--mc-ink);
 
   --mc-action-primary-bg:   var(--mc-ink);
   --mc-action-primary-text: var(--mc-chalk);
 
-  /* The brand accent, as semantic tokens so components never reach for the
-     primitive: --mc-accent on a pale ground, --mc-accent-on-dark on ink or
-     graphite, --mc-accent-text for type sitting ON an accent ground. */
-  --mc-accent:           var(--mc-ultramarine);
-  --mc-accent-on-dark:   var(--mc-ultramarine-on-dark);
-  --mc-accent-text:      var(--mc-chalk);
+  /* The brand accent. --mc-accent is a GROUND, never type on a pale surface
+     (see ACCENT below); --mc-accent-text is what sits ON it; and
+     --mc-accent-on-dark is the accent used AS type on ink or graphite. */
+  --mc-accent:           var(--mc-acid);
+  --mc-accent-on-dark:   var(--mc-acid);
+  --mc-accent-text:      var(--mc-ink);
 
   --mc-focus-ring:       var(--mc-ink);
   --mc-status-success:   var(--mc-teal);
@@ -113,42 +114,57 @@
   --mc-gutter-desktop: 48px;
 }
 
-/* PALETTE — recoloured cool on 17 September 2026. The warm palette it
-   replaces (Metheues Black #12100E / Warm Ivory #F7F2E8 / Antique Gold
-   #B58A3C) was, hex for hex, the same recipe as two sibling brands in the
-   same GitHub account: FeyseFit (#09090B / #FAF6EF / #B38601) and Feyse
-   Clothing Label (#1A1108 / #FAF6EE / #B9924F). Near-black ink, warm cream
-   ground, muted gold accent — three times over, with the backgrounds
-   within a few hex digits of each other. Cool ink, bone and ultramarine
-   break that recipe rather than producing a fourth variant of it.
+/* PALETTE — recoloured a second time on 21 September 2026, from cool to
+   stark. The first recolour (warm gold → cool ultramarine) fixed the right
+   problem: the warm palette was, hex for hex, the same recipe as two sibling
+   brands in the same GitHub account (FeyseFit #09090B/#FAF6EF/#B38601, Feyse
+   Clothing Label #1A1108/#FAF6EE/#B9924F). It picked the wrong replacement.
+   Saturated mid-blue on a blue-grey ground is the SaaS accent — it is what a
+   payments dashboard looks like, and rendering the real listing page proved
+   it: blue banner, blue-grey ground, blue Sign-up button. A T-shirt label
+   whose own vocabulary is New Drop, Limited Edition and graphic runs should
+   not read as developer tooling.
 
-   CONTRAST — the one pairing that is easy to get wrong.
-   --mc-slate (#5A646E) on --mc-ink is 2.6:1 and FAILS WCAG AA.
-   Supporting text on any dark ground must use --mc-text-muted-inverse
-   (#97A2AD, 7.18:1). This is why the footer and the admin rail use a
-   different muted colour from the rest of the site. The warm palette's
-   equivalent pairing cleared AA by a hair (4.96:1); this one has real
-   headroom, but the rule is unchanged.
+   Stark white ground, near-black ink and an acid accent break BOTH recipes:
+   there is no warm cream and no tech blue. Colour on a fashion storefront is
+   supposed to come from the garments; the palette's job is to get out of
+   their way, which is why the ground is paper and the accent appears in
+   exactly three places.
 
-   ACCENT — use --mc-accent / --mc-accent-on-dark, never the primitive.
-   §6's rule is that the accent is "a restrained brand accent, not the
-   universal colour for focus, warnings and selected states" — a limit on
-   which ROLES it may take, not on how boldly it may be used in the ones
-   it does. So it carries identity where identity belongs: the
-   announcement bar's ground (the one surface on every page), the footer
-   newsletter's primary action, the ADMIN wordmark and the current-item
-   rule in the admin rail. It is still never focus (--mc-focus-ring),
-   never a warning (--mc-status-attention), and never an availability or
-   selected state — Filter Chip's selected state stays ink, and Limited
-   Edition stays --mc-status-attention, or the accent would stop meaning
-   "Metheues" and start meaning "chosen".
+   ACCENT — acid is a GROUND, never type on a pale surface. #D8F34A on paper
+   is 1.26:1: invisible. This is a real constraint the ultramarine it
+   replaces did not have (that one worked either way), so the rule is now
+   structural rather than stylistic:
+     --mc-accent          a FILL only — announcement bar, newsletter action
+     --mc-accent-text     what sits on that fill (ink, 15.88:1)
+     --mc-accent-on-dark  the accent AS type, on ink or graphite only
+   Ink on acid is 15.88:1 and acid on ink is 15.88:1, so the accent is loud
+   without ever being the weak link. §6's rule still holds: it is a brand
+   accent, not the colour for focus (--mc-focus-ring), warnings
+   (--mc-status-attention) or selected states. Limited Edition stays ember
+   and Filter Chip's selected state stays ink, or the accent would stop
+   meaning "Metheues" and start meaning "chosen".
 
-   Ratios, computed not eyeballed: accent as text is 6.87:1 on the page
-   ground and 7.46:1 on surface; --mc-accent-text on an accent ground is
-   7.46:1; --mc-accent-on-dark is 6.26:1 on ink and 5.13:1 on graphite.
-   The Antique Gold this replaces was 2.82:1 on its own page ground and
-   would have failed AA the moment it was used for the policy link the old
-   note assigned it — a large part of why it never was used at all.
+   BORDERS — two tokens, and the distinction is an accessibility one, not a
+   taste one. The page used to be tinted (#F3F6F8) and panels white, so a
+   white input was identifiable by its FILL. On a paper ground that fill
+   contrast is 1.02:1 and gone, leaving the border as the only thing marking
+   the control — which WCAG 1.4.11 requires to clear 3:1.
+     --mc-border-default  #E0E0E0, 1.26:1 — decorative only: dividers,
+                          card outlines, image wells. Never a control edge.
+     --mc-border-control  #767676, 4.35:1 on paper — every input, select and
+                          field boundary.
+   Getting these backwards makes forms invisible, not just soft.
+
+   CONTRAST — the other pairing that is easy to get wrong.
+   --mc-slate (#5F5F5F) on --mc-ink is 2.4:1 and FAILS WCAG AA. Supporting
+   text on any dark ground must use --mc-text-muted-inverse (#A3A3A3,
+   7.85:1). This is why the footer and the admin rail use a different muted
+   colour from the rest of the site.
+
+   Ratios, computed not eyeballed (scratchpad contrast script, against the
+   paper ground): ink 18.97:1, slate 6.12:1, ember 6.27:1, teal 7.05:1,
+   crimson 5.77:1, control border 4.35:1.
 
    COLOUR IS NEVER THE ONLY SIGNAL. Every status dot is paired with a word,
    every error with text, every current nav item with weight and a rule as

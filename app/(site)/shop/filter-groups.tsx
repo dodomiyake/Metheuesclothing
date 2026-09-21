@@ -8,7 +8,7 @@ const chipStyle = (selected: boolean): React.CSSProperties => ({
   gap: 8,
   minHeight: 44,
   borderRadius: 'var(--mc-radius-sm)',
-  border: `1px solid ${selected ? 'var(--mc-border-strong)' : 'var(--mc-border-default)'}`,
+  border: `1px solid ${selected ? 'var(--mc-border-strong)' : 'var(--mc-border-control)'}`,
   background: selected ? 'var(--mc-bg-inverse)' : 'transparent',
   color: selected ? 'var(--mc-text-inverse)' : 'var(--mc-text-primary)',
   fontSize: 14,

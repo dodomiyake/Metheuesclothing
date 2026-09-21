@@ -15,7 +15,7 @@ import { usePathname } from 'next/navigation';
  * item also carries a weight change and aria-current for anyone who
  * cannot see the rule at all.
  *
- * --mc-accent-on-dark, not --mc-accent: the pale-ground accent is only
+ * --mc-accent-on-dark, not --mc-accent: the accent is a ground on pale surfaces and only
  * 2.4:1 against this rail's ink.
  */
 export function AdminNavLink({ href, children }: { href: string; children: React.ReactNode }) {

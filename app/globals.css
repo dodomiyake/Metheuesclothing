@@ -38,6 +38,20 @@ svg {
   max-width: 100%;
 }
 
+/* Native checkboxes, radios and range inputs paint their checked state with
+   the BROWSER's accent colour, which is system blue. Nothing in the palette
+   put it there and no component style overrides it, so after the September
+   recolour to acid the "Keep me signed in" tick was the only blue pixel left
+   on the site -- a leftover from a palette we no longer use.
+   Ink, not --mc-accent: a checked box is a SELECTED state, and the brand
+   accent is never that (tokens.css's ACCENT rule; Filter Chip's selected
+   state is ink for the same reason). */
+input[type='checkbox'],
+input[type='radio'],
+input[type='range'] {
+  accent-color: var(--mc-ink);
+}
+
 /* ---- page gutter -- replaces every hardcoded var(--mc-gutter-desktop) ---- */
 .mc-page-gutter {
   padding-left: var(--mc-gutter-mobile);

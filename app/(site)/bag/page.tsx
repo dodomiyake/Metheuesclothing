@@ -208,6 +208,11 @@ export default function BagPage() {
           <div
             style={{
               background: 'var(--mc-bg-surface)',
+              // The page ground is paper and this panel is white: 1.02:1, so
+              // the fill alone no longer separates it the way it did against
+              // the old tinted ground. It is the only bg-surface panel in the
+              // codebase with no edge of its own.
+              borderBottom: '1px solid var(--mc-border-default)',
               display: 'flex',
               alignItems: 'center',
               gap: 24,
@@ -253,7 +258,7 @@ export default function BagPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              style={{ width: '100%', minHeight: 44, padding: '10px 12px', border: '1px solid var(--mc-border-default)', borderRadius: 'var(--mc-radius-sm)', boxSizing: 'border-box', fontFamily: 'var(--mc-font-body)', fontSize: 15 }}
+              style={{ width: '100%', minHeight: 44, padding: '10px 12px', border: '1px solid var(--mc-border-control)', borderRadius: 'var(--mc-radius-sm)', boxSizing: 'border-box', fontFamily: 'var(--mc-font-body)', fontSize: 15 }}
             />
           </label>
 
@@ -331,7 +336,7 @@ function QuantityControl({ quantity, onChange }: { quantity: number; onChange: (
   const canDecrease = quantity > 1;
   const canIncrease = quantity < MAX_QTY;
   return (
-    <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--mc-border-default)', borderRadius: 'var(--mc-radius-sm)' }}>
+    <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--mc-border-control)', borderRadius: 'var(--mc-radius-sm)' }}>
       <button
         type="button"
         aria-label="Decrease quantity"

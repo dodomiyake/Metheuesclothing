@@ -25,16 +25,18 @@ const DISPLAY_FONT = "Didot, 'Times New Roman', Times, serif";
  * first pass of the September 2026 cool recolour and stayed warm while
  * every other surface moved.
  *
- * INK_ACCENT, not ACCENT, on the black header: the pale-ground accent is
- * 2.4:1 there and effectively invisible, which is exactly what the
- * --mc-accent-on-dark twin exists for in tokens.css.
+ * ACCENT_ON_DARK on the black header, and it is the only place the accent
+ * appears at all here: acid is 1.26:1 on a pale ground, so it can never be
+ * the CTA fill the way a blue could. The CTA stays BLACK/CREAM. Gmail and
+ * Apple Mail force-invert in dark mode, which is another reason the layout
+ * must not depend on the accent for hierarchy.
  */
-const BLACK = '#0F1318'; // --mc-ink
+const BLACK = '#0A0A0A'; // --mc-ink
 const CREAM = '#FFFFFF'; // --mc-chalk
-const IVORY = '#F3F6F8'; // --mc-bone
-const SAND = '#D5DBE1'; // --mc-mist
-const STONE = '#5A646E'; // --mc-slate
-const ACCENT_ON_DARK = '#7C8CFF'; // --mc-ultramarine-on-dark
+const IVORY = '#FAFAFA'; // --mc-paper
+const SAND = '#E0E0E0'; // --mc-mist
+const STONE = '#5F5F5F'; // --mc-slate
+const ACCENT_ON_DARK = '#D8F34A'; // --mc-acid
 
 export function renderEmailLayout(opts: {
   /** Shown by the inbox before the subject is opened; never seen once open. */
