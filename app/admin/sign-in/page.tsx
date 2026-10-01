@@ -37,12 +37,20 @@ import Link from 'next/link';
  *     no refund can be logged.
  *   - Stock adjustments go to inventory_adjustments via adjust_stock()
  *     (migration 010), not to audit_logs.
- * What IS true is narrower and worth saying: audit_logs is append-only,
- * enforced by the forbid_audit_mutation triggers in 003/004 — staff cannot
- * edit or delete it, and neither can the owner. Returns and Stripe payment
- * events write to it today. A security promise a system does not keep is
- * worse than a smaller one it does, same call as the PDP's unverified
- * Estimate/Carrier rows and the placeholder size tables.
+ * What IS true is narrower still, and the first version of this page got it
+ * wrong too. It said "Returns and payment events are written to an audit
+ * log" — but every audit_logs insert in the codebase is a FAILURE path:
+ * oversell_detected in the Stripe webhook, and email_delivery_failed in the
+ * webhook, the returns route and lib/email/send.ts. A payment that succeeds
+ * writes nothing. A return that succeeds writes nothing. So the only honest
+ * claim is the one about the log's integrity, not its coverage: audit_logs
+ * is append-only, enforced by the forbid_audit_mutation triggers in 003/004,
+ * so neither staff nor the owner can edit or delete what IS in it.
+ *
+ * That gap is worth closing — an audit log that only records failures is not
+ * really an audit log — but it is a decision about what should be audited,
+ * not something to guess at mid-screen. Flag it for the owner alongside the
+ * session-expiry setting.
  *
  * Password helper says 10, not the design's 12: app/api/auth/register
  * enforces z.string().min(10) and there is no admin-specific rule. Printing
@@ -195,8 +203,8 @@ export default function AdminSignInPage() {
         <div style={{ height: 1, width: '100%', background: 'var(--mc-border-default)' }} />
 
         <p style={{ fontFamily: 'var(--mc-font-body)', fontSize: 12, lineHeight: '18px', color: 'var(--mc-text-muted)', margin: 0 }}>
-          Returns and payment events are written to an audit log that cannot be edited or
-          deleted — including by you, and including by the owner.
+          Anything written to the audit log cannot be edited or deleted afterwards —
+          not by you, and not by the owner.
         </p>
       </form>
     </main>

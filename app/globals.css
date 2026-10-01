@@ -1032,3 +1032,38 @@ button.mc-icon-button[aria-label='Search'] {
   gap: 8px;
   width: 100%;
 }
+
+/* A12 Order details (139:1861 / 139:1620 / 139:1379). ONE breakpoint, not
+   two: tablet and mobile both stack Order main above Order side in the same
+   order, and the split happens at 1440 only — confirmed by reading the
+   tablet and mobile frames rather than assuming it matched A11. */
+.mc-admin-order-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+@media (min-width: 1440px) {
+  .mc-admin-order-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+.mc-admin-order-main,
+.mc-admin-order-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  width: 100%;
+}
+@media (min-width: 1440px) {
+  .mc-admin-order-main {
+    flex: 1 0 0;
+  }
+  .mc-admin-order-side {
+    width: 380px;
+    flex-shrink: 0;
+  }
+}

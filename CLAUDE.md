@@ -284,11 +284,40 @@ paths (`delivery_address->address->>country`, `delivery_address->>name`)
 and, like everything else here, have never run against a reachable
 database — they typecheck and build but are unexercised.
 
-Next: `/admin/orders/[id]` (A12 Order details, 139:1861/139:1620/139:1379)
-is referenced by every row on A11 and does not exist yet, so the list
-currently links to a 404 — that is the next thing to build, before the
-fulfilment/cancel/refund actions (A13–A16) and the emails they trigger.
-Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
+A12 Order details is now built (139:1861/139:1620/139:1379, all three
+pulled), so A11's rows land somewhere. Unlike A11 it has ONE breakpoint:
+tablet and mobile both stack Order main above Order side in the same
+order, and the split is at 1440 only — read from the frames rather than
+assumed to match A11. It is deliberately a READ screen: the design hangs
+eight actions off it and exactly one (Open in Stripe) has anywhere to go,
+because A13 Fulfilment, A14 Add tracking, A15 Cancel and A16 Refund are
+unbuilt screens with no routes behind them. Four panels are omitted for
+four different reasons, all recorded in the page's own comment — internal
+notes (no table exists at all, and orders.customer_note is the CUSTOMER's
+note, so rendering it under a staff-only heading would invert its
+meaning); payment method (payments.card_brand/card_last4 EXIST but the
+webhook never writes them — a few lines from being true, worth doing);
+phone (checkout never asks Stripe for one); and the delivery estimate
+(nothing stores or computes one).
+
+Two findings worth carrying forward. First, EVERY audit_logs insert in
+this codebase is a failure path — oversell_detected and
+email_delivery_failed — so a successful payment or return writes nothing.
+The A01 small print shipped in 7f3f90b overclaimed this ("returns and
+payment events are written to an audit log") and has been corrected to
+the only true claim, which is about the log's integrity rather than its
+coverage. An audit log that records only failures is probably not what
+anyone wants; closing it is nearly free once the A13–A16 actions exist,
+since each is already a write. Second, the schema has no per-transition
+timestamps at all: fulfilment_status is one current value with no history,
+so A12's timeline shows real times only for placed_at, shipped_at and
+delivered_at and says plainly that the rest are unrecorded.
+
+Next: A13–A16 (fulfilment, add tracking, cancel, refund) and the emails
+they trigger; the admin mobile rail still uses a desktop 212px nav width
+that leaves dead space on a phone, and the two oldest admin tables (A03
+T-shirts, A07 Inventory) have Mobile frames that were never implemented —
+they are desktop tables at every width. Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
 E1/E2 (verify email, password reset) now have a caller — Supabase Auth sends
 its own default email today; routing that through our Resend templates
