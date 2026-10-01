@@ -22,14 +22,21 @@ import { usePathname } from 'next/navigation';
  * The count is a real figure or nothing. A zero is not rendered: "Orders 0"
  * reads as a queue with nothing in it, which is exactly when the badge
  * should disappear rather than claim attention.
+ *
+ * Width is NOT set here. The component is drawn 212px wide, which is a
+ * measurement that only means anything inside the 240px sidebar — applied in
+ * the mobile drawer it left a strip of dead black beside every row. The
+ * sidebar sets 212px itself in globals.css; the drawer goes full width.
  */
 export function AdminNavLink({
   href,
   count,
+  onNavigate,
   children,
 }: {
   href: string;
   count?: number;
+  onNavigate?: () => void;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -41,12 +48,12 @@ export function AdminNavLink({
     <Link
       href={href}
       aria-current={current ? 'page' : undefined}
+      onClick={onNavigate}
+      className="mc-admin-nav-link"
       style={{
         display: 'flex',
         alignItems: 'center',
         gap: 10,
-        width: 212,
-        maxWidth: '100%',
         minHeight: 44,
         height: 44,
         padding: '11px 14px',

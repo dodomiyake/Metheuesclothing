@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
-import { AdminNavLink } from './admin-nav-link';
+import { AdminRail } from './admin-rail';
 import { AWAITING_FULFILMENT } from '@/components/admin/status-badge';
 
 /**
@@ -73,71 +73,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="mc-admin-shell">
-      <nav className="mc-admin-rail">
-        <div className="mc-admin-rail-top">
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, letterSpacing: '2px' }}>
-            <span style={{ fontFamily: 'var(--mc-font-display)', fontSize: 17, color: 'var(--mc-text-inverse)' }}>
-              METHEUES
-            </span>
-            {/* The accent's sanctioned home on this screen (tokens.css):
-                --mc-accent-on-dark, because the accent is a ground on pale
-                surfaces and can only be type on ink or graphite. */}
-            <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--mc-accent-on-dark)' }}>ADMIN</span>
-          </div>
-          <span className="mc-admin-rail-user" style={{ fontSize: 13, fontWeight: 500, color: 'var(--mc-text-muted-inverse)' }}>
-            {profile?.full_name || profile?.email}
-            {profile?.role ? ` · ${profile.role === 'owner' ? 'Owner' : 'Staff'}` : ''}
-          </span>
-        </div>
-
-        {/* Only the sections that exist. The design draws ten nav items
-            across four groups (Dashboard, Collections, Returns, Customers,
-            Homepage content, Settings, Audit log); none of those pages are
-            built, and a rail full of 404s is worse for staff than a short
-            one. They go back in as each screen lands. */}
-        <div className="mc-admin-nav">
-          <AdminNavLink href="/admin/products">T-shirts</AdminNavLink>
-          <AdminNavLink href="/admin/inventory">Inventory</AdminNavLink>
-          <AdminNavLink href="/admin/orders" count={awaiting ?? 0}>
-            Orders
-          </AdminNavLink>
-        </div>
-
-        <div className="mc-admin-rail-foot">
-          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--mc-text-inverse)' }}>
-            {profile?.full_name || profile?.email}
-          </span>
-          <span style={{ fontSize: 12, color: 'var(--mc-text-muted-inverse)' }}>
-            {profile?.role === 'owner' ? 'Owner' : 'Staff'} · {profile?.email}
-          </span>
-          <form action="/api/auth/sign-out" method="post">
-            <SignOutButton />
-          </form>
-        </div>
-      </nav>
+      <AdminRail
+        name={profile?.full_name || profile?.email || 'Signed in'}
+        email={profile?.email ?? ''}
+        role={profile?.role ?? ''}
+        awaitingOrders={awaiting ?? 0}
+      />
       <main className="mc-admin-main">{children}</main>
     </div>
-  );
-}
-
-function SignOutButton() {
-  return (
-    <button
-      type="submit"
-      style={{
-        padding: 0,
-        minHeight: 44,
-        background: 'none',
-        border: 'none',
-        color: 'var(--mc-accent-on-dark)',
-        fontFamily: 'var(--mc-font-body)',
-        fontSize: 13,
-        fontWeight: 500,
-        textAlign: 'left',
-        cursor: 'pointer',
-      }}
-    >
-      Sign out
-    </button>
   );
 }

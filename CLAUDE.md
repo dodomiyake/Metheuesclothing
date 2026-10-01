@@ -313,11 +313,30 @@ timestamps at all: fulfilment_status is one current value with no history,
 so A12's timeline shows real times only for placed_at, shipped_at and
 delivered_at and says plainly that the rest are unrecorded.
 
+The admin rail now collapses behind a toggle below 1440 — a deliberate
+departure, recorded in admin-rail.tsx. A11/A12 Mobile draw it as ten
+212px chips wrapping into a ~494px slab on an 844px-tall phone, and our
+first build inherited the 212px width with three items, leaving a strip
+of dead black beside every row (212 only means something inside a 240px
+sidebar). Collapsed the bar is 76px; opened, rows go full width. The
+rail still swaps at 1440 exactly as the frames show — only the collapsed
+shape differs. Alongside it, `components/admin/wide-only.tsx` gates the
+three editing screens (A04 Edit T-shirt, A06 Generate variants, A08
+Adjust stock) below 768 with a short message instead of a squashed form.
+That matches the design file's own split, which is worth knowing: of 23
+admin screens 7 have a Mobile frame and 16 do not, and the line is
+almost exactly read vs write — sign-in, dashboard, the three queues and
+Order details get a phone layout; every editor, settings screen and
+consequential action is Desktop+Tablet only. NOTE that rationale is read
+off which frames exist; no decision to that effect is recorded in
+design-system-state.json, so confirm it with the design owner rather
+than treating it as settled.
+
 Next: A13–A16 (fulfilment, add tracking, cancel, refund) and the emails
-they trigger; the admin mobile rail still uses a desktop 212px nav width
-that leaves dead space on a phone, and the two oldest admin tables (A03
+they trigger. Also still open: the two oldest admin tables (A03
 T-shirts, A07 Inventory) have Mobile frames that were never implemented —
-they are desktop tables at every width. Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
+they are desktop tables at every width, with no record-list fallback and
+no overflow wrapper, so they squash rather than scroll. Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
 E1/E2 (verify email, password reset) now have a caller — Supabase Auth sends
 its own default email today; routing that through our Resend templates

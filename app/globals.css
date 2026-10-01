@@ -829,14 +829,14 @@ button.mc-icon-button[aria-label='Search'] {
 .mc-admin-rail {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
+  gap: 0;
+  padding: 8px 16px;
   background: var(--mc-bg-inverse);
   color: var(--mc-text-inverse);
 }
 @media (min-width: 768px) {
   .mc-admin-rail {
-    padding: 16px 24px;
+    padding: 8px 24px;
   }
 }
 @media (min-width: 1440px) {
@@ -848,27 +848,52 @@ button.mc-icon-button[aria-label='Search'] {
   }
 }
 
-/* Brand + signed-in sit on one row until the rail goes vertical. */
+/* Brand + signed-in + the Menu toggle on one row until the rail goes
+   vertical. */
 .mc-admin-rail-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
+  min-height: 60px;
 }
 @media (min-width: 1440px) {
   .mc-admin-rail-top {
     display: block;
+    min-height: 0;
     padding-left: 14px;
   }
 }
 
 .mc-admin-rail-user {
   display: block;
+  margin-left: auto;
 }
 @media (min-width: 1440px) {
   /* On desktop the signed-in block moves to the foot of the rail, so the
      copy in the top row would be a duplicate. */
   .mc-admin-rail-user {
+    display: none;
+  }
+}
+
+.mc-admin-rail-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 14px;
+  background: none;
+  border: 1px solid var(--mc-slate-on-dark);
+  border-radius: var(--mc-radius-sm);
+  color: var(--mc-text-inverse);
+  font-family: var(--mc-font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+@media (min-width: 1440px) {
+  .mc-admin-rail-toggle {
     display: none;
   }
 }
@@ -887,18 +912,60 @@ button.mc-icon-button[aria-label='Search'] {
   }
 }
 
-/* Nav items are a wrapping 212px grid above the rail breakpoint and a plain
-   column inside it. */
+/* Collapsed by default below 1440 and opened by the toggle; always open in
+   the sidebar. The design draws ten 212px chips wrapped into a ~494px slab
+   on a 390px screen -- see app/admin/(protected)/admin-rail.tsx for why that
+   is not reproduced. */
 .mc-admin-nav {
+  display: none;
+}
+.mc-admin-rail[data-open='true'] .mc-admin-nav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 12px;
 }
 @media (min-width: 1440px) {
   .mc-admin-nav {
+    display: flex !important;
     flex-direction: column;
-    flex-wrap: nowrap;
     gap: 4px;
+    padding-bottom: 0;
+  }
+}
+
+/* Full width in the drawer; the sidebar's own 212px only applies there. */
+.mc-admin-nav-link {
+  width: 100%;
+}
+@media (min-width: 1440px) {
+  .mc-admin-nav-link {
+    width: 212px;
+    max-width: 100%;
+  }
+}
+
+/* Screens the design never drew below 768 (A04 Edit T-shirt, A06 Generate
+   variants, A08 Adjust stock) say so rather than rendering a squashed form.
+   Every admin editing screen is Desktop+Tablet only in Figma; only the
+   queues and detail views have Mobile frames. A refund issued with a fat
+   thumb on a layout nobody designed is a worse outcome than a short
+   message. */
+.mc-admin-wide-only {
+  display: none;
+}
+@media (min-width: 768px) {
+  .mc-admin-wide-only {
+    display: block;
+  }
+}
+
+.mc-admin-narrow-notice {
+  display: block;
+}
+@media (min-width: 768px) {
+  .mc-admin-narrow-notice {
+    display: none;
   }
 }
 
