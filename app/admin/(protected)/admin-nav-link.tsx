@@ -4,21 +4,34 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 /**
- * The admin rail's current-item treatment — the accent's other sanctioned
- * home (tokens.css). Extracted from layout.tsx, which is a Server
- * Component and so cannot read the pathname itself.
+ * Admin Nav Item — Figma component 125:37. Its own description: "Current is
+ * a filled Deep Espresso surface plus a [accent] rule plus SemiBold. Count is
+ * optional and is for queues that need attention — orders to pack, returns
+ * to review."
  *
- * The rail had no current-item indication at all before this: every link
- * looked identical whichever page you were on. The accent rule is the
- * design's answer to that, but it is deliberately not the only one —
- * CLAUDE.md rule 8 says colour is never the sole signal, so the current
- * item also carries a weight change and aria-current for anyone who
- * cannot see the rule at all.
+ * So current carries THREE signals, not one: the graphite fill, the 2px
+ * accent rule, and the weight change — plus aria-current for anyone who sees
+ * none of them. That is CLAUDE.md rule 8 (colour is never the only signal)
+ * satisfied by the design itself rather than bolted on. An earlier version
+ * here used a left border and a colour change with no fill, which is the
+ * same idea at half strength.
  *
- * --mc-accent-on-dark, not --mc-accent: the accent is a ground on pale surfaces and only
- * 2.4:1 against this rail's ink.
+ * --mc-accent-on-dark, not --mc-accent: on this ink rail the accent is type,
+ * and the pale-ground token is a FILL that cannot be used as type at all.
+ *
+ * The count is a real figure or nothing. A zero is not rendered: "Orders 0"
+ * reads as a queue with nothing in it, which is exactly when the badge
+ * should disappear rather than claim attention.
  */
-export function AdminNavLink({ href, children }: { href: string; children: React.ReactNode }) {
+export function AdminNavLink({
+  href,
+  count,
+  children,
+}: {
+  href: string;
+  count?: number;
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   // A section is current when you are on it or anywhere beneath it, so
   // /admin/products/<id>/variants still lights "T-shirts".
@@ -31,17 +44,32 @@ export function AdminNavLink({ href, children }: { href: string; children: React
       style={{
         display: 'flex',
         alignItems: 'center',
-        padding: 'var(--mc-space-xs) var(--mc-space-sm)',
-        borderLeft: current ? '2px solid var(--mc-accent-on-dark)' : '2px solid transparent',
-        color: current ? 'var(--mc-accent-on-dark)' : 'var(--mc-text-inverse)',
-        fontWeight: current ? 600 : 400,
-        fontSize: 'var(--mc-type-body)',
-        textDecoration: 'none',
+        gap: 10,
+        width: 212,
+        maxWidth: '100%',
         minHeight: 44,
-        lineHeight: '20px',
+        height: 44,
+        padding: '11px 14px',
+        borderRadius: 3,
+        background: current ? 'var(--mc-graphite)' : 'transparent',
+        color: current ? 'var(--mc-text-inverse)' : 'var(--mc-text-muted-inverse)',
+        fontSize: 15,
+        fontWeight: current ? 600 : 400,
+        textDecoration: 'none',
+        boxSizing: 'border-box',
       }}
     >
+      {current && (
+        <span
+          aria-hidden
+          style={{ width: 2, height: 20, background: 'var(--mc-accent-on-dark)', flexShrink: 0 }}
+        />
+      )}
       {children}
+      <span style={{ flex: '1 0 0', minWidth: 0 }} />
+      {count ? (
+        <span style={{ fontSize: 12, fontWeight: 600, flexShrink: 0 }}>{count}</span>
+      ) : null}
     </Link>
   );
 }

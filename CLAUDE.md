@@ -259,7 +259,36 @@ narrower true thing: audit_logs is append-only, enforced by the
 forbid_audit_mutation triggers. The password helper says 10, the real
 `z.string().min(10)`, not the design's 12.
 
-Every screen in the app has now had the real-Figma pass. Next: the remaining seven Resend templates (`lib/email/layout.ts` has the
+Every storefront and auth screen has had the real-Figma pass, and the
+admin has started on its own: `app/admin/(protected)/orders/` is A11
+Orders, all three nodes pulled (128:1827/128:1606/128:1421). The
+structural fact there was worth pulling rather than inferring — the admin
+has TWO independent breakpoints, not one: the rail becomes a top bar at
+1440 while the records become a card list at 768, so TABLET IS NOT
+MOBILE (stacked top bar, full seven-column table). Verified by measuring
+the live CSS at 390/768/1440. Also added `components/admin/status-badge.tsx`
+— the real Status Badge (125:26), a white pill with a tone dot so the WORD
+carries the meaning; the three ad-hoc badges it replaces (products,
+inventory, variant manager) carried five hardcoded pastel hexes that were
+in no palette this project has ever had and had survived both recolours,
+because a raw hex is invisible to a token change. Omitted from A11, not
+faked: "Export orders" and "Print pick list" (no route, no format, no
+pick-list definition), and the seven rail items whose pages do not exist
+— a rail full of 404s is worse for staff than a short one. `packed` is
+labelled "Packed", not the design's "To pack": six labels for six enum
+values and five line up, but that one inverts the meaning (`packed` means
+packing is DONE) and would send someone to re-pack a parcel. Worth
+settling with the design owner alongside the E7 naming. NOTE: the orders
+filters and search are the first queries in this codebase using jsonb
+paths (`delivery_address->address->>country`, `delivery_address->>name`)
+and, like everything else here, have never run against a reachable
+database — they typecheck and build but are unexercised.
+
+Next: `/admin/orders/[id]` (A12 Order details, 139:1861/139:1620/139:1379)
+is referenced by every row on A11 and does not exist yet, so the list
+currently links to a 404 — that is the next thing to build, before the
+fulfilment/cancel/refund actions (A13–A16) and the emails they trigger.
+Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
 E1/E2 (verify email, password reset) now have a caller — Supabase Auth sends
 its own default email today; routing that through our Resend templates

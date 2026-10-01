@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
+import { StatusBadge, type BadgeTone } from '@/components/admin/status-badge';
 
 /**
  * A03 T-shirts table. products_public_read (002_rls.sql) already resolves
@@ -98,7 +99,7 @@ export default async function AdminProductsPage() {
                     </div>
                   </Td>
                   <Td>
-                    <StatusBadge status={soldOut ? 'sold_out' : product.status} />
+                    <ProductStatusBadge status={soldOut ? 'sold_out' : product.status} />
                   </Td>
                   <Td>{stock.active}</Td>
                   <Td>{stock.total}</Td>
@@ -133,35 +134,25 @@ function Td({ children }: { children: React.ReactNode }) {
   return <td style={{ padding: 'var(--mc-space-sm)', fontSize: 'var(--mc-type-body)' }}>{children}</td>;
 }
 
-const TONES: Record<string, { bg: string; fg: string; label: string }> = {
-  draft: { bg: 'var(--mc-mist)', fg: 'var(--mc-ink)', label: 'Draft' },
-  scheduled: { bg: '#DCEBF7', fg: '#1E4F73', label: 'Scheduled' },
-  published: { bg: '#E4F1E8', fg: 'var(--mc-teal)', label: 'Published' },
-  archived: { bg: 'var(--mc-mist)', fg: 'var(--mc-slate)', label: 'Archived' },
-  sold_out: { bg: '#F5E6D8', fg: 'var(--mc-ember)', label: 'Sold out' },
+/**
+ * products.status, as the shared Status Badge. This used to be a local badge
+ * with its own tone map carrying four hardcoded pastel hexes (#DCEBF7,
+ * #1E4F73, #E4F1E8, #F5E6D8) that were in no palette this project has ever
+ * had — they survived both the warm-to-cool and cool-to-stark recolours
+ * because nothing referencing a raw hex gets swept by a token change. The
+ * real component is a white pill with a tone dot, so the word carries the
+ * meaning and the colour never has to.
+ */
+const PRODUCT_BADGE: Record<string, { label: string; tone: BadgeTone }> = {
+  draft: { label: 'Draft', tone: 'neutral' },
+  scheduled: { label: 'Scheduled', tone: 'info' },
+  published: { label: 'Published', tone: 'success' },
+  archived: { label: 'Archived', tone: 'neutral' },
+  sold_out: { label: 'Sold out', tone: 'attention' },
 };
 
-// The dot is decorative only -- the word carries the meaning (admin_foundations
-// in docs/design-system-state.json), so this still reads correctly in
-// greyscale or to a screen reader that skips the presentational span.
-function StatusBadge({ status }: { status: string }) {
-  const tone = TONES[status] ?? TONES.draft;
-  return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        padding: '2px 10px',
-        borderRadius: 999,
-        background: tone.bg,
-        color: tone.fg,
-        fontSize: 'var(--mc-type-caption)',
-        fontWeight: 600,
-      }}
-    >
-      <span aria-hidden style={{ width: 6, height: 6, borderRadius: '50%', background: tone.fg }} />
-      {tone.label}
-    </span>
-  );
+function ProductStatusBadge({ status }: { status: string }) {
+  const entry = PRODUCT_BADGE[status] ?? { label: status, tone: 'neutral' as const };
+  return <StatusBadge label={entry.label} tone={entry.tone} />;
 }
+

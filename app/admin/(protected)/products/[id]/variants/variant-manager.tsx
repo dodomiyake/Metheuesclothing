@@ -272,14 +272,29 @@ function VariantRow({ variant }: { variant: Variant }) {
             minHeight: 32,
             padding: '2px 10px',
             borderRadius: 999,
-            border: '1px solid var(--mc-border-default)',
-            background: active ? '#E4F1E8' : 'var(--mc-mist)',
-            color: active ? 'var(--mc-teal)' : 'var(--mc-slate)',
+            border: '1px solid var(--mc-border-control)',
+            // Was a hardcoded #E4F1E8 tint that no palette this project has
+            // had ever contained; it survived both recolours because a raw
+            // hex is invisible to a token change. The state is carried by
+            // the word and a tone dot now, like every other admin badge.
+            background: 'var(--mc-bg-surface)',
+            color: 'var(--mc-text-primary)',
             fontSize: 'var(--mc-type-caption)',
             fontWeight: 600,
             cursor: 'pointer',
           }}
         >
+          <span
+            aria-hidden
+            style={{
+              display: 'inline-block',
+              width: 7,
+              height: 7,
+              borderRadius: '50%',
+              marginRight: 7,
+              background: active ? 'var(--mc-status-success)' : 'var(--mc-text-muted)',
+            }}
+          />
           {active ? 'Active' : 'Inactive'}
         </button>
       </Td>

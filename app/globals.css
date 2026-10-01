@@ -806,3 +806,229 @@ button.mc-icon-button[aria-label='Search'] {
     width: 420px;
   }
 }
+
+/* ---- admin shell + A11 Orders (Desktop 128:1827 / Tablet 128:1606 /
+   Mobile 128:1421, all three pulled) ----
+   Two independent breakpoints, which is the thing worth getting right here:
+   the RAIL becomes a top bar at 1440, and the RECORDS become a card list at
+   768. Tablet sits between them — stacked top bar, full seven-column table.
+   Treating tablet as "narrow mobile" would put card rows on a 768px screen
+   with room for the whole table. */
+.mc-admin-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  font-family: var(--mc-font-body);
+}
+@media (min-width: 1440px) {
+  .mc-admin-shell {
+    flex-direction: row;
+  }
+}
+
+.mc-admin-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--mc-bg-inverse);
+  color: var(--mc-text-inverse);
+}
+@media (min-width: 768px) {
+  .mc-admin-rail {
+    padding: 16px 24px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-admin-rail {
+    width: 240px;
+    flex-shrink: 0;
+    gap: 24px;
+    padding: 24px 14px;
+  }
+}
+
+/* Brand + signed-in sit on one row until the rail goes vertical. */
+.mc-admin-rail-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+@media (min-width: 1440px) {
+  .mc-admin-rail-top {
+    display: block;
+    padding-left: 14px;
+  }
+}
+
+.mc-admin-rail-user {
+  display: block;
+}
+@media (min-width: 1440px) {
+  /* On desktop the signed-in block moves to the foot of the rail, so the
+     copy in the top row would be a duplicate. */
+  .mc-admin-rail-user {
+    display: none;
+  }
+}
+
+.mc-admin-rail-foot {
+  display: none;
+}
+@media (min-width: 1440px) {
+  .mc-admin-rail-foot {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: auto;
+    padding: 12px 14px 0;
+    border-top: 1px solid var(--mc-graphite);
+  }
+}
+
+/* Nav items are a wrapping 212px grid above the rail breakpoint and a plain
+   column inside it. */
+.mc-admin-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+@media (min-width: 1440px) {
+  .mc-admin-nav {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+}
+
+.mc-admin-main {
+  flex: 1;
+  min-width: 0;
+  background: var(--mc-bg-page);
+}
+
+.mc-admin-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-admin-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  padding: 22px 16px;
+  background: var(--mc-bg-surface);
+  border-bottom: 1px solid var(--mc-border-default);
+}
+@media (min-width: 768px) {
+  .mc-admin-topbar {
+    padding: 22px 24px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-admin-topbar {
+    flex-wrap: nowrap;
+    padding: 22px 32px;
+  }
+}
+
+.mc-admin-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 16px 40px;
+}
+@media (min-width: 768px) {
+  .mc-admin-content {
+    padding: 24px 24px 40px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-admin-content {
+    padding: 24px 32px 40px;
+  }
+}
+
+.mc-admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+}
+
+.mc-admin-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 11px 14px;
+  width: 100%;
+  max-width: 380px;
+  background: var(--mc-bg-surface);
+  border: 1px solid var(--mc-border-strong);
+  border-radius: var(--mc-radius-sm);
+  box-sizing: border-box;
+}
+
+/* Same transparent-select-over-a-label trick as the storefront's sort
+   control: a native select sizes itself to its longest option, which here
+   would make "Fulfilment: Not started" set the width of every filter. */
+.mc-admin-filter {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 11px 12px;
+  background: var(--mc-bg-surface);
+  border: 1px solid var(--mc-border-strong);
+  border-radius: var(--mc-radius-sm);
+  box-sizing: border-box;
+}
+.mc-admin-filter-label {
+  font-family: var(--mc-font-body);
+  font-size: 14px;
+  color: var(--mc-text-primary);
+  white-space: nowrap;
+}
+.mc-admin-filter select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: none;
+  cursor: pointer;
+  appearance: none;
+}
+.mc-admin-filter:has(select:focus-visible) {
+  outline: 2px solid var(--mc-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Records: card list below 768, table from 768 up. */
+.mc-orders-table {
+  display: none;
+}
+@media (min-width: 768px) {
+  .mc-orders-table {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .mc-orders-records {
+    display: none;
+  }
+}
+
+.mc-admin-table-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}

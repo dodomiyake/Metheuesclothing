@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
+import { StatusBadge } from '@/components/admin/status-badge';
 
 /**
  * A07 Inventory table. Sorted lowest stock first, threshold shown beside the
@@ -57,13 +58,13 @@ export default async function AdminInventoryPage() {
                   <Td>{v.low_stock_threshold}</Td>
                   <Td>
                     {out ? (
-                      <Badge tone="danger">Out of stock</Badge>
+                      <StatusBadge label="Out of stock" tone="danger" />
                     ) : low ? (
-                      <Badge tone="attention">Low</Badge>
+                      <StatusBadge label="Low" tone="attention" />
                     ) : v.is_active ? (
-                      <Badge tone="success">OK</Badge>
+                      <StatusBadge label="OK" tone="success" />
                     ) : (
-                      <Badge tone="neutral">Inactive</Badge>
+                      <StatusBadge label="Inactive" tone="neutral" />
                     )}
                   </Td>
                 </tr>
@@ -81,34 +82,7 @@ export default async function AdminInventoryPage() {
   );
 }
 
-const TONES: Record<string, { bg: string; fg: string }> = {
-  danger: { bg: '#F5E6D8', fg: 'var(--mc-crimson)' },
-  attention: { bg: '#F5E6D8', fg: 'var(--mc-ember)' },
-  success: { bg: '#E4F1E8', fg: 'var(--mc-teal)' },
-  neutral: { bg: 'var(--mc-mist)', fg: 'var(--mc-slate)' },
-};
 
-function Badge({ tone, children }: { tone: keyof typeof TONES; children: React.ReactNode }) {
-  const t = TONES[tone];
-  return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 6,
-        padding: '2px 10px',
-        borderRadius: 999,
-        background: t.bg,
-        color: t.fg,
-        fontSize: 'var(--mc-type-caption)',
-        fontWeight: 600,
-      }}
-    >
-      <span aria-hidden style={{ width: 6, height: 6, borderRadius: '50%', background: t.fg }} />
-      {children}
-    </span>
-  );
-}
 
 function Th({ children }: { children: React.ReactNode }) {
   return (

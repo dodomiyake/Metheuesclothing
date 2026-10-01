@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
 import { AdminNavLink } from './admin-nav-link';
+import { AWAITING_FULFILMENT } from '@/components/admin/status-badge';
 
 /**
  * Gate for the whole /admin tree. A18/A01: staff never land on the customer
@@ -62,74 +63,59 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     );
   }
 
+  // The rail's Orders count is the real queue, not a decoration: the Admin
+  // Nav Item component's description says counts are "for queues that need
+  // attention", so it has to be a number someone can act on.
+  const { count: awaiting } = await supabase
+    .from('orders')
+    .select('id', { count: 'exact', head: true })
+    .in('fulfilment_status', AWAITING_FULFILMENT as unknown as string[]);
+
   return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: 'var(--mc-font-body)',
-      }}
-    >
-      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        <nav
-          style={{
-            width: 240,
-            flexShrink: 0,
-            background: 'var(--mc-bg-inverse)',
-            color: 'var(--mc-text-inverse)',
-            padding: 'var(--mc-space-lg) var(--mc-space-md)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--mc-space-2xs)',
-          }}
-        >
-          <div
-            style={{
-              fontFamily: 'var(--mc-font-display)',
-              fontSize: 15,
-              letterSpacing: '1.5px',
-              textTransform: 'uppercase',
-              padding: '0 var(--mc-space-sm) var(--mc-space-lg)',
-            }}
-          >
-            {/* The accent's sanctioned home on this screen (tokens.css) --
-                --mc-accent-on-dark, since the accent is a ground on pale surfaces and only
-                2.4:1 against this rail. */}
-            Metheues <span style={{ color: 'var(--mc-accent-on-dark)' }}>Admin</span>
+    <div className="mc-admin-shell">
+      <nav className="mc-admin-rail">
+        <div className="mc-admin-rail-top">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 2, letterSpacing: '2px' }}>
+            <span style={{ fontFamily: 'var(--mc-font-display)', fontSize: 17, color: 'var(--mc-text-inverse)' }}>
+              METHEUES
+            </span>
+            {/* The accent's sanctioned home on this screen (tokens.css):
+                --mc-accent-on-dark, because the accent is a ground on pale
+                surfaces and can only be type on ink or graphite. */}
+            <span style={{ fontSize: 9, fontWeight: 600, color: 'var(--mc-accent-on-dark)' }}>ADMIN</span>
           </div>
-          <div
-            style={{
-              fontSize: 'var(--mc-type-tag)',
-              letterSpacing: '1px',
-              textTransform: 'uppercase',
-              color: 'var(--mc-text-muted-inverse)',
-              padding: '0 var(--mc-space-sm)',
-              marginTop: 'var(--mc-space-sm)',
-            }}
-          >
-            Catalogue
-          </div>
+          <span className="mc-admin-rail-user" style={{ fontSize: 13, fontWeight: 500, color: 'var(--mc-text-muted-inverse)' }}>
+            {profile?.full_name || profile?.email}
+            {profile?.role ? ` · ${profile.role === 'owner' ? 'Owner' : 'Staff'}` : ''}
+          </span>
+        </div>
+
+        {/* Only the sections that exist. The design draws ten nav items
+            across four groups (Dashboard, Collections, Returns, Customers,
+            Homepage content, Settings, Audit log); none of those pages are
+            built, and a rail full of 404s is worse for staff than a short
+            one. They go back in as each screen lands. */}
+        <div className="mc-admin-nav">
           <AdminNavLink href="/admin/products">T-shirts</AdminNavLink>
           <AdminNavLink href="/admin/inventory">Inventory</AdminNavLink>
-          <div style={{ flex: 1 }} />
-          <div
-            style={{
-              fontSize: 'var(--mc-type-caption)',
-              color: 'var(--mc-text-muted-inverse)',
-              padding: '0 var(--mc-space-sm) var(--mc-space-2xs)',
-            }}
-          >
+          <AdminNavLink href="/admin/orders" count={awaiting ?? 0}>
+            Orders
+          </AdminNavLink>
+        </div>
+
+        <div className="mc-admin-rail-foot">
+          <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--mc-text-inverse)' }}>
             {profile?.full_name || profile?.email}
-          </div>
+          </span>
+          <span style={{ fontSize: 12, color: 'var(--mc-text-muted-inverse)' }}>
+            {profile?.role === 'owner' ? 'Owner' : 'Staff'} · {profile?.email}
+          </span>
           <form action="/api/auth/sign-out" method="post">
             <SignOutButton />
           </form>
-        </nav>
-        <main style={{ flex: 1, minWidth: 0, background: 'var(--mc-bg-page)', overflow: 'auto' }}>
-          {children}
-        </main>
-      </div>
+        </div>
+      </nav>
+      <main className="mc-admin-main">{children}</main>
     </div>
   );
 }
@@ -139,14 +125,15 @@ function SignOutButton() {
     <button
       type="submit"
       style={{
-        width: '100%',
+        padding: 0,
         minHeight: 44,
-        background: 'transparent',
-        border: '1px solid var(--mc-slate-on-dark)',
-        color: 'var(--mc-text-muted-inverse)',
-        borderRadius: 'var(--mc-radius-sm)',
+        background: 'none',
+        border: 'none',
+        color: 'var(--mc-accent-on-dark)',
         fontFamily: 'var(--mc-font-body)',
-        fontSize: 'var(--mc-type-body)',
+        fontSize: 13,
+        fontWeight: 500,
+        textAlign: 'left',
         cursor: 'pointer',
       }}
     >
