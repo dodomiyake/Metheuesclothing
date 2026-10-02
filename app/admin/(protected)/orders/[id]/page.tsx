@@ -5,6 +5,7 @@ import { formatPence } from '@/lib/money';
 import { StatusBadge, PAYMENT_BADGE, FULFILMENT_BADGE } from '@/components/admin/status-badge';
 import { countryName, customerName, orderCountryCode } from '../order-fields';
 import { buildFulfilmentSteps } from './fulfilment-steps';
+import { AddTracking } from './add-tracking';
 
 /**
  * A12 Order details — Figma 139:1861 (Desktop) / 139:1620 (Tablet) /
@@ -345,11 +346,23 @@ export default async function AdminOrderDetailPage({
                     </p>
                   )}
                 </>
-              ) : (
+              ) : order.payment_status !== 'paid' ? (
                 <p style={mutedSmall}>
-                  No tracking yet. Adding it is A14, which is not built — there is no route that
-                  creates a fulfilment, so nothing here can mark the order shipped.
+                  Tracking can be added once the payment is confirmed — ship_order refuses an
+                  unpaid order, so the form stays out of the way until then.
                 </p>
+              ) : order.cancelled_at ? (
+                <p style={mutedSmall}>This order was cancelled, so there is nothing to dispatch.</p>
+              ) : (
+                <AddTracking
+                  orderId={order.id}
+                  orderNumber={order.order_number}
+                  customer={customerName(order.delivery_address, order.email)}
+                  email={order.email}
+                  itemCount={(items.data ?? []).reduce((n, i) => n + i.quantity, 0)}
+                  totalPence={order.total_pence}
+                  paymentLabel={PAYMENT_BADGE[order.payment_status]?.label ?? order.payment_status}
+                />
               )}
             </Panel>
           </div>

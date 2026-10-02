@@ -332,8 +332,35 @@ off which frames exist; no decision to that effect is recorded in
 design-system-state.json, so confirm it with the design owner rather
 than treating it as settled.
 
-Next: A13–A16 (fulfilment, add tracking, cancel, refund) and the emails
-they trigger. Also still open: the two oldest admin tables (A03
+The dispatch path is built and migration 011 IS APPLIED (advisor run
+straight after per rule 3: neither new function appears in the
+"Public Can Execute SECURITY DEFINER" findings, so the REVOKEs took; the
+two that do appear, is_staff/is_owner, are deliberate and documented at
+004_lock_down_functions.sql:20). advance_fulfilment and ship_order are
+the first functions here to write a SUCCESS row to audit_logs, which
+closes the failure-only gap noted above. A14 Add tracking is wired into
+A12's Tracking panel.
+
+A14 CONTRADICTS ITSELF and the design system settles it: the dialog
+header says "There is no separate send button — the dispatch email goes
+out as part of this", then draws a "Send the dispatch email now"
+checkbox, which is exactly a separate send control. The Checkbox
+component's own description says a setting that cannot be switched off
+should be a locked row with an ALWAYS ON tag rather than a tickbox
+nobody can untick — so the email always sends and the row is locked.
+Raise it with the design owner alongside "To pack" and the E7 naming.
+Two further A14 departures: CARRIER is a text input with suggestions
+rather than the drawn closed select (no carrier list exists anywhere;
+delivery_method is free text, and a managed list belongs in
+store_settings), and the tracking link does NOT auto-fill from carrier
+and number as the design's helper claims — that needs per-carrier URL
+templates, and guessing them is the same failure the tracking-number
+helper warns about.
+
+Next: A13 Pack (the packing workflow — pick list, seal checklist, Mark
+packed gated on every line ticked; its "Rail A · shelf 3" locations have
+no backing column and will be omitted), then A15 Cancel and A16 Refund
+with E5/E8. Also still open: the two oldest admin tables (A03
 T-shirts, A07 Inventory) have Mobile frames that were never implemented —
 they are desktop tables at every width, with no record-list fallback and
 no overflow wrapper, so they squash rather than scroll. Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
