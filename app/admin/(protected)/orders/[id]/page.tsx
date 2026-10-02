@@ -220,6 +220,20 @@ export default async function AdminOrderDetailPage({
             </Panel>
 
             <Panel heading="Fulfilment">
+              {/* The one action A12 gained: A13 Pack exists now, so this
+                  stops being a link to nowhere. The conditions mirror
+                  advance_fulfilment's own refusals rather than guessing —
+                  see the pack page's packBlocker. */}
+              {order.payment_status === 'paid' &&
+                !order.cancelled_at &&
+                (order.fulfilment_status === 'not_started' ||
+                  order.fulfilment_status === 'processing') && (
+                  <p style={{ margin: '0 0 4px' }}>
+                    <Link href={`/admin/orders/${order.id}/pack`} style={secondaryButtonStyle}>
+                      Pack this order
+                    </Link>
+                  </p>
+                )}
               {steps.map((step) => (
                 <div key={step.label} style={{ display: 'flex', gap: 12, padding: '6px 0' }}>
                   <span

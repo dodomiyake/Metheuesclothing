@@ -357,9 +357,34 @@ and number as the design's helper claims — that needs per-carrier URL
 templates, and guessing them is the same failure the tracking-number
 helper warns about.
 
-Next: A13 Pack (the packing workflow — pick list, seal checklist, Mark
-packed gated on every line ticked; its "Rail A · shelf 3" locations have
-no backing column and will be omitted), then A15 Cancel and A16 Refund
+A13 Pack is built (139:2295/139:2116, both pulled — no Mobile frame, so it
+is wrapped in WideOnly) and is the only caller of advance_fulfilment. ONE
+breakpoint like A12: the columns split at 1440 and the side column is 340px
+there, not A12's 380 — measured at 390/768/1440 rather than inherited from
+the neighbouring screen. Mark packed is gated on every pick line being
+ticked, which is what the design's own helper text says; the seal checklist
+gates nothing and is not persisted, because no table backs it and storing
+"returns slip included" would be storing a claim nobody verifies. Four
+departures: the per-line "Rail A · shelf 3" is omitted (no warehouse column
+exists anywhere, and a made-up shelf is the one invention a picker can
+immediately disprove); "medium mailer" narrows to the real item count;
+the design's "packed flat, not rolled" row — which it derived by reading a
+customer note — appears only when `orders.customer_note` is set and quotes
+it verbatim rather than paraphrasing; and "Step 2 of 4" is replaced by the
+real fulfilment status. NOTE that `advance_fulfilment`'s `processing` arm
+STILL has no caller: A13 draws no start button and A12 omits "Begin
+packing", so marking packed jumps straight from not_started (legal, the
+function allows a forward jump) and the queue cannot tell "untouched" from
+"being picked right now". Worth settling with the design owner alongside
+"To pack". Two corrections to A12 went in with it: its Fulfilment panel now
+links to A13 instead of having no action at all, and the Shipped step no
+longer claims "dispatch email not built yet (E4)" — it was stale the moment
+011 landed, and rather than swap it for "email sent" (true most of the time
+and wrong exactly when it matters, since the send is best-effort after the
+DB write) it now shows only the timestamp and leaves email outcomes to the
+audit panel, where email_delivery_failed actually lands.
+
+Next: A15 Cancel and A16 Refund
 with E5/E8. Also still open: the two oldest admin tables (A03
 T-shirts, A07 Inventory) have Mobile frames that were never implemented —
 they are desktop tables at every width, with no record-list fallback and

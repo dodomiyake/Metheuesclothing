@@ -1134,3 +1134,11 @@ button.mc-icon-button[aria-label='Search'] {
     flex-shrink: 0;
   }
 }
+
+/* A13 Pack draws a narrower side column than A12 -- 340 against 380. Measured
+   off 139:2295, not inherited from the neighbouring screen. */
+@media (min-width: 1440px) {
+  .mc-admin-pack-layout .mc-admin-order-side {
+    width: 340px;
+  }
+}

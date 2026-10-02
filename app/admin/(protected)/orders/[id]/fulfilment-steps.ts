@@ -21,9 +21,13 @@
  * done on the customer-facing page before anyone had touched the parcel.
  *
  * Capturing per-step times properly means either a status-history table or
- * writing an audit_logs row on every transition — the latter is close to
- * free once the A13–A16 actions exist, since each one is already a write.
- * Worth doing then rather than inventing a column now.
+ * writing an audit_logs row on every transition. Migration 011 started that:
+ * advance_fulfilment and ship_order each write one. The timestamps here do
+ * not read them back yet, because an audit row records an action rather than
+ * a state and matching the two is a query this screen does not do — so a
+ * packed order still says "no timestamp recorded for this step" even though
+ * the log now has one. Worth closing once A15/A16 land and every transition
+ * writes.
  */
 export type StepState = 'done' | 'current' | 'todo';
 
@@ -101,8 +105,13 @@ export function buildFulfilmentSteps({
     },
     {
       label: 'Shipped',
+      // Deliberately no claim about the E4 email here. ship_order writes the
+      // fulfilment row and the send is best-effort after it, so "email sent"
+      // would be true most of the time and wrong exactly when it matters.
+      // A failed send writes email_delivery_failed, which the audit panel
+      // below already shows.
       detail: fulfilment
-        ? `${when(fulfilment.shipped_at)} · dispatch email not built yet (E4)`
+        ? when(fulfilment.shipped_at)
         : 'Not yet — adding tracking is what marks this done',
       state: fulfilment ? 'done' : stateFor(3),
     },
