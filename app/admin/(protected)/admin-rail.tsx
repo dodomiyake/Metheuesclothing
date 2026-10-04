@@ -31,11 +31,13 @@ export function AdminRail({
   email,
   role,
   awaitingOrders,
+  awaitingReturns,
 }: {
   name: string;
   email: string;
   role: string;
   awaitingOrders: number;
+  awaitingReturns: number;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -82,6 +84,9 @@ export function AdminRail({
         </AdminNavLink>
         <AdminNavLink href="/admin/orders" count={awaitingOrders} onNavigate={() => setOpen(false)}>
           Orders
+        </AdminNavLink>
+        <AdminNavLink href="/admin/returns" count={awaitingReturns} onNavigate={() => setOpen(false)}>
+          Returns
         </AdminNavLink>
       </div>
 

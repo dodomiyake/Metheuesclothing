@@ -90,3 +90,65 @@ export const FULFILMENT_BADGE: Record<string, { label: string; tone: BadgeTone }
 /** Fulfilment states that still need someone to do something. Drives both
  * the rail count and the "N awaiting fulfilment" line on A11. */
 export const AWAITING_FULFILMENT = ['not_started', 'processing', 'packed'] as const;
+
+/**
+ * return_status (001_schema.sql:18), for A17's STATUS column.
+ *
+ * Seven enum values against the design's five drawn rows, so two needed
+ * labels of their own:
+ *
+ *  - `label_issued` is drawn nowhere. It sits between "requested" and "on
+ *    its way", and nothing in this codebase issues a label yet (the E6
+ *    template says a human follows up with instructions, because no return
+ *    address is configured anywhere), so it would be odd to omit the one
+ *    state that says a label exists.
+ *  - `approved` is the important one, and the design's own decision list is
+ *    why it cannot say "Approved" and stop there: "E7 sends when the refund
+ *    has actually left (A16), not on approval (A18) — approval and refund
+ *    are separate events in the admin." An approved return still owes the
+ *    customer money, so it reads as unfinished work rather than a result.
+ *
+ * `requested` is the one label the design makes dynamic — "Waiting 3 days" —
+ * so it is built by returnBadge() below rather than stored here.
+ */
+export const RETURN_BADGE: Record<string, { label: string; tone: BadgeTone }> = {
+  requested: { label: 'Waiting', tone: 'attention' },
+  label_issued: { label: 'Label issued', tone: 'info' },
+  in_transit: { label: 'On its way to us', tone: 'info' },
+  received: { label: 'Received — check it', tone: 'attention' },
+  approved: { label: 'Approved — refund owed', tone: 'attention' },
+  rejected: { label: 'Rejected', tone: 'danger' },
+  refunded: { label: 'Refunded', tone: 'success' },
+};
+
+/** The design's "Waiting 3 days" is a real age, not a label. Everything else
+ * is the map above. */
+export function returnBadge(
+  status: string,
+  requestedAt: string,
+): { label: string; tone: BadgeTone } {
+  const entry = RETURN_BADGE[status] ?? { label: status, tone: 'neutral' as const };
+  if (status !== 'requested') return entry;
+  const days = Math.floor((Date.now() - new Date(requestedAt).getTime()) / 86_400_000);
+  if (days <= 0) return { ...entry, label: 'Waiting — today' };
+  return { ...entry, label: `Waiting ${days} day${days === 1 ? '' : 's'}` };
+}
+
+/** Return states that still need someone to do something: a request nobody
+ * has answered, a parcel on the bench, and an approval whose refund has not
+ * been sent. Drives the rail count and A17's subtitle, the same way
+ * AWAITING_FULFILMENT drives A11's. */
+export const AWAITING_RETURN = ['requested', 'received', 'approved'] as const;
+
+/** The reasons POST /api/returns accepts (lib/returns, and the E6 template's
+ * own label map). A17's Reason filter is built from these rather than from a
+ * list invented for the filter. */
+export const RETURN_REASONS: Record<string, string> = {
+  too_small: 'Too small',
+  too_large: 'Too large',
+  not_as_described: 'Not as described',
+  faulty: 'Faulty',
+  changed_mind: 'Changed my mind',
+  wrong_item_sent: 'Wrong item sent',
+  arrived_late: 'Arrived late',
+};

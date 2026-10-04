@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
 import { AdminRail } from './admin-rail';
-import { AWAITING_FULFILMENT } from '@/components/admin/status-badge';
+import { AWAITING_FULFILMENT, AWAITING_RETURN } from '@/components/admin/status-badge';
 
 /**
  * Gate for the whole /admin tree. A18/A01: staff never land on the customer
@@ -66,10 +66,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // The rail's Orders count is the real queue, not a decoration: the Admin
   // Nav Item component's description says counts are "for queues that need
   // attention", so it has to be a number someone can act on.
-  const { count: awaiting } = await supabase
-    .from('orders')
-    .select('id', { count: 'exact', head: true })
-    .in('fulfilment_status', AWAITING_FULFILMENT as unknown as string[]);
+  const [{ count: awaiting }, { count: awaitingReturns }] = await Promise.all([
+    supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .in('fulfilment_status', AWAITING_FULFILMENT as unknown as string[]),
+    supabase
+      .from('returns')
+      .select('id', { count: 'exact', head: true })
+      .in('status', AWAITING_RETURN as unknown as string[]),
+  ]);
 
   return (
     <div className="mc-admin-shell">
@@ -78,6 +84,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         email={profile?.email ?? ''}
         role={profile?.role ?? ''}
         awaitingOrders={awaiting ?? 0}
+        awaitingReturns={awaitingReturns ?? 0}
       />
       <main className="mc-admin-main">{children}</main>
     </div>
