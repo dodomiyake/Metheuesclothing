@@ -464,7 +464,77 @@ payments.status moves, but no refunds row exists, orders.payment_status stays
 it, and the unique index on refunds.stripe_refund_id already makes doing it
 twice safe. Noted in the handler.
 
-Next: the admin side of returns (A17/A18) with E7/E9. Also still open: the two oldest admin tables (A03
+The admin side of returns is built: A17 Returns (143:2093/143:1924/143:1783,
+all three pulled — structurally A11, table above 768, record list below, rail
+at 1440) and A18 Return details (144:2278 Desktop pulled, 144:2056 Tablet
+checked by screenshot — ONE breakpoint at 1440, stacking in the frames' own
+order, and no Mobile frame so it sits behind WideOnly).
+
+THE E7 NAMING KNOT IS SETTLED, by the artwork rather than by guessing. The
+ledger's id map calls 165:42 "E7 Return approved" while its decisions list
+says "E7 sends when the refund has actually left (A16), not on approval
+(A18)" — which read as a contradiction until the frame was opened. Its own
+canvas note is the tie-break: "Approval and refund are separate events in the
+admin (A18 then A16), so this email is only sent once the money has actually
+left — never on approval alone", and the body says "Your refund has been
+sent." So the NAME describes the outcome being communicated, not the trigger.
+E7 and E8 are one moment — money leaving — told two ways: E7 when a return is
+behind it, E8 when it is a plain order refund. Still worth confirming the
+naming with the design owner, because the id map reads as a contradiction on
+its own. A consequence worth knowing: APPROVAL SENDS NO EMAIL AT ALL, so
+between E6 and E7 the customer hears nothing while the parcel travels,
+arrives and is checked. That is the design as drawn, not an omission.
+
+Migrations 013 (links) and 014 (actions) ARE APPLIED, advisor run after per
+rule 3 — receive_return, decide_return and refund_return are all absent from
+the SECURITY DEFINER findings. 013 added the two links A18 needed:
+`refunds.return_id`, without which there is no way to choose between E7 and
+E8; and `inventory_adjustments.return_item_id` with its own exactly-once
+index, because restock_for_order is whole-order and A18's whole point is that
+restock is PER ITEM. The order-level index (order_id, variant_id, kind) could
+not be reused — two partial returns on the same order can both legitimately
+restock the same variant, and under that index the second would be silently
+swallowed — and it must not be weakened, since it is what stops a replayed
+Stripe webhook decrementing twice.
+
+TWO THINGS THE TOOLING FORCED. First, `record_refund` could not simply gain a
+p_return_id: adding a parameter changes a function's identity, so it needs a
+DROP first, and this environment's Supabase MCP gates DROP behind the same
+confirmation that never arrives for DELETE (a DROP-containing migration timed
+out and applied nothing). `refund_return` wraps record_refund instead, which
+is the better shape anyway — the money logic stays in one place. Second, the
+advisor now flags `zz_try_cancel` and `zz_try_refund`, the two helper
+functions from the 012 test run, for a mutable search_path. They are in
+`supabase/cleanup-zz-test-fixture.sql` and cannot be dropped from a session
+either.
+
+A18 DEPARTS FROM THE FRAMES ON ONE THING AND ADDS ONE. The frames draw
+Approve as enabled while the badge still reads "On its way to us", but
+approving applies the restock, and putting stock back for a parcel nobody has
+opened is how the shop sells a T-shirt still in a van — decide_return refuses
+it and the screen agrees. The design's own Refund panel already applies that
+bar one step later ("available once the parcel is marked received and
+checked"). Added: MARK RECEIVED, which no screen in the file draws, although
+`received` is a real status with a real received_at column and A18's progress
+list has a "Checked at the atelier" step — without it nothing could ever be
+approved. Raise both with the design owner.
+
+Omitted from A17/A18, each for its own reason: "Export returns" (no route, no
+format — same as A11's "Export orders"); the footer's "escalated on the
+dashboard" (there is no dashboard and nothing escalates, so it says what
+actually happens and the Age filter is what makes the 5-day rule usable);
+"View customer" (no customer page, same as A12); the internal-note field (no
+notes table, same as A12 — though the refund's note is real and goes to the
+audit log); and "Return postage — Free, drop-off" plus the "Label issued ·
+valid until 24 September" progress step, because nothing issues a label,
+charges for one or records how the parcel travelled. `label_expires_at`
+exists and is never written. E9 narrows one promise for the same reason: "we
+are posting it back to you at our cost, it should arrive within a week" is a
+parcel nobody has arranged, so it says the item is being sent back and that
+we will write with the details — keeping the design's principle (we do not
+keep the goods) without committing to a timescale no system tracks.
+
+Next: the two oldest admin tables (A03
 T-shirts, A07 Inventory) have Mobile frames that were never implemented —
 they are desktop tables at every width, with no record-list fallback and
 no overflow wrapper, so they squash rather than scroll. Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
