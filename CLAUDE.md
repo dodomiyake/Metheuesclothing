@@ -534,10 +534,38 @@ parcel nobody has arranged, so it says the item is being sent back and that
 we will write with the details — keeping the design's principle (we do not
 keep the goods) without committing to a timescale no system tracks.
 
-Next: the two oldest admin tables (A03
-T-shirts, A07 Inventory) have Mobile frames that were never implemented —
-they are desktop tables at every width, with no record-list fallback and
-no overflow wrapper, so they squash rather than scroll. Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
+A03 T-shirts and A07 Inventory have now had the pass too (128:645/128:430/
+128:259 and 128:1220/128:1033/128:874). Both predated the admin shell and
+had never been matched to their frames at all — bare tables with a
+display-font h1, no top bar, no toolbar, no footer and no record list, so a
+phone squashed four or five columns into 390px rather than stacking.
+Verified at 390/768/1440: table hidden and record list shown below 768, no
+horizontal page overflow at any width.
+
+Three things found while rebuilding them, each worth keeping:
+
+ - A07's FOOTER REPEATED THE A01 OVERCLAIM. Both the design (128:1413) and
+   the shipped page said "every manual change needs a reason and is written
+   to the audit log". The reason is real; the audit log is not —
+   adjust_stock writes to inventory_adjustments and nothing else
+   (010_adjust_stock.sql:64). Narrowed to the true thing. That is twice this
+   project has shipped the same false claim about audit coverage.
+ - `sold_out` is Danger in A03, not Attention, and the shipped badge map had
+   it as Attention. Matched to the frame.
+ - Two filters cannot be database queries and say so rather than pretending:
+   A03's "lowest stock" sorts by a sum over variants, and A07's "needs
+   attention" compares stock_quantity against each row's own
+   low_stock_threshold, which PostgREST has no syntax for. Both are applied
+   to the fetched page and the footer states it.
+
+Omitted from both, for the usual reason: "Import CSV" (A03) and "Export CSV"
+(A07) have no route and no format, the same call A11 makes on "Export
+orders". A07's "Adjust stock" top-bar button is not reproduced either —
+adjusting stock means choosing a variant first, and A08 already owns that
+form, so a global button would either be a dead end or a second caller of
+adjust_stock to keep in sync.
+
+Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
 E1/E2 (verify email, password reset) now have a caller — Supabase Auth sends
 its own default email today; routing that through our Resend templates
@@ -546,12 +574,10 @@ not application code — flag it for the owner rather than guessing at hook
 config against the live project. E4/E5/E7 need the admin order actions
 (dispatch, cancel), E8 needs the admin refund action, E9 needs the admin
 return decision — build each template alongside the route that triggers it,
-the way E3 and E6 went in. Also still open: the admin side of returns (the
-E7-vs-"Return approved" naming in design-system-state.json's own decisions
-list doesn't match its own id map — worth confirming with the design owner
-before building the approve/reject function, not guessing), the admin
-dashboard/collections/orders/customers/settings screens (A02, A09/A10,
-A11 onward), and the customer-facing account pages (profile, addresses,
+the way E3 and E6 went in — E4, E5, E7, E8 and E9 have all gone in that way
+now, so only E1/E2 are left and both are owner-blocked. Also still open: the
+admin dashboard, collections, customers and settings screens (A02, A09/A10,
+A19 onward), and the customer-facing account pages (profile, addresses,
 signed-in order history — now unblocked the same way the catalogue was,
 since they need auth, which exists). The catalogue, bag and guest order
 lookup+return (`app/shop/`, `app/bag/`, `app/track-order/`) are now
