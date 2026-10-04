@@ -1135,6 +1135,33 @@ button.mc-icon-button[aria-label='Search'] {
   }
 }
 
+/* A15 Cancel and A16 Refund are modals, not inline panels: a 620px card on a
+   full-bleed black ground (600 on tablet, measured off 141:1734/141:1791).
+   The width steps the other way from most things here — it is the DESKTOP
+   frame that is wider — so it is declared at the tablet value and stepped up,
+   the same mobile-first shape --mc-type-page-title uses. */
+.mc-admin-dialog {
+  width: min(600px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  padding: 24px;
+  border: none;
+  border-radius: var(--mc-radius-md);
+  background: var(--mc-bg-surface);
+  color: var(--mc-text-primary);
+  font-family: var(--mc-font-body);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+@media (min-width: 1440px) {
+  .mc-admin-dialog {
+    width: min(620px, calc(100vw - 48px));
+  }
+}
+.mc-admin-dialog::backdrop {
+  background: var(--mc-ink);
+  opacity: 0.88;
+}
+
 /* A13 Pack draws a narrower side column than A12 -- 340 against 380. Measured
    off 139:2295, not inherited from the neighbouring screen. */
 @media (min-width: 1440px) {

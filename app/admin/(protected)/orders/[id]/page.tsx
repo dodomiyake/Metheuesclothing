@@ -6,6 +6,8 @@ import { StatusBadge, PAYMENT_BADGE, FULFILMENT_BADGE } from '@/components/admin
 import { countryName, customerName, orderCountryCode } from '../order-fields';
 import { buildFulfilmentSteps } from './fulfilment-steps';
 import { AddTracking } from './add-tracking';
+import { CancelOrder } from './cancel-order';
+import { RefundOrder } from './refund-order';
 
 /**
  * A12 Order details — Figma 139:1861 (Desktop) / 139:1620 (Tablet) /
@@ -74,7 +76,7 @@ export default async function AdminOrderDetailPage({
   if (orderError) throw new Error(`Could not load the order: ${orderError.message}`);
   if (!order) notFound();
 
-  const [items, payment, fulfilments, audit, settings] = await Promise.all([
+  const [items, payment, fulfilments, refunds, audit, settings] = await Promise.all([
     supabase
       .from('order_items')
       .select('id, product_name, sku, colour, size, unit_price_pence, quantity, line_total_pence')
@@ -90,6 +92,11 @@ export default async function AdminOrderDetailPage({
       .eq('order_id', id)
       .order('shipped_at', { ascending: true }),
     supabase
+      .from('refunds')
+      .select('id, amount_pence, kind, reason, note, restocked, actor_label, created_at')
+      .eq('order_id', id)
+      .order('created_at', { ascending: false }),
+    supabase
       .from('audit_logs')
       .select('id, actor_label, action, summary, created_at')
       .eq('entity_type', 'order')
@@ -101,6 +108,7 @@ export default async function AdminOrderDetailPage({
   if (items.error) throw new Error(`Could not load the order's items: ${items.error.message}`);
   if (payment.error) throw new Error(`Could not load the payment: ${payment.error.message}`);
   if (fulfilments.error) throw new Error(`Could not load fulfilments: ${fulfilments.error.message}`);
+  if (refunds.error) throw new Error(`Could not load refunds: ${refunds.error.message}`);
   if (audit.error) throw new Error(`Could not load the audit history: ${audit.error.message}`);
   if (settings.error) throw new Error(`Could not load store settings: ${settings.error.message}`);
 
@@ -113,6 +121,9 @@ export default async function AdminOrderDetailPage({
   if (countError) throw new Error(`Could not count the customer's orders: ${countError.message}`);
 
   const shipped = fulfilments.data?.[0] ?? null;
+  const refundedPence = (refunds.data ?? []).reduce((n, r) => n + r.amount_pence, 0);
+  const refundablePence = Math.max(0, order.total_pence - refundedPence);
+  const unitCount = (items.data ?? []).reduce((n, i) => n + i.quantity, 0);
   const steps = buildFulfilmentSteps({
     paymentStatus: order.payment_status,
     fulfilmentStatus: order.fulfilment_status,
@@ -345,7 +356,83 @@ export default async function AdminOrderDetailPage({
                   No payment intent yet — Stripe sets it when the checkout session completes.
                 </p>
               )}
+              {refundedPence > 0 && (
+                <>
+                  <Rule />
+                  <Field label="Refunded" value={formatPence(refundedPence)} />
+                  {(refunds.data ?? []).map((r) => (
+                    <p key={r.id} style={mutedSmall}>
+                      {formatPence(r.amount_pence)} · {r.reason} · {r.actor_label} ·{' '}
+                      {formatShort(r.created_at)}
+                      {r.restocked ? ' · stock restored' : ' · stock not restored'}
+                      {r.note ? ` — ${r.note}` : ''}
+                    </p>
+                  ))}
+                </>
+              )}
             </Panel>
+
+            {/* A15 and A16. Both are real now, so unlike the six actions this
+                screen still omits they are not links to nowhere. Each is
+                shown only in the states its own Postgres function will
+                accept — a dialog that always opens and always fails is the
+                same dead end a disabled button with no explanation is.
+                
+                Hidden below 768 by the same rule components/admin/wide-only
+                states and A15/A16 follow: of 23 admin screens the 16 without
+                a Mobile frame are the editors and the consequential actions,
+                and these two are on that list. A12 itself has a phone layout
+                and keeps it — it is the reading that works on a phone, not
+                the refunding. Both branches are in the DOM and swapped by
+                CSS, because a JS width check flashes the wrong one. */}
+            {(canCancel(order) || canRefund(order, refundablePence)) && (
+              <div className="mc-admin-narrow-notice">
+                <Panel heading="Actions">
+                  <p style={mutedSmall}>
+                    Cancelling and refunding this order are done from a tablet or a desktop. They
+                    move real money and Figma never drew either at this width.
+                  </p>
+                </Panel>
+              </div>
+            )}
+            {(canCancel(order) || canRefund(order, refundablePence)) && (
+              <div className="mc-admin-wide-only">
+              <Panel heading="Actions">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                  {canCancel(order) && (
+                    <CancelOrder
+                      orderId={order.id}
+                      orderNumber={order.order_number}
+                      customer={customerName(order.delivery_address, order.email)}
+                      itemCount={(items.data ?? []).length}
+                      unitCount={unitCount}
+                      totalPence={order.total_pence}
+                      paymentStatus={order.payment_status}
+                      paymentLabel={PAYMENT_BADGE[order.payment_status]?.label ?? order.payment_status}
+                      skuSummary={(items.data ?? [])
+                        .map((i) => `${i.quantity} × ${i.sku}`)
+                        .join(', ')}
+                    />
+                  )}
+                  {canRefund(order, refundablePence) && (
+                    <RefundOrder
+                      orderId={order.id}
+                      orderNumber={order.order_number}
+                      customer={customerName(order.delivery_address, order.email)}
+                      itemCount={(items.data ?? []).length}
+                      totalPence={order.total_pence}
+                      alreadyRefundedPence={refundedPence}
+                      paymentLabel={PAYMENT_BADGE[order.payment_status]?.label ?? order.payment_status}
+                    />
+                  )}
+                </div>
+                <p style={mutedSmall}>
+                  Cancelling refunds everything and puts the stock back, because the parcel never
+                  left. A refund is money only — stock is a separate tick box on that dialog.
+                </p>
+              </Panel>
+              </div>
+            )}
 
             <Panel heading="Tracking">
               {shipped ? (
@@ -411,6 +498,21 @@ function statusSentence(
     return 'Payment failed. Nothing was charged and nothing should be sent.';
   }
   return `Placed ${formatLong(order.placed_at)}.`;
+}
+
+/** Mirrors cancel_order's own refusals: already cancelled, or already gone.
+ * An unpaid order can still be cancelled — there is simply nothing to send
+ * back, which the dialog says rather than promising a refund. */
+function canCancel(order: { fulfilment_status: string; cancelled_at: string | null }): boolean {
+  if (order.cancelled_at || order.fulfilment_status === 'cancelled') return false;
+  return order.fulfilment_status !== 'shipped' && order.fulfilment_status !== 'delivered';
+}
+
+/** Mirrors record_refund's: something was paid, and some of it is still
+ * owed. A fully refunded order shows the history above instead. */
+function canRefund(order: { payment_status: string }, refundablePence: number): boolean {
+  if (refundablePence <= 0) return false;
+  return order.payment_status === 'paid' || order.payment_status === 'partially_refunded';
 }
 
 function formatLong(iso: string): string {

@@ -170,9 +170,14 @@ were verified against the live database rather than assumed — see
 `supabase/migrations/README.md` (stale as of 003 — it predates 004–010 and
 is due a rewrite, not a launch blocker).
 
-The live database has zero products, variants or collections, and — as of
-this session — zero users, so nothing in the admin catalogue, auth flows or
-storefront has been exercised end to end with real data. What verification
+The live database was empty for most of this project's history, and is no
+longer: as of the migration-012 session it holds 1 product, 15 variants and
+4 orders that none of these sessions created, plus a throwaway test fixture
+awaiting `supabase/cleanup-zz-test-fixture.sql` (see the 012 note below for
+both). Scope anything scripted against it rather than running blanket
+statements. Nothing in the admin catalogue, auth flows or storefront has
+still been exercised end to end with real data — only cancel_order and
+record_refund have, and those from SQL rather than through the routes. What verification
 found instead is in "Things that have already gone wrong" above: this
 sandbox's network egress blocks Supabase entirely (`Host not in allowlist`),
 which surfaced that every catalogue page was swallowing query errors as
@@ -384,8 +389,82 @@ and wrong exactly when it matters, since the send is best-effort after the
 DB write) it now shows only the timestamp and leaves email outcomes to the
 audit panel, where email_delivery_failed actually lands.
 
-Next: A15 Cancel and A16 Refund
-with E5/E8. Also still open: the two oldest admin tables (A03
+A15 Cancel and A16 Refund are built, with E5 and E8, and migration 012 IS
+APPLIED (advisor run straight after per rule 3: neither cancel_order nor
+record_refund appears in the "Public Can Execute SECURITY DEFINER" findings,
+and `refunds` is not in the "RLS enabled no policy" list, so both the REVOKEs
+and the policy took).
+
+012 ADDED THE TABLE THESE SCREENS NEEDED. The schema could record that a
+refund had happened and nothing else: payment_status has 'refunded' and
+'partially_refunded', with no amount, no date, no actor and no link to the
+Stripe object. So "partially refunded" meant "some unknown amount, at some
+unknown time, by someone", a second partial refund had no way to know what
+the first had already sent, and A16's typed-amount confirmation would have
+been theatre — the number typed would have been discarded the moment it was
+used. `refunds` is what makes the over-refund check possible; Stripe
+refusing an over-refund is why it was never a live bug, and relying on the
+payment processor as your integrity constraint is luck, not a control.
+
+ORDER OF OPERATIONS IS THE OPPOSITE OF /ship's, deliberately. ship_order
+wrote the database first because the parcel had already gone. Here the
+irreversible act is Stripe's and has not happened yet, so Stripe goes first:
+of the two failures available, an unrecorded refund is recoverable (Stripe is
+the source of truth, charge.refunded still fires, and the route writes an
+audit row naming the orphaned refund id) while a refund recorded but never
+sent is not — staff see it settled, stop looking, and the customer is simply
+out the money. Both dialogs also send an idempotency key generated when they
+open, because a double-click on a refund button is otherwise two refunds.
+
+Narrowings, all for the same root cause — payments.card_brand/card_last4
+exist and the webhook never writes them: "refunded to the Visa ending 4242"
+becomes "the card that paid" in A15, A16, E5 and E8 alike. That is now the
+fifth screen narrowed by this one missing webhook write and is worth closing.
+Two more: A16's "Refund part of it — CHOOSE LINES, or enter an amount" keeps
+the amount and drops the lines (there is no line-level refund anywhere, and
+tick boxes that silently collapse to a sum would claim a precision the record
+does not keep); and E8 is drawn as the refund at the end of a RETURN
+("REFUND RET-4471", per-garment rows, "you asked to return part of an
+order"), which is not what A16 does — it is headed with the order number, has
+no per-line rows, and says the true reason the email arrived.
+
+THIS IS THE FIRST THING IN THIS PROJECT EVER EXERCISED AGAINST REAL DATA.
+Both functions were run on the live project with a throwaway fixture: a
+partial refund (order and payment both to partially_refunded, stock
+untouched), the over-refund guard, a zero amount, a blank reason, a duplicate
+Stripe refund id, the full refund with restock (stock 10 -> 12, one
+inventory_adjustment, correct audit rows), cancellation with restock (12 ->
+14), cancelling an unpaid order (payment_status left alone, no refunds row,
+audit says "nothing to refund"), and cancelling a shipped order. Every guard
+fired with the message it was written to give.
+
+TWO THINGS THE RUN LEFT BEHIND, both recorded rather than glossed:
+
+ 1. The fixture is STILL IN THE LIVE DATABASE. The convention says delete it
+    and confirm zero; that could not be done from the session that created
+    it, because the Supabase MCP tooling gates DELETE behind an interactive
+    confirmation that never arrived — execute_sql and apply_migration both
+    timed out on it, including on a DELETE matching no rows, which is what
+    proved it was the gate and not a lock or a bad predicate. Run
+    `supabase/cleanup-zz-test-fixture.sql` in the SQL editor and delete that
+    file. Its four audit_logs rows cannot be removed and should not be:
+    audit_logs is append-only by trigger, and dropping that guard to tidy up
+    four rows would defeat the one property the log exists to have.
+
+ 2. THE LIVE DATABASE IS NO LONGER EMPTY. The note above saying it has zero
+    products, variants or collections is out of date: besides the fixture it
+    now holds 1 other product, 15 other variants and 4 other orders that this
+    session did not create and has not touched. Anything scripted against
+    this project from now on must be scoped, not blanket.
+
+Still open from this chunk: the Stripe webhook's charge.refunded branch only
+half-covers a refund issued from the Stripe dashboard rather than our admin —
+payments.status moves, but no refunds row exists, orders.payment_status stays
+'paid' and nothing is audited. Calling record_refund from the webhook closes
+it, and the unique index on refunds.stripe_refund_id already makes doing it
+twice safe. Noted in the handler.
+
+Next: the admin side of returns (A17/A18) with E7/E9. Also still open: the two oldest admin tables (A03
 T-shirts, A07 Inventory) have Mobile frames that were never implemented —
 they are desktop tables at every width, with no record-list fallback and
 no overflow wrapper, so they squash rather than scroll. Then: the remaining seven Resend templates (`lib/email/layout.ts` has the

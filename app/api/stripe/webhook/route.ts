@@ -183,6 +183,17 @@ export async function POST(req: NextRequest) {
         // Deliberately NOT restocking here. A refund and goods coming back are
         // different events, often days apart — see A16. Stock moves when a
         // human says the items are on the shelf.
+        //
+        // A refund issued through OUR admin (A15/A16) has already written
+        // `refunds`, `orders.payment_status` and an audit row before Stripe
+        // sent this event, so this branch is a no-op repeat of the payments
+        // half. A refund issued straight from the Stripe dashboard is the
+        // case this still only half-covers: payments.status moves, but no
+        // refunds row exists, orders.payment_status stays 'paid', and
+        // nothing is audited. Closing that means calling record_refund from
+        // here with the charge's refund id — the unique index on
+        // refunds.stripe_refund_id already makes it safe to do twice. Worth
+        // doing; not done, so it is written down rather than assumed.
         break;
       }
 
