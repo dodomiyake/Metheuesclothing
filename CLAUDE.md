@@ -171,11 +171,10 @@ were verified against the live database rather than assumed — see
 is due a rewrite, not a launch blocker).
 
 The live database was empty for most of this project's history, and is no
-longer: as of the migration-012 session it holds 1 product, 15 variants and
-4 orders that none of these sessions created, plus a throwaway test fixture
-awaiting `supabase/cleanup-zz-test-fixture.sql` (see the 012 note below for
-both). Scope anything scripted against it rather than running blanket
-statements. Nothing in the admin catalogue, auth flows or storefront has
+longer: it holds 1 product, 15 variants and 5 orders that none of these
+sessions created (the order count moved from 4 to 5 between the 012 session
+and the cleanup, so the owner is adding data). Scope anything scripted
+against it rather than running blanket statements. Nothing in the admin catalogue, auth flows or storefront has
 still been exercised end to end with real data — only cancel_order and
 record_refund have, and those from SQL rather than through the routes. What verification
 found instead is in "Things that have already gone wrong" above: this
@@ -438,24 +437,26 @@ inventory_adjustment, correct audit rows), cancellation with restock (12 ->
 audit says "nothing to refund"), and cancelling a shipped order. Every guard
 fired with the message it was written to give.
 
-TWO THINGS THE RUN LEFT BEHIND, both recorded rather than glossed:
+THE FIXTURE IS GONE — the owner ran the cleanup, and it is verified: zero
+fixture products, variants, orders, order_items, payments, refunds and
+inventory_adjustments, and both zz_try_* helper functions dropped. The
+advisor is back to the pre-012 baseline exactly (is_staff/is_owner, citext
+in public, rate_limits/webhook_events having no policies, leaked-password
+protection off — all deliberate or owner-level).
 
- 1. The fixture is STILL IN THE LIVE DATABASE. The convention says delete it
-    and confirm zero; that could not be done from the session that created
-    it, because the Supabase MCP tooling gates DELETE behind an interactive
-    confirmation that never arrived — execute_sql and apply_migration both
-    timed out on it, including on a DELETE matching no rows, which is what
-    proved it was the gate and not a lock or a bad predicate. Run
-    `supabase/cleanup-zz-test-fixture.sql` in the SQL editor and delete that
-    file. Its four audit_logs rows cannot be removed and should not be:
-    audit_logs is append-only by trigger, and dropping that guard to tidy up
-    four rows would defeat the one property the log exists to have.
+FOUR audit_logs ROWS REMAIN AND SHOULD. audit_logs is append-only, enforced
+by the forbid_audit_mutation triggers, so dropping that guard to tidy up
+four rows naming ZZ-TEST-012-A/B/D would defeat the one property the log
+exists to have. That they could not be deleted is the guarantee working.
 
- 2. THE LIVE DATABASE IS NO LONGER EMPTY. The note above saying it has zero
-    products, variants or collections is out of date: besides the fixture it
-    now holds 1 other product, 15 other variants and 4 other orders that this
-    session did not create and has not touched. Anything scripted against
-    this project from now on must be scoped, not blanket.
+WORTH CARRYING FORWARD ABOUT THE TOOLING: this environment's Supabase MCP
+gates DELETE and DROP behind an interactive confirmation that never arrives
+in a session — execute_sql and apply_migration both time out on them,
+including on a DELETE matching no rows, which is what proved it was the gate
+rather than a lock or a bad predicate. Plain DDL (create table, alter table,
+create index, create or replace function) goes through fine. Plan migrations
+to be additive; anything needing a DROP has to go to the owner, which is why
+014's refund_return wraps record_refund instead of replacing it.
 
 Still open from this chunk: the Stripe webhook's charge.refunded branch only
 half-covers a refund issued from the Stripe dashboard rather than our admin —
@@ -503,10 +504,9 @@ DROP first, and this environment's Supabase MCP gates DROP behind the same
 confirmation that never arrives for DELETE (a DROP-containing migration timed
 out and applied nothing). `refund_return` wraps record_refund instead, which
 is the better shape anyway — the money logic stays in one place. Second, the
-advisor now flags `zz_try_cancel` and `zz_try_refund`, the two helper
-functions from the 012 test run, for a mutable search_path. They are in
-`supabase/cleanup-zz-test-fixture.sql` and cannot be dropped from a session
-either.
+advisor briefly flagged `zz_try_cancel` and `zz_try_refund`, the two helper
+functions from the 012 test run, for a mutable search_path — the owner's
+cleanup dropped them and that finding has cleared.
 
 A18 DEPARTS FROM THE FRAMES ON ONE THING AND ADDS ONE. The frames draw
 Approve as enabled while the badge still reads "On its way to us", but
