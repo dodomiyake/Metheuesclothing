@@ -1135,6 +1135,45 @@ button.mc-icon-button[aria-label='Search'] {
   }
 }
 
+/* A02's metric grid. The frames draw six FIXED 340px cards that wrap. This
+   uses a grid of equal fractions instead, so the cards are wider than 340 at
+   1440 (around 369 inside the 1200px main column) -- a deliberate departure:
+   a wrapping row of fixed widths leaves a ragged gap at the end of each row,
+   and these six cards are a set, not a flow. The column COUNT matches the
+   frames at every breakpoint, which is the part that carries the layout: one
+   on a phone (126:76 stacks them full width), two from 768, three from
+   1440. Verified at all three. */
+.mc-dash-metrics {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .mc-dash-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1440px) {
+  .mc-dash-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* The two queue panels sit side by side only where there is room for both to
+   stay readable -- 126:756 draws them as equal halves on desktop. */
+.mc-dash-queues {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  width: 100%;
+}
+@media (min-width: 1440px) {
+  .mc-dash-queues {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* A15 Cancel and A16 Refund are modals, not inline panels: a 620px card on a
    full-bleed black ground (600 on tablet, measured off 141:1734/141:1791).
    The width steps the other way from most things here — it is the DESKTOP

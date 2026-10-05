@@ -76,6 +76,9 @@ export function AdminRail({
           worse for staff than a short one. They go back as each screen
           lands. */}
       <div className="mc-admin-nav" id="mc-admin-nav">
+        <AdminNavLink href="/admin" exact onNavigate={() => setOpen(false)}>
+          Dashboard
+        </AdminNavLink>
         <AdminNavLink href="/admin/products" onNavigate={() => setOpen(false)}>
           T-shirts
         </AdminNavLink>

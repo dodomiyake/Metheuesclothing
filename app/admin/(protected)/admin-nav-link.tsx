@@ -31,18 +31,24 @@ import { usePathname } from 'next/navigation';
 export function AdminNavLink({
   href,
   count,
+  exact,
   onNavigate,
   children,
 }: {
   href: string;
   count?: number;
+  /** Match this path only, never its children. The dashboard needs it: it
+   * lives at /admin, which is a prefix of every other admin route, so the
+   * prefix rule below would light Dashboard on every screen in the rail
+   * alongside the one you are actually on. */
+  exact?: boolean;
   onNavigate?: () => void;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   // A section is current when you are on it or anywhere beneath it, so
   // /admin/products/<id>/variants still lights "T-shirts".
-  const current = pathname === href || pathname.startsWith(`${href}/`);
+  const current = exact ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <Link

@@ -565,6 +565,30 @@ adjusting stock means choosing a variant first, and A08 already owns that
 form, so a global button would either be a dead end or a second caller of
 adjust_stock to keep in sync.
 
+A02 Dashboard is built (126:555/126:309/126:76, Desktop pulled and Mobile
+checked by screenshot) and lives at /admin, which until now 404'd — the
+rail's first item pointed at a page that did not exist, and A17's footer
+referred to an escalation "on the dashboard" that had nowhere to be. The
+rail now carries it, with an `exact` flag on the nav link: /admin is a
+prefix of every other admin route, so the existing prefix rule would have
+lit Dashboard on every screen alongside the one you were actually on.
+
+All six §9.1 figures read real columns, and ONE OF THEM ONLY BECAME
+COMPUTABLE WITH 012: "paid revenue today, net of refunds" needs an amount,
+and before `refunds` existed payment_status recorded only that a refund had
+happened. It subtracts every refund issued today including those against
+older orders — which is what "net of refunds" has to mean to reconcile with
+the bank, and which means a quiet day with a large refund shows a NEGATIVE
+figure. That is correct, and the sub-line explains it rather than leaving a
+number nobody can account for.
+
+Low-stock is counted in JavaScript for the reason A07 gives — it compares
+two columns — and the metric grid is a departure worth knowing: the frames
+draw six fixed 340px cards that wrap, this uses equal fractions so the cards
+run wider at 1440 rather than leaving a ragged gap at the end of each row.
+The column COUNT matches the frames at every breakpoint (1 / 2 / 3), which
+is the part carrying the layout; verified at 390/768/1440.
+
 Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
 E1/E2 (verify email, password reset) now have a caller — Supabase Auth sends
