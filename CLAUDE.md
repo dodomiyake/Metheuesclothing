@@ -202,14 +202,43 @@ which surfaced that every catalogue page was swallowing query errors as
 empty states — fixed, but still means the actual "products render
 correctly" path has never been observed, only exercised via `tsc`/`next
 build`/a dev-server smoke test of the unauthenticated and now-loud-on-error
-paths. Production is a different network and will not have this specific
-problem, but has its own unverified gap: the Vercel project has no
-environment variables configured at all (see the "fail open" commit), so
-until the owner sets them, the deployed app is in the same
-never-reaches-Supabase state this sandbox is permanently in. There is no
-self-service way to become staff by design (see README) — someone with
-database access has to run one UPDATE on `profiles` before the admin
-screens can be walked through for real.
+paths. BOTH OF THOSE ARE NOW CLOSED, and the catalogue path has been SEEN
+WORKING. This note used to say the Vercel project had no environment
+variables and that nobody was staff yet. All nine env vars are set
+(STRIPE_PUBLISHABLE_KEY is production-only; the other eight cover preview
+too), and the owner's account is `role = 'staff'`. On 11 October 2026 the
+owner opened A07 Inventory on the deployed app and it rendered the real
+catalogue: 15 variants, the real SKUs, BLACK/L at 0 reading Out of stock —
+which is the variant MC-10006 sold two of. So the admin gate, the profiles
+role read and a catalogue query have all now run against the live
+database from a browser, not just through `tsc` and `next build`. This
+sandbox still cannot reach Supabase (`Host not in allowlist`), so that
+remains the reason screens are verified here by measurement and harness
+rather than by loading them.
+
+What that same screenshot exposed: PRODUCTION WAS 15 COMMITS BEHIND. `main`
+sat at 7f3f90b (A01 admin sign-in) while the whole admin build lived on the
+feature branch, so the owner was looking at the pre-rebuild A07 — bare
+table, no top bar, no record list, and the audit-log overclaim that
+d762e61 had already corrected and 015 had since made true. Worth checking
+which deployment a screenshot came from before reading a bug into it.
+Migrations 011-017 had meanwhile all been applied to the live database, so
+the deployed code and the schema were out of step in the safe direction
+only because every migration was additive.
+
+THERE IS A DEDICATED ADMIN ACCOUNT NOW, created 11 October 2026 at the
+owner's request: `admin@metheues.test`, `profiles.role = 'owner'`. There is
+no separate admin credential system and there never was — A01 posts to the
+same /api/auth/sign-in as the storefront, and being an admin is one row's
+`role` column. The address uses `.test` (RFC 2606) so it can never be a
+real mailbox and nobody can claim it; the trade-off is that password reset
+can never reach it, which is correct for a test account. Supabase's auth
+admin API is unreachable from this sandbox, so the auth.users row was
+written directly with `crypt(..., gen_salt('bf'))` and then verified field
+by field (confirmed, hash matches, one email identity, not banned, not
+deleted); handle_new_user created the profiles row and only its role was
+changed by hand. Deleting it later is a dashboard job — this environment's
+tooling gates DELETE.
 
 Next: the shop listing (`app/(site)/shop/page.tsx`) has now had the real-Figma
 pass (03A/B/C + the 03D filter sheet, node 51:531/50:406/47:287/53:674) —
