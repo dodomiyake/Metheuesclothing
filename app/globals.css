@@ -1208,3 +1208,12 @@ button.mc-icon-button[aria-label='Search'] {
     width: 340px;
   }
 }
+
+/* A20 Customer details (144:2696 / 144:2514) draws the same 340px side
+   column A13 does, not A12's 380 — measured off the frame rather than
+   inherited from the order screen it is reached from. */
+@media (min-width: 1440px) {
+  .mc-admin-customer-layout .mc-admin-order-side {
+    width: 340px;
+  }
+}

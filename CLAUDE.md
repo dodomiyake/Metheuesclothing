@@ -644,6 +644,101 @@ is gone the entry says so rather than printing a uuid — append-only means
 an entry outlives its subject, which is the point, and four of the five
 rows in the live log are exactly that case.
 
+A19 Customers and A20 Customer details are built (143:2465 Desktop pulled,
+143:2276 Tablet checked by screenshot; 144:2696 Desktop pulled, 144:2514
+Tablet checked by screenshot), which closes the "View customer" dead end
+A12 and A18 both had to omit. A19 is structurally A11 — rail at 1440,
+table at 768. A20 has ONE breakpoint like A12/A13, and its side column is
+340px, A13's width rather than A12's 380. Verified at 390/768/1440.
+
+CUSTOMERS IS NOT A TABLE AND NEVER WAS, which is the whole reason this
+needed migration 016. A customer is a `profiles` row OR an email that
+ordered without one, and A19's five data columns are an aggregate over
+`orders` grouped by email — no GROUP BY, no UNION and no window function
+is expressible through PostgREST, and reducing every order in JavaScript
+would make search, sort and pagination lies as soon as there is more than
+one page. `admin_customers()` does it in Postgres. It is also the only way
+to answer the ACCOUNT column at all: Verified/Unverified needs
+auth.users.email_confirmed_at, which `authenticated` cannot read and a
+security_invoker view cannot reach. Narrowing the column to
+Registered/Guest was the alternative and would have been hiding data we
+hold. 017 adds `admin_customer_stats()` for the subtitle's two whole-shop
+figures, separate only because 016 was already applied and migrations here
+are never edited once they have run.
+
+EMAIL IS THE IDENTITY, lowercased everywhere. The columns are citext so
+the database already matches case-insensitively, but the UNION is over
+text, and 'Jordan@x.com' on an order beside 'jordan@x.com' on a profile
+would otherwise split one person into two rows — a "guest" holding the
+orders and a "verified" holding none. That is exactly the failure A19's
+own footer warns about. A20 is keyed on the email too, so it opens for
+someone who has never registered.
+
+THESE THREE FUNCTIONS ARE THE FIRST READ PATH IN THE ADMIN THAT BYPASSES
+RLS. Everything else here reads with the signed-in user's own session, so
+`is_staff()` inside each policy is the real lock and the layout only
+decides what renders. service_role has no auth.uid(), so the check cannot
+live inside the function — it moved to the front of the page as
+`requireStaffPage()` (lib/admin/require-staff.ts, beside the route-handler
+version). A layout is not a security boundary; one future route group that
+forgets to nest would otherwise be a full customer-list leak. Rule 3 is
+otherwise unchanged and the advisor was run after both migrations:
+admin_customers, admin_customer_account and admin_customer_stats are all
+absent from the SECURITY DEFINER findings, and the baseline is exactly
+what it was (is_staff/is_owner, citext in public, rate_limits and
+webhook_events without policies, leaked-password protection off).
+
+016 also adds `addresses_staff_read`. `addresses_own` was the ONLY
+customer-owned table with no `or is_staff()` anywhere — orders, returns,
+order_items, payments, fulfilments and profiles all have one — so A20's
+SAVED ADDRESSES card could not have been filled. Additive: the existing
+policy is untouched and a SELECT policy ORs with it.
+
+BOTH LIST FUNCTIONS WERE EXERCISED AGAINST THE LIVE DATABASE, read-only,
+and the numbers reconcile: 2 people, 1 a repeat buyer, 0 guests; three
+PAID orders totalling GBP 446.85 against the owner's own address, last one
+4 October 2026. (The order count has moved again — CLAUDE.md recorded 5
+orders of which MC-10006 was the only proven one; three of them are now
+paid. The owner is still adding data.) Every filter and sort fired: guest,
+verified, country GB and IE, case-insensitive search on both name and
+email, all four sorts, and an offset page. admin_customer_account returned
+the right row for a mixed-case, space-padded email and a correctly empty
+one for an address nobody has used.
+
+LIFETIME SPEND IS DEFINED ONCE AND STATED: orders that were actually paid
+for, at what was charged, NOT net of refunds. A pending order is an
+abandoned checkout, and counting it would show "3 orders, GBP 0.00"
+against someone who has bought nothing. That is a different question from
+A02's "paid revenue today, net of refunds", and the footer says which this
+is.
+
+Omitted from A19: "Export customers", the same call A11 makes on "Export
+orders" and A07 on "Export CSV" — no route, no format, no decision about
+columns. The design's Germany row goes too: checkout restricts shipping to
+GB and IE, so the Country filter offers the two that can exist rather than
+a list that can never match.
+
+A20 DOES get an export, and the difference is the point: one person's data
+in an obvious format with a one-month statutory deadline is not the same
+ask as a bulk customer CSV nobody has specified. GET
+/api/admin/customers/[email]/export returns the profile, saved addresses,
+orders with their items, returns with their items and refunds as a
+downloadable JSON file, scoped to one email and no-store. JSON rather than
+CSV because the data is nested and flattening it would lose which item
+belonged to which order.
+
+Three A20 narrowings, each for a missing column rather than a missing
+screen. "Delivery updates by SMS" is omitted: no SMS consent column exists
+and nothing sends a text, so an "Off" row would be precisely the consent
+record the card's own footer says not to create. "Erase this profile" is
+omitted as an ACTION and kept as an explanation: deleting a profile
+cascades to addresses and sets orders.profile_id null, so a careless
+delete quietly turns someone's order history into guest orders — erasure
+has to null the person out while the sales history stands, which is a
+migration nobody has written. And "Email this customer" IS real: a mailto,
+because nothing in this app sends staff email. Contact preferences stay
+read-only exactly as the ledger requires.
+
 Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
 E1/E2 (verify email, password reset) now have a caller — Supabase Auth sends
@@ -654,11 +749,11 @@ config against the live project. E4/E5/E7 need the admin order actions
 (dispatch, cancel), E8 needs the admin refund action, E9 needs the admin
 return decision — build each template alongside the route that triggers it,
 the way E3 and E6 went in — E4, E5, E7, E8 and E9 have all gone in that way
-now, so only E1/E2 are left and both are owner-blocked. Also still open: the
-admin dashboard, collections, customers and settings screens (A02, A09/A10,
-A19 onward), and the customer-facing account pages (profile, addresses,
-signed-in order history — now unblocked the same way the catalogue was,
-since they need auth, which exists). The catalogue, bag and guest order
+now, so only E1/E2 are left and both are owner-blocked. Also still open: collections
+(A09/A10), homepage content (A21) and store settings (A22), and the
+customer-facing account pages (profile, addresses, signed-in order history
+— now unblocked the same way the catalogue was, since they need auth,
+which exists). The catalogue, bag and guest order
 lookup+return (`app/shop/`, `app/bag/`, `app/track-order/`) are now
 matched against their real Figma screens, not just built — but each still
 carries disclosed, deliberate gaps (no product photography, cart stays

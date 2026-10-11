@@ -183,3 +183,47 @@ export const AUDIT_BADGE: Record<string, { label: string; tone: BadgeTone }> = {
   email_delivery_failed: { label: 'Email failed', tone: 'danger' },
   refund_not_recorded: { label: 'Refund not recorded', tone: 'danger' },
 };
+
+/**
+ * A19's ACCOUNT column (143:2583). Three states, and the middle one is the
+ * reason migration 016 exists at all: whether an email was confirmed lives
+ * in auth.users, which `authenticated` cannot read, so admin_customers()
+ * resolves it and this only labels the answer.
+ *
+ * Guest is Neutral rather than Attention deliberately, matching the frame:
+ * having no account is not a problem to fix, it is just how most people buy.
+ */
+export const ACCOUNT_BADGE: Record<string, { label: string; tone: BadgeTone }> = {
+  verified: { label: 'Verified', tone: 'success' },
+  unverified: { label: 'Unverified', tone: 'attention' },
+  guest: { label: 'Guest', tone: 'neutral' },
+};
+
+/**
+ * A20 draws ONE badge per order (144:2796) where A11 draws two — Preparing,
+ * Delivered, Refunded in the frame, which is a fulfilment state, a
+ * fulfilment state and a payment state side by side. So a rule is needed
+ * for which column wins, and it is "whatever has stopped being about
+ * fulfilment":
+ *
+ *  - Money undone (refunded, part refunded) or an order that was cancelled
+ *    outright is the whole story of that line; where it had got to in the
+ *    stockroom no longer matters.
+ *  - An order that was never paid for has nothing to fulfil, so Pending or
+ *    Failed is the true state rather than "Not started".
+ *  - Everything else is its fulfilment state, which is what someone
+ *    scanning a customer's history actually wants to know.
+ */
+export function orderBadge(
+  paymentStatus: string,
+  fulfilmentStatus: string,
+): { label: string; tone: BadgeTone } {
+  if (paymentStatus === 'refunded' || paymentStatus === 'partially_refunded') {
+    return PAYMENT_BADGE[paymentStatus];
+  }
+  if (fulfilmentStatus === 'cancelled') return FULFILMENT_BADGE.cancelled;
+  if (paymentStatus === 'pending' || paymentStatus === 'failed') {
+    return PAYMENT_BADGE[paymentStatus];
+  }
+  return FULFILMENT_BADGE[fulfilmentStatus] ?? { label: fulfilmentStatus, tone: 'neutral' };
+}
