@@ -186,16 +186,19 @@ Code still to write:
   and the real assets are wired in. Menu stays hand-authored deliberately:
   Figma builds it from three plain rectangles, not an exportable
   vector/image node.
-- Admin: T-shirts (create/edit), colours/sizes/stock and a read-only
-  inventory view are built (A03, A04 MVP subset, A06, A07, A08) —
-  `app/admin/`. Not built: the dashboard (A02), collections (A09/A10), the
-  image manager (A05 — no upload pipeline exists, and there is no real
-  photography to manage yet), and everything past the catalogue (orders,
-  returns, customers, homepage content, store settings, audit log — A11
-  onward). There is also no self-service way to *become* staff — that is a
-  direct `update profiles set role = 'staff' where id = ...` by whoever
-  already has database access, the same bootstrap problem every app with
-  roles has once.
+- Admin (`app/admin/`): built are the dashboard (A02), T-shirts and the
+  catalogue editors (A03, A04 MVP subset, A06, A07, A08), orders and the
+  whole dispatch path (A11, A12, A13, A14), cancel and refund (A15, A16),
+  returns (A17, A18), customers (A19, A20) and the audit log (A23). Not
+  built: collections (A09/A10), the image manager (A05 — no upload
+  pipeline exists, and there is no real photography to manage yet),
+  homepage content (A21) and store settings (A22). Several screens carry
+  deliberate omissions where the design draws an action with nothing
+  behind it — each one is recorded in the page's own comment rather than
+  shipped as a dead control. There is also no self-service way to *become*
+  staff — that is a direct `update profiles set role = 'staff' where id =
+  ...` by whoever already has database access, the same bootstrap problem
+  every app with roles has once.
 
 Not code, and blocking launch rather than blocking development:
 

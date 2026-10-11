@@ -806,3 +806,414 @@ button.mc-icon-button[aria-label='Search'] {
     width: 420px;
   }
 }
+
+/* ---- admin shell + A11 Orders (Desktop 128:1827 / Tablet 128:1606 /
+   Mobile 128:1421, all three pulled) ----
+   Two independent breakpoints, which is the thing worth getting right here:
+   the RAIL becomes a top bar at 1440, and the RECORDS become a card list at
+   768. Tablet sits between them — stacked top bar, full seven-column table.
+   Treating tablet as "narrow mobile" would put card rows on a 768px screen
+   with room for the whole table. */
+.mc-admin-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  font-family: var(--mc-font-body);
+}
+@media (min-width: 1440px) {
+  .mc-admin-shell {
+    flex-direction: row;
+  }
+}
+
+.mc-admin-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 8px 16px;
+  background: var(--mc-bg-inverse);
+  color: var(--mc-text-inverse);
+}
+@media (min-width: 768px) {
+  .mc-admin-rail {
+    padding: 8px 24px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-admin-rail {
+    width: 240px;
+    flex-shrink: 0;
+    gap: 24px;
+    padding: 24px 14px;
+  }
+}
+
+/* Brand + signed-in + the Menu toggle on one row until the rail goes
+   vertical. */
+.mc-admin-rail-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+}
+@media (min-width: 1440px) {
+  .mc-admin-rail-top {
+    display: block;
+    min-height: 0;
+    padding-left: 14px;
+  }
+}
+
+.mc-admin-rail-user {
+  display: block;
+  margin-left: auto;
+}
+@media (min-width: 1440px) {
+  /* On desktop the signed-in block moves to the foot of the rail, so the
+     copy in the top row would be a duplicate. */
+  .mc-admin-rail-user {
+    display: none;
+  }
+}
+
+.mc-admin-rail-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 14px;
+  background: none;
+  border: 1px solid var(--mc-slate-on-dark);
+  border-radius: var(--mc-radius-sm);
+  color: var(--mc-text-inverse);
+  font-family: var(--mc-font-body);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+@media (min-width: 1440px) {
+  .mc-admin-rail-toggle {
+    display: none;
+  }
+}
+
+.mc-admin-rail-foot {
+  display: none;
+}
+@media (min-width: 1440px) {
+  .mc-admin-rail-foot {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-top: auto;
+    padding: 12px 14px 0;
+    border-top: 1px solid var(--mc-graphite);
+  }
+}
+
+/* Collapsed by default below 1440 and opened by the toggle; always open in
+   the sidebar. The design draws ten 212px chips wrapped into a ~494px slab
+   on a 390px screen -- see app/admin/(protected)/admin-rail.tsx for why that
+   is not reproduced. */
+.mc-admin-nav {
+  display: none;
+}
+.mc-admin-rail[data-open='true'] .mc-admin-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 12px;
+}
+@media (min-width: 1440px) {
+  .mc-admin-nav {
+    display: flex !important;
+    flex-direction: column;
+    gap: 4px;
+    padding-bottom: 0;
+  }
+}
+
+/* Full width in the drawer; the sidebar's own 212px only applies there. */
+.mc-admin-nav-link {
+  width: 100%;
+}
+@media (min-width: 1440px) {
+  .mc-admin-nav-link {
+    width: 212px;
+    max-width: 100%;
+  }
+}
+
+/* Screens the design never drew below 768 (A04 Edit T-shirt, A06 Generate
+   variants, A08 Adjust stock) say so rather than rendering a squashed form.
+   Every admin editing screen is Desktop+Tablet only in Figma; only the
+   queues and detail views have Mobile frames. A refund issued with a fat
+   thumb on a layout nobody designed is a worse outcome than a short
+   message. */
+.mc-admin-wide-only {
+  display: none;
+}
+@media (min-width: 768px) {
+  .mc-admin-wide-only {
+    display: block;
+  }
+}
+
+.mc-admin-narrow-notice {
+  display: block;
+}
+@media (min-width: 768px) {
+  .mc-admin-narrow-notice {
+    display: none;
+  }
+}
+
+.mc-admin-main {
+  flex: 1;
+  min-width: 0;
+  background: var(--mc-bg-page);
+}
+
+.mc-admin-page {
+  display: flex;
+  flex-direction: column;
+}
+
+.mc-admin-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  padding: 22px 16px;
+  background: var(--mc-bg-surface);
+  border-bottom: 1px solid var(--mc-border-default);
+}
+@media (min-width: 768px) {
+  .mc-admin-topbar {
+    padding: 22px 24px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-admin-topbar {
+    flex-wrap: nowrap;
+    padding: 22px 32px;
+  }
+}
+
+.mc-admin-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 16px 40px;
+}
+@media (min-width: 768px) {
+  .mc-admin-content {
+    padding: 24px 24px 40px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-admin-content {
+    padding: 24px 32px 40px;
+  }
+}
+
+.mc-admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+}
+
+.mc-admin-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 11px 14px;
+  width: 100%;
+  max-width: 380px;
+  background: var(--mc-bg-surface);
+  border: 1px solid var(--mc-border-strong);
+  border-radius: var(--mc-radius-sm);
+  box-sizing: border-box;
+}
+
+/* Same transparent-select-over-a-label trick as the storefront's sort
+   control: a native select sizes itself to its longest option, which here
+   would make "Fulfilment: Not started" set the width of every filter. */
+.mc-admin-filter {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 11px 12px;
+  background: var(--mc-bg-surface);
+  border: 1px solid var(--mc-border-strong);
+  border-radius: var(--mc-radius-sm);
+  box-sizing: border-box;
+}
+.mc-admin-filter-label {
+  font-family: var(--mc-font-body);
+  font-size: 14px;
+  color: var(--mc-text-primary);
+  white-space: nowrap;
+}
+.mc-admin-filter select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: none;
+  cursor: pointer;
+  appearance: none;
+}
+.mc-admin-filter:has(select:focus-visible) {
+  outline: 2px solid var(--mc-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Records: card list below 768, table from 768 up. */
+.mc-orders-table {
+  display: none;
+}
+@media (min-width: 768px) {
+  .mc-orders-table {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .mc-orders-records {
+    display: none;
+  }
+}
+
+.mc-admin-table-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+/* A12 Order details (139:1861 / 139:1620 / 139:1379). ONE breakpoint, not
+   two: tablet and mobile both stack Order main above Order side in the same
+   order, and the split happens at 1440 only — confirmed by reading the
+   tablet and mobile frames rather than assuming it matched A11. */
+.mc-admin-order-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+@media (min-width: 1440px) {
+  .mc-admin-order-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+.mc-admin-order-main,
+.mc-admin-order-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  width: 100%;
+}
+@media (min-width: 1440px) {
+  .mc-admin-order-main {
+    flex: 1 0 0;
+  }
+  .mc-admin-order-side {
+    width: 380px;
+    flex-shrink: 0;
+  }
+}
+
+/* A02's metric grid. The frames draw six FIXED 340px cards that wrap. This
+   uses a grid of equal fractions instead, so the cards are wider than 340 at
+   1440 (around 369 inside the 1200px main column) -- a deliberate departure:
+   a wrapping row of fixed widths leaves a ragged gap at the end of each row,
+   and these six cards are a set, not a flow. The column COUNT matches the
+   frames at every breakpoint, which is the part that carries the layout: one
+   on a phone (126:76 stacks them full width), two from 768, three from
+   1440. Verified at all three. */
+.mc-dash-metrics {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .mc-dash-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1440px) {
+  .mc-dash-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* The two queue panels sit side by side only where there is room for both to
+   stay readable -- 126:756 draws them as equal halves on desktop. */
+.mc-dash-queues {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  width: 100%;
+}
+@media (min-width: 1440px) {
+  .mc-dash-queues {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* A15 Cancel and A16 Refund are modals, not inline panels: a 620px card on a
+   full-bleed black ground (600 on tablet, measured off 141:1734/141:1791).
+   The width steps the other way from most things here — it is the DESKTOP
+   frame that is wider — so it is declared at the tablet value and stepped up,
+   the same mobile-first shape --mc-type-page-title uses. */
+.mc-admin-dialog {
+  width: min(600px, calc(100vw - 32px));
+  max-height: calc(100dvh - 64px);
+  padding: 24px;
+  border: none;
+  border-radius: var(--mc-radius-md);
+  background: var(--mc-bg-surface);
+  color: var(--mc-text-primary);
+  font-family: var(--mc-font-body);
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+@media (min-width: 1440px) {
+  .mc-admin-dialog {
+    width: min(620px, calc(100vw - 48px));
+  }
+}
+.mc-admin-dialog::backdrop {
+  background: var(--mc-ink);
+  opacity: 0.88;
+}
+
+/* A13 Pack draws a narrower side column than A12 -- 340 against 380. Measured
+   off 139:2295, not inherited from the neighbouring screen. */
+@media (min-width: 1440px) {
+  .mc-admin-pack-layout .mc-admin-order-side {
+    width: 340px;
+  }
+}
+
+/* A20 Customer details (144:2696 / 144:2514) draws the same 340px side
+   column A13 does, not A12's 380 — measured off the frame rather than
+   inherited from the order screen it is reached from. */
+@media (min-width: 1440px) {
+  .mc-admin-customer-layout .mc-admin-order-side {
+    width: 340px;
+  }
+}

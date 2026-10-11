@@ -170,23 +170,75 @@ were verified against the live database rather than assumed — see
 `supabase/migrations/README.md` (stale as of 003 — it predates 004–010 and
 is due a rewrite, not a launch blocker).
 
-The live database has zero products, variants or collections, and — as of
-this session — zero users, so nothing in the admin catalogue, auth flows or
-storefront has been exercised end to end with real data. What verification
+The live database was empty for most of this project's history, and is no
+longer: it holds 1 product, 15 variants and 5 orders that none of these
+sessions created (the order count moved from 4 to 5 between the 012 session
+and the cleanup, so the owner is adding data). Scope anything scripted
+against it rather than running blanket statements. THE CHECKOUT PATH HAS NOW RUN FOR REAL, and this note used to say it had
+not. Order MC-10006 went all the way through on 13 September 2026: 2 x
+"STRIPED SHORT SLEEVE POLO TSHIRT" BLACK/L at £48.00 plus £3.95 delivery =
+£99.95, payment_status paid, a real Stripe payment intent recorded, the
+delivery-address snapshot written by the webhook, delivery_method
+tracked_48, and stock decremented EXACTLY ONCE (one `sale`
+inventory_adjustment of -2; that variant now sits at 0 and reads Sold out).
+Three webhook events processed. So storefront -> checkout -> Stripe ->
+webhook -> stock is proven with real money.
+
+ONE THING FAILED, and it failed the way it was built to. audit_logs holds
+`email_delivery_failed`: "E3 order confirmation to <the owner's address>
+failed: The domain is invalid" — Resend refusing the send because the
+sending domain is not verified, which is already on the owner-blocked list
+below. The webhook did not throw, the order survived, stock stayed correct,
+and a human got a record. That is exactly the §15 behaviour
+sendTransactionalEmail exists for, observed rather than assumed.
+
+Note also MC-10006 sits at fulfilment_status `processing` with no audit row
+for the transition — advance_fulfilment writes one and nothing else moves
+that column, so it was set directly in the table editor. Consistent with the
+owner exploring; worth knowing when reading the log. What verification
 found instead is in "Things that have already gone wrong" above: this
 sandbox's network egress blocks Supabase entirely (`Host not in allowlist`),
 which surfaced that every catalogue page was swallowing query errors as
 empty states — fixed, but still means the actual "products render
 correctly" path has never been observed, only exercised via `tsc`/`next
 build`/a dev-server smoke test of the unauthenticated and now-loud-on-error
-paths. Production is a different network and will not have this specific
-problem, but has its own unverified gap: the Vercel project has no
-environment variables configured at all (see the "fail open" commit), so
-until the owner sets them, the deployed app is in the same
-never-reaches-Supabase state this sandbox is permanently in. There is no
-self-service way to become staff by design (see README) — someone with
-database access has to run one UPDATE on `profiles` before the admin
-screens can be walked through for real.
+paths. BOTH OF THOSE ARE NOW CLOSED, and the catalogue path has been SEEN
+WORKING. This note used to say the Vercel project had no environment
+variables and that nobody was staff yet. All nine env vars are set
+(STRIPE_PUBLISHABLE_KEY is production-only; the other eight cover preview
+too), and the owner's account is `role = 'staff'`. On 11 October 2026 the
+owner opened A07 Inventory on the deployed app and it rendered the real
+catalogue: 15 variants, the real SKUs, BLACK/L at 0 reading Out of stock —
+which is the variant MC-10006 sold two of. So the admin gate, the profiles
+role read and a catalogue query have all now run against the live
+database from a browser, not just through `tsc` and `next build`. This
+sandbox still cannot reach Supabase (`Host not in allowlist`), so that
+remains the reason screens are verified here by measurement and harness
+rather than by loading them.
+
+What that same screenshot exposed: PRODUCTION WAS 15 COMMITS BEHIND. `main`
+sat at 7f3f90b (A01 admin sign-in) while the whole admin build lived on the
+feature branch, so the owner was looking at the pre-rebuild A07 — bare
+table, no top bar, no record list, and the audit-log overclaim that
+d762e61 had already corrected and 015 had since made true. Worth checking
+which deployment a screenshot came from before reading a bug into it.
+Migrations 011-017 had meanwhile all been applied to the live database, so
+the deployed code and the schema were out of step in the safe direction
+only because every migration was additive.
+
+THERE IS A DEDICATED ADMIN ACCOUNT NOW, created 11 October 2026 at the
+owner's request: `admin@metheues.test`, `profiles.role = 'owner'`. There is
+no separate admin credential system and there never was — A01 posts to the
+same /api/auth/sign-in as the storefront, and being an admin is one row's
+`role` column. The address uses `.test` (RFC 2606) so it can never be a
+real mailbox and nobody can claim it; the trade-off is that password reset
+can never reach it, which is correct for a test account. Supabase's auth
+admin API is unreachable from this sandbox, so the auth.users row was
+written directly with `crypt(..., gen_salt('bf'))` and then verified field
+by field (confirmed, hash matches, one email identity, not banned, not
+deleted); handle_new_user created the profiles row and only its role was
+changed by hand. Deleting it later is a dashboard job — this environment's
+tooling gates DELETE.
 
 Next: the shop listing (`app/(site)/shop/page.tsx`) has now had the real-Figma
 pass (03A/B/C + the 03D filter sheet, node 51:531/50:406/47:287/53:674) —
@@ -259,7 +311,488 @@ narrower true thing: audit_logs is append-only, enforced by the
 forbid_audit_mutation triggers. The password helper says 10, the real
 `z.string().min(10)`, not the design's 12.
 
-Every screen in the app has now had the real-Figma pass. Next: the remaining seven Resend templates (`lib/email/layout.ts` has the
+Every storefront and auth screen has had the real-Figma pass, and the
+admin has started on its own: `app/admin/(protected)/orders/` is A11
+Orders, all three nodes pulled (128:1827/128:1606/128:1421). The
+structural fact there was worth pulling rather than inferring — the admin
+has TWO independent breakpoints, not one: the rail becomes a top bar at
+1440 while the records become a card list at 768, so TABLET IS NOT
+MOBILE (stacked top bar, full seven-column table). Verified by measuring
+the live CSS at 390/768/1440. Also added `components/admin/status-badge.tsx`
+— the real Status Badge (125:26), a white pill with a tone dot so the WORD
+carries the meaning; the three ad-hoc badges it replaces (products,
+inventory, variant manager) carried five hardcoded pastel hexes that were
+in no palette this project has ever had and had survived both recolours,
+because a raw hex is invisible to a token change. Omitted from A11, not
+faked: "Export orders" and "Print pick list" (no route, no format, no
+pick-list definition), and the seven rail items whose pages do not exist
+— a rail full of 404s is worse for staff than a short one. `packed` is
+labelled "Packed", not the design's "To pack": six labels for six enum
+values and five line up, but that one inverts the meaning (`packed` means
+packing is DONE) and would send someone to re-pack a parcel. Worth
+settling with the design owner alongside the E7 naming. NOTE: the orders
+filters and search are the first queries in this codebase using jsonb
+paths (`delivery_address->address->>country`, `delivery_address->>name`)
+and, like everything else here, have never run against a reachable
+database — they typecheck and build but are unexercised.
+
+A12 Order details is now built (139:1861/139:1620/139:1379, all three
+pulled), so A11's rows land somewhere. Unlike A11 it has ONE breakpoint:
+tablet and mobile both stack Order main above Order side in the same
+order, and the split is at 1440 only — read from the frames rather than
+assumed to match A11. It is deliberately a READ screen: the design hangs
+eight actions off it and exactly one (Open in Stripe) has anywhere to go,
+because A13 Fulfilment, A14 Add tracking, A15 Cancel and A16 Refund are
+unbuilt screens with no routes behind them. Four panels are omitted for
+four different reasons, all recorded in the page's own comment — internal
+notes (no table exists at all, and orders.customer_note is the CUSTOMER's
+note, so rendering it under a staff-only heading would invert its
+meaning); payment method (payments.card_brand/card_last4 EXIST but the
+webhook never writes them — a few lines from being true, worth doing);
+phone (checkout never asks Stripe for one); and the delivery estimate
+(nothing stores or computes one).
+
+Two findings worth carrying forward. First, EVERY audit_logs insert in
+this codebase is a failure path — oversell_detected and
+email_delivery_failed — so a successful payment or return writes nothing.
+The A01 small print shipped in 7f3f90b overclaimed this ("returns and
+payment events are written to an audit log") and has been corrected to
+the only true claim, which is about the log's integrity rather than its
+coverage. An audit log that records only failures is probably not what
+anyone wants; closing it is nearly free once the A13–A16 actions exist,
+since each is already a write. Second, the schema has no per-transition
+timestamps at all: fulfilment_status is one current value with no history,
+so A12's timeline shows real times only for placed_at, shipped_at and
+delivered_at and says plainly that the rest are unrecorded.
+
+The admin rail now collapses behind a toggle below 1440 — a deliberate
+departure, recorded in admin-rail.tsx. A11/A12 Mobile draw it as ten
+212px chips wrapping into a ~494px slab on an 844px-tall phone, and our
+first build inherited the 212px width with three items, leaving a strip
+of dead black beside every row (212 only means something inside a 240px
+sidebar). Collapsed the bar is 76px; opened, rows go full width. The
+rail still swaps at 1440 exactly as the frames show — only the collapsed
+shape differs. Alongside it, `components/admin/wide-only.tsx` gates the
+three editing screens (A04 Edit T-shirt, A06 Generate variants, A08
+Adjust stock) below 768 with a short message instead of a squashed form.
+That matches the design file's own split, which is worth knowing: of 23
+admin screens 7 have a Mobile frame and 16 do not, and the line is
+almost exactly read vs write — sign-in, dashboard, the three queues and
+Order details get a phone layout; every editor, settings screen and
+consequential action is Desktop+Tablet only. NOTE that rationale is read
+off which frames exist; no decision to that effect is recorded in
+design-system-state.json, so confirm it with the design owner rather
+than treating it as settled.
+
+The dispatch path is built and migration 011 IS APPLIED (advisor run
+straight after per rule 3: neither new function appears in the
+"Public Can Execute SECURITY DEFINER" findings, so the REVOKEs took; the
+two that do appear, is_staff/is_owner, are deliberate and documented at
+004_lock_down_functions.sql:20). advance_fulfilment and ship_order are
+the first functions here to write a SUCCESS row to audit_logs, which
+closes the failure-only gap noted above. A14 Add tracking is wired into
+A12's Tracking panel.
+
+A14 CONTRADICTS ITSELF and the design system settles it: the dialog
+header says "There is no separate send button — the dispatch email goes
+out as part of this", then draws a "Send the dispatch email now"
+checkbox, which is exactly a separate send control. The Checkbox
+component's own description says a setting that cannot be switched off
+should be a locked row with an ALWAYS ON tag rather than a tickbox
+nobody can untick — so the email always sends and the row is locked.
+Raise it with the design owner alongside "To pack" and the E7 naming.
+Two further A14 departures: CARRIER is a text input with suggestions
+rather than the drawn closed select (no carrier list exists anywhere;
+delivery_method is free text, and a managed list belongs in
+store_settings), and the tracking link does NOT auto-fill from carrier
+and number as the design's helper claims — that needs per-carrier URL
+templates, and guessing them is the same failure the tracking-number
+helper warns about.
+
+A13 Pack is built (139:2295/139:2116, both pulled — no Mobile frame, so it
+is wrapped in WideOnly) and is the only caller of advance_fulfilment. ONE
+breakpoint like A12: the columns split at 1440 and the side column is 340px
+there, not A12's 380 — measured at 390/768/1440 rather than inherited from
+the neighbouring screen. Mark packed is gated on every pick line being
+ticked, which is what the design's own helper text says; the seal checklist
+gates nothing and is not persisted, because no table backs it and storing
+"returns slip included" would be storing a claim nobody verifies. Four
+departures: the per-line "Rail A · shelf 3" is omitted (no warehouse column
+exists anywhere, and a made-up shelf is the one invention a picker can
+immediately disprove); "medium mailer" narrows to the real item count;
+the design's "packed flat, not rolled" row — which it derived by reading a
+customer note — appears only when `orders.customer_note` is set and quotes
+it verbatim rather than paraphrasing; and "Step 2 of 4" is replaced by the
+real fulfilment status. NOTE that `advance_fulfilment`'s `processing` arm
+STILL has no caller: A13 draws no start button and A12 omits "Begin
+packing", so marking packed jumps straight from not_started (legal, the
+function allows a forward jump) and the queue cannot tell "untouched" from
+"being picked right now". Worth settling with the design owner alongside
+"To pack". Two corrections to A12 went in with it: its Fulfilment panel now
+links to A13 instead of having no action at all, and the Shipped step no
+longer claims "dispatch email not built yet (E4)" — it was stale the moment
+011 landed, and rather than swap it for "email sent" (true most of the time
+and wrong exactly when it matters, since the send is best-effort after the
+DB write) it now shows only the timestamp and leaves email outcomes to the
+audit panel, where email_delivery_failed actually lands.
+
+A15 Cancel and A16 Refund are built, with E5 and E8, and migration 012 IS
+APPLIED (advisor run straight after per rule 3: neither cancel_order nor
+record_refund appears in the "Public Can Execute SECURITY DEFINER" findings,
+and `refunds` is not in the "RLS enabled no policy" list, so both the REVOKEs
+and the policy took).
+
+012 ADDED THE TABLE THESE SCREENS NEEDED. The schema could record that a
+refund had happened and nothing else: payment_status has 'refunded' and
+'partially_refunded', with no amount, no date, no actor and no link to the
+Stripe object. So "partially refunded" meant "some unknown amount, at some
+unknown time, by someone", a second partial refund had no way to know what
+the first had already sent, and A16's typed-amount confirmation would have
+been theatre — the number typed would have been discarded the moment it was
+used. `refunds` is what makes the over-refund check possible; Stripe
+refusing an over-refund is why it was never a live bug, and relying on the
+payment processor as your integrity constraint is luck, not a control.
+
+ORDER OF OPERATIONS IS THE OPPOSITE OF /ship's, deliberately. ship_order
+wrote the database first because the parcel had already gone. Here the
+irreversible act is Stripe's and has not happened yet, so Stripe goes first:
+of the two failures available, an unrecorded refund is recoverable (Stripe is
+the source of truth, charge.refunded still fires, and the route writes an
+audit row naming the orphaned refund id) while a refund recorded but never
+sent is not — staff see it settled, stop looking, and the customer is simply
+out the money. Both dialogs also send an idempotency key generated when they
+open, because a double-click on a refund button is otherwise two refunds.
+
+Narrowings, all for the same root cause — payments.card_brand/card_last4
+exist and the webhook never writes them: "refunded to the Visa ending 4242"
+becomes "the card that paid" in A15, A16, E5 and E8 alike. That is now the
+fifth screen narrowed by this one missing webhook write and is worth closing.
+Two more: A16's "Refund part of it — CHOOSE LINES, or enter an amount" keeps
+the amount and drops the lines (there is no line-level refund anywhere, and
+tick boxes that silently collapse to a sum would claim a precision the record
+does not keep); and E8 is drawn as the refund at the end of a RETURN
+("REFUND RET-4471", per-garment rows, "you asked to return part of an
+order"), which is not what A16 does — it is headed with the order number, has
+no per-line rows, and says the true reason the email arrived.
+
+THIS IS THE FIRST THING IN THIS PROJECT EVER EXERCISED AGAINST REAL DATA.
+Both functions were run on the live project with a throwaway fixture: a
+partial refund (order and payment both to partially_refunded, stock
+untouched), the over-refund guard, a zero amount, a blank reason, a duplicate
+Stripe refund id, the full refund with restock (stock 10 -> 12, one
+inventory_adjustment, correct audit rows), cancellation with restock (12 ->
+14), cancelling an unpaid order (payment_status left alone, no refunds row,
+audit says "nothing to refund"), and cancelling a shipped order. Every guard
+fired with the message it was written to give.
+
+THE FIXTURE IS GONE — the owner ran the cleanup, and it is verified: zero
+fixture products, variants, orders, order_items, payments, refunds and
+inventory_adjustments, and both zz_try_* helper functions dropped. The
+advisor is back to the pre-012 baseline exactly (is_staff/is_owner, citext
+in public, rate_limits/webhook_events having no policies, leaked-password
+protection off — all deliberate or owner-level).
+
+FOUR audit_logs ROWS REMAIN AND SHOULD. audit_logs is append-only, enforced
+by the forbid_audit_mutation triggers, so dropping that guard to tidy up
+four rows naming ZZ-TEST-012-A/B/D would defeat the one property the log
+exists to have. That they could not be deleted is the guarantee working.
+
+WORTH CARRYING FORWARD ABOUT THE TOOLING: this environment's Supabase MCP
+gates DELETE and DROP behind an interactive confirmation that never arrives
+in a session — execute_sql and apply_migration both time out on them,
+including on a DELETE matching no rows, which is what proved it was the gate
+rather than a lock or a bad predicate. Plain DDL (create table, alter table,
+create index, create or replace function) goes through fine. Plan migrations
+to be additive; anything needing a DROP has to go to the owner, which is why
+014's refund_return wraps record_refund instead of replacing it.
+
+Still open from this chunk: the Stripe webhook's charge.refunded branch only
+half-covers a refund issued from the Stripe dashboard rather than our admin —
+payments.status moves, but no refunds row exists, orders.payment_status stays
+'paid' and nothing is audited. Calling record_refund from the webhook closes
+it, and the unique index on refunds.stripe_refund_id already makes doing it
+twice safe. Noted in the handler.
+
+The admin side of returns is built: A17 Returns (143:2093/143:1924/143:1783,
+all three pulled — structurally A11, table above 768, record list below, rail
+at 1440) and A18 Return details (144:2278 Desktop pulled, 144:2056 Tablet
+checked by screenshot — ONE breakpoint at 1440, stacking in the frames' own
+order, and no Mobile frame so it sits behind WideOnly).
+
+THE E7 NAMING KNOT IS SETTLED, by the artwork rather than by guessing. The
+ledger's id map calls 165:42 "E7 Return approved" while its decisions list
+says "E7 sends when the refund has actually left (A16), not on approval
+(A18)" — which read as a contradiction until the frame was opened. Its own
+canvas note is the tie-break: "Approval and refund are separate events in the
+admin (A18 then A16), so this email is only sent once the money has actually
+left — never on approval alone", and the body says "Your refund has been
+sent." So the NAME describes the outcome being communicated, not the trigger.
+E7 and E8 are one moment — money leaving — told two ways: E7 when a return is
+behind it, E8 when it is a plain order refund. Still worth confirming the
+naming with the design owner, because the id map reads as a contradiction on
+its own. A consequence worth knowing: APPROVAL SENDS NO EMAIL AT ALL, so
+between E6 and E7 the customer hears nothing while the parcel travels,
+arrives and is checked. That is the design as drawn, not an omission.
+
+Migrations 013 (links) and 014 (actions) ARE APPLIED, advisor run after per
+rule 3 — receive_return, decide_return and refund_return are all absent from
+the SECURITY DEFINER findings. 013 added the two links A18 needed:
+`refunds.return_id`, without which there is no way to choose between E7 and
+E8; and `inventory_adjustments.return_item_id` with its own exactly-once
+index, because restock_for_order is whole-order and A18's whole point is that
+restock is PER ITEM. The order-level index (order_id, variant_id, kind) could
+not be reused — two partial returns on the same order can both legitimately
+restock the same variant, and under that index the second would be silently
+swallowed — and it must not be weakened, since it is what stops a replayed
+Stripe webhook decrementing twice.
+
+TWO THINGS THE TOOLING FORCED. First, `record_refund` could not simply gain a
+p_return_id: adding a parameter changes a function's identity, so it needs a
+DROP first, and this environment's Supabase MCP gates DROP behind the same
+confirmation that never arrives for DELETE (a DROP-containing migration timed
+out and applied nothing). `refund_return` wraps record_refund instead, which
+is the better shape anyway — the money logic stays in one place. Second, the
+advisor briefly flagged `zz_try_cancel` and `zz_try_refund`, the two helper
+functions from the 012 test run, for a mutable search_path — the owner's
+cleanup dropped them and that finding has cleared.
+
+A18 DEPARTS FROM THE FRAMES ON ONE THING AND ADDS ONE. The frames draw
+Approve as enabled while the badge still reads "On its way to us", but
+approving applies the restock, and putting stock back for a parcel nobody has
+opened is how the shop sells a T-shirt still in a van — decide_return refuses
+it and the screen agrees. The design's own Refund panel already applies that
+bar one step later ("available once the parcel is marked received and
+checked"). Added: MARK RECEIVED, which no screen in the file draws, although
+`received` is a real status with a real received_at column and A18's progress
+list has a "Checked at the atelier" step — without it nothing could ever be
+approved. Raise both with the design owner.
+
+Omitted from A17/A18, each for its own reason: "Export returns" (no route, no
+format — same as A11's "Export orders"); the footer's "escalated on the
+dashboard" (there is no dashboard and nothing escalates, so it says what
+actually happens and the Age filter is what makes the 5-day rule usable);
+"View customer" (no customer page, same as A12); the internal-note field (no
+notes table, same as A12 — though the refund's note is real and goes to the
+audit log); and "Return postage — Free, drop-off" plus the "Label issued ·
+valid until 24 September" progress step, because nothing issues a label,
+charges for one or records how the parcel travelled. `label_expires_at`
+exists and is never written. E9 narrows one promise for the same reason: "we
+are posting it back to you at our cost, it should arrive within a week" is a
+parcel nobody has arranged, so it says the item is being sent back and that
+we will write with the details — keeping the design's principle (we do not
+keep the goods) without committing to a timescale no system tracks.
+
+A03 T-shirts and A07 Inventory have now had the pass too (128:645/128:430/
+128:259 and 128:1220/128:1033/128:874). Both predated the admin shell and
+had never been matched to their frames at all — bare tables with a
+display-font h1, no top bar, no toolbar, no footer and no record list, so a
+phone squashed four or five columns into 390px rather than stacking.
+Verified at 390/768/1440: table hidden and record list shown below 768, no
+horizontal page overflow at any width.
+
+Three things found while rebuilding them, each worth keeping:
+
+ - A07's FOOTER REPEATED THE A01 OVERCLAIM. Both the design (128:1413) and
+   the shipped page said "every manual change needs a reason and is written
+   to the audit log". The reason is real; the audit log is not —
+   adjust_stock writes to inventory_adjustments and nothing else
+   (010_adjust_stock.sql:64). Narrowed to the true thing. That is twice this
+   project has shipped the same false claim about audit coverage.
+ - `sold_out` is Danger in A03, not Attention, and the shipped badge map had
+   it as Attention. Matched to the frame.
+ - Two filters cannot be database queries and say so rather than pretending:
+   A03's "lowest stock" sorts by a sum over variants, and A07's "needs
+   attention" compares stock_quantity against each row's own
+   low_stock_threshold, which PostgREST has no syntax for. Both are applied
+   to the fetched page and the footer states it.
+
+Omitted from both, for the usual reason: "Import CSV" (A03) and "Export CSV"
+(A07) have no route and no format, the same call A11 makes on "Export
+orders". A07's "Adjust stock" top-bar button is not reproduced either —
+adjusting stock means choosing a variant first, and A08 already owns that
+form, so a global button would either be a dead end or a second caller of
+adjust_stock to keep in sync.
+
+A02 Dashboard is built (126:555/126:309/126:76, Desktop pulled and Mobile
+checked by screenshot) and lives at /admin, which until now 404'd — the
+rail's first item pointed at a page that did not exist, and A17's footer
+referred to an escalation "on the dashboard" that had nowhere to be. The
+rail now carries it, with an `exact` flag on the nav link: /admin is a
+prefix of every other admin route, so the existing prefix rule would have
+lit Dashboard on every screen alongside the one you were actually on.
+
+All six §9.1 figures read real columns, and ONE OF THEM ONLY BECAME
+COMPUTABLE WITH 012: "paid revenue today, net of refunds" needs an amount,
+and before `refunds` existed payment_status recorded only that a refund had
+happened. It subtracts every refund issued today including those against
+older orders — which is what "net of refunds" has to mean to reconcile with
+the bank, and which means a quiet day with a large refund shows a NEGATIVE
+figure. That is correct, and the sub-line explains it rather than leaving a
+number nobody can account for.
+
+Low-stock is counted in JavaScript for the reason A07 gives — it compares
+two columns — and the metric grid is a departure worth knowing: the frames
+draw six fixed 340px cards that wrap, this uses equal fractions so the cards
+run wider at 1440 rather than leaving a ragged gap at the end of each row.
+The column COUNT matches the frames at every breakpoint (1 / 2 / 3), which
+is the part carrying the layout; verified at 390/768/1440.
+
+A23 Audit log is built (146:3635 Desktop pulled; 146:3454 Tablet is the
+same screen narrower) and is in the rail. It has NO Mobile frame, which is
+a counterexample to the read-vs-write rationale written into
+wide-only.tsx — this is a read screen. It is not gated anyway: every entry
+is a stacking block of text with no table to squash, and refusing to show
+an append-only log on a phone withholds the one screen you reach for when
+something has gone wrong away from a desk. One more reason to settle that
+rationale with the design owner.
+
+THE DESIGN DRAWS EIGHT EVENT TYPES AND THE SYSTEM WRITES FOUR AND A HALF.
+§9.6 lists refund, stock adjustment, return, content publish, dispatch,
+archive, price change and sign-in. Recorded: refunds and cancellations
+(012), dispatch (011), return decisions (014), and stock adjustments — the
+last only as of migration 015. Partial: a return's progress is logged, a
+customer RAISING one is not, because request_return() writes no audit row.
+Missing: content publish, archive, price change, sign-in. The panel at the
+foot of the screen names all five by name, because a log that looks
+complete and is not is worse than a short one.
+
+MIGRATION 015 IS APPLIED (advisor clean, adjust_stock still absent from the
+SECURITY DEFINER findings so the REVOKE held across the `create or
+replace`). It makes adjust_stock write an audit row. This project shipped
+the claim that stock changes are audited TWICE — the A01 small print
+(corrected in 1d4059a) and A07's footer (corrected in d762e61) — so making
+it true was cheaper than retracting it a third time. The signature is
+unchanged on purpose: a p_actor_label parameter would change the function's
+identity and need a DROP, which this environment's tooling gates, so the
+label is read from `profiles` inside the function. That is better anyway —
+the label cannot then disagree with the profile it names.
+
+Entity ids are resolved to order and return NUMBERS with two batched
+lookups, because audit_logs stores only an id. Where the row it described
+is gone the entry says so rather than printing a uuid — append-only means
+an entry outlives its subject, which is the point, and four of the five
+rows in the live log are exactly that case.
+
+A19 Customers and A20 Customer details are built (143:2465 Desktop pulled,
+143:2276 Tablet checked by screenshot; 144:2696 Desktop pulled, 144:2514
+Tablet checked by screenshot), which closes the "View customer" dead end
+A12 and A18 both had to omit. A19 is structurally A11 — rail at 1440,
+table at 768. A20 has ONE breakpoint like A12/A13, and its side column is
+340px, A13's width rather than A12's 380. Verified at 390/768/1440.
+
+CUSTOMERS IS NOT A TABLE AND NEVER WAS, which is the whole reason this
+needed migration 016. A customer is a `profiles` row OR an email that
+ordered without one, and A19's five data columns are an aggregate over
+`orders` grouped by email — no GROUP BY, no UNION and no window function
+is expressible through PostgREST, and reducing every order in JavaScript
+would make search, sort and pagination lies as soon as there is more than
+one page. `admin_customers()` does it in Postgres. It is also the only way
+to answer the ACCOUNT column at all: Verified/Unverified needs
+auth.users.email_confirmed_at, which `authenticated` cannot read and a
+security_invoker view cannot reach. Narrowing the column to
+Registered/Guest was the alternative and would have been hiding data we
+hold. 017 adds `admin_customer_stats()` for the subtitle's two whole-shop
+figures, separate only because 016 was already applied and migrations here
+are never edited once they have run.
+
+EMAIL IS THE IDENTITY, lowercased everywhere. The columns are citext so
+the database already matches case-insensitively, but the UNION is over
+text, and 'Jordan@x.com' on an order beside 'jordan@x.com' on a profile
+would otherwise split one person into two rows — a "guest" holding the
+orders and a "verified" holding none. That is exactly the failure A19's
+own footer warns about. A20 is keyed on the email too, so it opens for
+someone who has never registered.
+
+THESE THREE FUNCTIONS ARE THE FIRST READ PATH IN THE ADMIN THAT BYPASSES
+RLS. Everything else here reads with the signed-in user's own session, so
+`is_staff()` inside each policy is the real lock and the layout only
+decides what renders. service_role has no auth.uid(), so the check cannot
+live inside the function — it moved to the front of the page as
+`requireStaffPage()` (lib/admin/require-staff.ts, beside the route-handler
+version). A layout is not a security boundary; one future route group that
+forgets to nest would otherwise be a full customer-list leak. Rule 3 is
+otherwise unchanged and the advisor was run after both migrations:
+admin_customers, admin_customer_account and admin_customer_stats are all
+absent from the SECURITY DEFINER findings, and the baseline is exactly
+what it was (is_staff/is_owner, citext in public, rate_limits and
+webhook_events without policies, leaked-password protection off).
+
+016 also adds `addresses_staff_read`. `addresses_own` was the ONLY
+customer-owned table with no `or is_staff()` anywhere — orders, returns,
+order_items, payments, fulfilments and profiles all have one — so A20's
+SAVED ADDRESSES card could not have been filled. Additive: the existing
+policy is untouched and a SELECT policy ORs with it.
+
+BOTH LIST FUNCTIONS WERE EXERCISED AGAINST THE LIVE DATABASE, read-only,
+and the numbers reconcile: 2 people, 1 a repeat buyer, 0 guests; three
+PAID orders totalling GBP 446.85 against the owner's own address, last one
+4 October 2026. (The order count has moved again — CLAUDE.md recorded 5
+orders of which MC-10006 was the only proven one; three of them are now
+paid. The owner is still adding data.) Every filter and sort fired: guest,
+verified, country GB and IE, case-insensitive search on both name and
+email, all four sorts, and an offset page. admin_customer_account returned
+the right row for a mixed-case, space-padded email and a correctly empty
+one for an address nobody has used.
+
+LIFETIME SPEND IS DEFINED ONCE AND STATED: orders that were actually paid
+for, at what was charged, NOT net of refunds. A pending order is an
+abandoned checkout, and counting it would show "3 orders, GBP 0.00"
+against someone who has bought nothing. That is a different question from
+A02's "paid revenue today, net of refunds", and the footer says which this
+is.
+
+Omitted from A19: "Export customers", the same call A11 makes on "Export
+orders" and A07 on "Export CSV" — no route, no format, no decision about
+columns. The design's Germany row goes too: checkout restricts shipping to
+GB and IE, so the Country filter offers the two that can exist rather than
+a list that can never match.
+
+A20 DOES get an export, and the difference is the point: one person's data
+in an obvious format with a one-month statutory deadline is not the same
+ask as a bulk customer CSV nobody has specified. GET
+/api/admin/customers/[email]/export returns the profile, saved addresses,
+orders with their items, returns with their items and refunds as a
+downloadable JSON file, scoped to one email and no-store. JSON rather than
+CSV because the data is nested and flattening it would lose which item
+belonged to which order.
+
+Three A20 narrowings, each for a missing column rather than a missing
+screen. "Delivery updates by SMS" is omitted: no SMS consent column exists
+and nothing sends a text, so an "Off" row would be precisely the consent
+record the card's own footer says not to create. "Erase this profile" is
+omitted as an ACTION and kept as an explanation: deleting a profile
+cascades to addresses and sets orders.profile_id null, so a careless
+delete quietly turns someone's order history into guest orders — erasure
+has to null the person out while the sales history stands, which is a
+migration nobody has written. And "Email this customer" IS real: a mailto,
+because nothing in this app sends staff email. Contact preferences stay
+read-only exactly as the ledger requires.
+
+BEFORE A09/A10 COLLECTIONS, KNOW THIS: both frames were pulled (145:2426
+and 145:2762 Desktop) and the screens describe a storefront that does not
+exist. There is NO collection page in this app — nothing under
+`/collections/`, and the site header has no collections menu. `collections`
+is read in exactly two places, both on the shop listing and product detail,
+as a FILTER and as a label on a card. So A09's "drag to set the order they
+appear in the menu", A10's `metheues.com/collections/the-first-drop` helper,
+its "View on the site" button, its hero image and alt text, and the note's
+"hiding a collection takes it out of the menu but its page stays reachable
+by its address" are all claims about a page nobody has built. `position`,
+`hero_path`, `hero_alt`, `seo_title` and `seo_description` on `collections`
+are written by nothing and read by nothing. The one part that IS real is
+`status`: collections_public_read is `status = 'live' or is_staff()`, so a
+hidden collection genuinely disappears from the storefront filter.
+
+The missing half has a frame of its own — storefront screen "19 The First
+Drop", which the ledger describes as 03 Product Listing cloned with a 16:9
+hero band and a drop metadata row, "the page IS the collection". Building 19
+is what makes A10's fields true. Doing A09/A10 without it means an editor
+whose every field edits a real column that reaches no reader, which is a
+different screen from the one the design draws — so decide the order
+deliberately rather than starting with the admin pair because it is next in
+the admin numbering.
+
+Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
 E1/E2 (verify email, password reset) now have a caller — Supabase Auth sends
 its own default email today; routing that through our Resend templates
@@ -268,14 +801,12 @@ not application code — flag it for the owner rather than guessing at hook
 config against the live project. E4/E5/E7 need the admin order actions
 (dispatch, cancel), E8 needs the admin refund action, E9 needs the admin
 return decision — build each template alongside the route that triggers it,
-the way E3 and E6 went in. Also still open: the admin side of returns (the
-E7-vs-"Return approved" naming in design-system-state.json's own decisions
-list doesn't match its own id map — worth confirming with the design owner
-before building the approve/reject function, not guessing), the admin
-dashboard/collections/orders/customers/settings screens (A02, A09/A10,
-A11 onward), and the customer-facing account pages (profile, addresses,
-signed-in order history — now unblocked the same way the catalogue was,
-since they need auth, which exists). The catalogue, bag and guest order
+the way E3 and E6 went in — E4, E5, E7, E8 and E9 have all gone in that way
+now, so only E1/E2 are left and both are owner-blocked. Also still open: collections
+(A09/A10), homepage content (A21) and store settings (A22), and the
+customer-facing account pages (profile, addresses, signed-in order history
+— now unblocked the same way the catalogue was, since they need auth,
+which exists). The catalogue, bag and guest order
 lookup+return (`app/shop/`, `app/bag/`, `app/track-order/`) are now
 matched against their real Figma screens, not just built — but each still
 carries disclosed, deliberate gaps (no product photography, cart stays

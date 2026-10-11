@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
-import { AdminNavLink } from './admin-nav-link';
+import { AdminRail } from './admin-rail';
+import { AWAITING_FULFILMENT, AWAITING_RETURN } from '@/components/admin/status-badge';
 
 /**
  * Gate for the whole /admin tree. A18/A01: staff never land on the customer
@@ -62,95 +63,30 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     );
   }
 
-  return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: 'var(--mc-font-body)',
-      }}
-    >
-      <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
-        <nav
-          style={{
-            width: 240,
-            flexShrink: 0,
-            background: 'var(--mc-bg-inverse)',
-            color: 'var(--mc-text-inverse)',
-            padding: 'var(--mc-space-lg) var(--mc-space-md)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 'var(--mc-space-2xs)',
-          }}
-        >
-          <div
-            style={{
-              fontFamily: 'var(--mc-font-display)',
-              fontSize: 15,
-              letterSpacing: '1.5px',
-              textTransform: 'uppercase',
-              padding: '0 var(--mc-space-sm) var(--mc-space-lg)',
-            }}
-          >
-            {/* The accent's sanctioned home on this screen (tokens.css) --
-                --mc-accent-on-dark, since the accent is a ground on pale surfaces and only
-                2.4:1 against this rail. */}
-            Metheues <span style={{ color: 'var(--mc-accent-on-dark)' }}>Admin</span>
-          </div>
-          <div
-            style={{
-              fontSize: 'var(--mc-type-tag)',
-              letterSpacing: '1px',
-              textTransform: 'uppercase',
-              color: 'var(--mc-text-muted-inverse)',
-              padding: '0 var(--mc-space-sm)',
-              marginTop: 'var(--mc-space-sm)',
-            }}
-          >
-            Catalogue
-          </div>
-          <AdminNavLink href="/admin/products">T-shirts</AdminNavLink>
-          <AdminNavLink href="/admin/inventory">Inventory</AdminNavLink>
-          <div style={{ flex: 1 }} />
-          <div
-            style={{
-              fontSize: 'var(--mc-type-caption)',
-              color: 'var(--mc-text-muted-inverse)',
-              padding: '0 var(--mc-space-sm) var(--mc-space-2xs)',
-            }}
-          >
-            {profile?.full_name || profile?.email}
-          </div>
-          <form action="/api/auth/sign-out" method="post">
-            <SignOutButton />
-          </form>
-        </nav>
-        <main style={{ flex: 1, minWidth: 0, background: 'var(--mc-bg-page)', overflow: 'auto' }}>
-          {children}
-        </main>
-      </div>
-    </div>
-  );
-}
+  // The rail's Orders count is the real queue, not a decoration: the Admin
+  // Nav Item component's description says counts are "for queues that need
+  // attention", so it has to be a number someone can act on.
+  const [{ count: awaiting }, { count: awaitingReturns }] = await Promise.all([
+    supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .in('fulfilment_status', AWAITING_FULFILMENT as unknown as string[]),
+    supabase
+      .from('returns')
+      .select('id', { count: 'exact', head: true })
+      .in('status', AWAITING_RETURN as unknown as string[]),
+  ]);
 
-function SignOutButton() {
   return (
-    <button
-      type="submit"
-      style={{
-        width: '100%',
-        minHeight: 44,
-        background: 'transparent',
-        border: '1px solid var(--mc-slate-on-dark)',
-        color: 'var(--mc-text-muted-inverse)',
-        borderRadius: 'var(--mc-radius-sm)',
-        fontFamily: 'var(--mc-font-body)',
-        fontSize: 'var(--mc-type-body)',
-        cursor: 'pointer',
-      }}
-    >
-      Sign out
-    </button>
+    <div className="mc-admin-shell">
+      <AdminRail
+        name={profile?.full_name || profile?.email || 'Signed in'}
+        email={profile?.email ?? ''}
+        role={profile?.role ?? ''}
+        awaitingOrders={awaiting ?? 0}
+        awaitingReturns={awaitingReturns ?? 0}
+      />
+      <main className="mc-admin-main">{children}</main>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { WideOnly } from '@/components/admin/wide-only';
 import { notFound } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
 import { compareSizes } from '@/lib/shop/size-order';
@@ -34,16 +35,18 @@ export default async function ProductVariantsPage({ params }: { params: Promise<
   );
 
   return (
-    <div style={{ padding: 'var(--mc-space-xl)' }}>
-      <p style={{ fontFamily: 'var(--mc-font-body)', marginBottom: 0 }}>
-        <Link href={`/admin/products/${id}`} style={{ color: 'var(--mc-text-muted)' }}>
-          ← {product.name}
-        </Link>
-      </p>
-      <h1 style={{ fontFamily: 'var(--mc-font-display)', fontSize: 'var(--mc-type-page-title)' }}>
-        Colours, sizes and stock
-      </h1>
-      <VariantManager productId={id} variants={orderedVariants} />
-    </div>
+    <WideOnly title="Colours, sizes and stock">
+      <div style={{ padding: 'var(--mc-space-xl)' }}>
+        <p style={{ fontFamily: 'var(--mc-font-body)', marginBottom: 0 }}>
+          <Link href={`/admin/products/${id}`} style={{ color: 'var(--mc-text-muted)' }}>
+            ← {product.name}
+          </Link>
+        </p>
+        <h1 style={{ fontFamily: 'var(--mc-font-display)', fontSize: 'var(--mc-type-page-title)' }}>
+          Colours, sizes and stock
+        </h1>
+        <VariantManager productId={id} variants={orderedVariants} />
+      </div>
+    </WideOnly>
   );
 }
