@@ -768,29 +768,110 @@ migration nobody has written. And "Email this customer" IS real: a mailto,
 because nothing in this app sends staff email. Contact preferences stay
 read-only exactly as the ledger requires.
 
-BEFORE A09/A10 COLLECTIONS, KNOW THIS: both frames were pulled (145:2426
-and 145:2762 Desktop) and the screens describe a storefront that does not
-exist. There is NO collection page in this app — nothing under
-`/collections/`, and the site header has no collections menu. `collections`
-is read in exactly two places, both on the shop listing and product detail,
-as a FILTER and as a label on a card. So A09's "drag to set the order they
-appear in the menu", A10's `metheues.com/collections/the-first-drop` helper,
-its "View on the site" button, its hero image and alt text, and the note's
-"hiding a collection takes it out of the menu but its page stays reachable
-by its address" are all claims about a page nobody has built. `position`,
-`hero_path`, `hero_alt`, `seo_title` and `seo_description` on `collections`
-are written by nothing and read by nothing. The one part that IS real is
-`status`: collections_public_read is `status = 'live' or is_staff()`, so a
-hidden collection genuinely disappears from the storefront filter.
+COLLECTIONS ARE DONE, AND THE ORDER MATTERED. Pulling A09 and A10 first
+showed that both describe a storefront this app did not have: there was no
+collection page anywhere, no /collections, and `collections` was read in
+exactly two places as a filter facet and a card label. `position`,
+`hero_path`, `hero_alt`, `seo_title` and `seo_description` were written by
+nothing and read by nothing, so an editor for them would have been a form
+whose every field reached no reader. The storefront half was built first.
 
-The missing half has a frame of its own — storefront screen "19 The First
-Drop", which the ledger describes as 03 Product Listing cloned with a 16:9
-hero band and a drop metadata row, "the page IS the collection". Building 19
-is what makes A10's fields true. Doing A09/A10 without it means an editor
-whose every field edits a real column that reaches no reader, which is a
-different screen from the one the design draws — so decide the order
-deliberately rather than starting with the admin pair because it is next in
-the admin numbering.
+SCREEN 19 — the collection page (121:5606 Desktop pulled, 121:5514 Tablet
+and 121:5428 Mobile by screenshot) — now lives at `/collections/[slug]`,
+which is exactly the address A10's handle helper promises. The ledger calls
+it 03 Product Listing cloned, so it REUSES the rail, sheet, sort control
+and product card rather than copying them; all four took a `basePath`, and
+the Collection facet disappears by passing an empty option list (Group
+already returns null for no options) rather than by a special case. There
+is also a `/collections` index, which has no frame and is built anyway for
+the reason track-order was: the site header has linked "Collections" there
+since the chrome was built and it 404'd. Verified at 390/768/1440: hero
+200/320/440, grid 2/3/4, discovery bar below 1440 and rail at 1440.
+
+Two of screen 19's four metadata fields are real and two are not. RELEASED
+is collections.published_at; STYLES is a real count. RUN ("Limited — not
+restocked") has no backing column, and a shop promising never to restock is
+the one claim a customer disproves by coming back in a month. MADE is real
+as products.made_in but is PER PRODUCT, so it shows only when every product
+in the collection agrees — otherwise one origin gets claimed for all of
+them.
+
+A09 and A10 are built on top of that (145:2426 and 145:2762 Desktop pulled;
+145:2294 Tablet by screenshot), both behind WideOnly. Four routes:
+POST /api/admin/collections, PATCH .../[id], PUT .../[id]/products and
+POST .../reorder.
+
+THE ADMIN BREAKPOINT DECISION IS RECORDED AFTER ALL, and this file said it
+was not. design-system-state.json's `admin_breakpoint_decision` carries it,
+taken by the owner on 10 September, and wide-only.tsx has been corrected.
+Two things in it are worth knowing. The rule names the exception list
+exactly — 390 is built only for Dashboard, Orders, Order detail, Returns
+queue, plus Sign In, T-shirts and Inventory — and sixteen screens are
+listed no_mobile including A09, A10, A19, A20 and A23. And the REASON is
+density, not the read-vs-write line this project inferred from counting
+frames: "dense tables and multi-section editors fight a 390px screen".
+That matters because it is a statement about what the DESIGN covers, not a
+ban on a page working at 390 — which is why A19 and A23 still render a
+stacking list there rather than a gate, and why A09/A10 do not.
+
+THE DESIGN AND THE DATABASE DISAGREE ABOUT HIDDEN COLLECTIONS, and the
+database wins in the code. A09's footer says hiding one takes it out of the
+menu "but its page stays reachable by its address, so links you have
+already shared keep working". The RLS policy is `status = 'live' or
+is_staff()` (002_rls.sql:88), so a hidden collection returns no row to a
+customer and its page 404s. Both behaviours are defensible; changing a
+security policy to match a sentence in a footer is the wrong way round. The
+note says what the system does. FOR THE DESIGN OWNER — it is a policy
+change, not a copy change. Two more for the same list: the "menu" the
+design keeps referring to does not exist (the header has one static
+Collections link, not a list built from the table), so A09's subtitle and
+its "Hidden from navigation" row are narrowed to the collections page and
+the shop; and screen 19's DESKTOP frame drops the sort control that its own
+Tablet and Mobile frames draw and 03A keeps, which would remove a control
+only where there is most room for it, so sort stays.
+
+SCHEDULING IS HALF A FEATURE AND A10 SAYS SO. `scheduled` is a real status
+with a real date and the storefront honours it — RLS shows only live, so a
+scheduled collection is genuinely invisible. Nothing FLIPS it to live when
+the date arrives: no cron, no scheduled function. The design's "Scheduled
+1 Oct, 09:00" implies a system that publishes for you. The panel records
+the date, shows it, and says plainly that someone has to come back and set
+it live. Closing it needs a scheduled job.
+
+Omitted from A10: "Replace image" and "Remove" on the hero, the same
+upload-pipeline gap that leaves A05 unbuilt and every product card a well.
+ALT TEXT IS KEPT AND IS REAL — hero_alt is a column, screen 19 reads it,
+and writing it now means the photograph arrives already described. "View on
+the site" is kept and now goes somewhere, which it would not have a commit
+earlier. A new collection starts Hidden, not Live: creating something and
+having it hit the shop the same second, before it has a description or a
+single T-shirt, is the one default that cannot be undone quietly.
+
+TWO ACCESSIBILITY ADDITIONS THE FRAMES DO NOT DRAW. Both drag lists — A09's
+collections and A10's products — carry real Move up / Move down buttons at
+44px beside the "::" handle. A drag-only control cannot be operated from a
+keyboard at all, which would make the one thing those screens exist for
+unreachable; same reorder, same endpoint.
+
+THE MEMBERSHIP ROUTE'S TWO WRITES ARE ORDERED ON PURPOSE, the same
+reasoning as /refund's. No transaction is available (rule 4), so of the two
+half-failures: upsert-then-delete leaves EXTRA members, visible and fixed
+by saving again; delete-then-upsert leaves the collection EMPTY with
+nothing saying what used to be in it. Upsert goes first, and the delete is
+expressed as "not in this list" rather than a clear-and-re-add, so rows
+that stay are never gone even for an instant. Rule 4 would put this in a
+Postgres function and that is still the better home; it is recoverable as
+written, which the alternative is not. The reorder route needs no such care
+— a half-applied reorder loses nothing and the next drag fixes it.
+
+Verified against the live database read-only, because DELETE is gated in
+this environment and test rows could not be cleaned up: product_collections'
+primary key is `(product_id, collection_id)` in that order, which is what
+the upsert's onConflict names, and collections_staff_write and
+product_collections_staff_write are both ALL policies. THE WRITE PATHS
+THEMSELVES ARE UNEXERCISED — there are no collections in the live database
+at all, so /collections renders its empty state and A09 its own. Creating
+the first one is the test.
 
 Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
@@ -802,8 +883,8 @@ config against the live project. E4/E5/E7 need the admin order actions
 (dispatch, cancel), E8 needs the admin refund action, E9 needs the admin
 return decision — build each template alongside the route that triggers it,
 the way E3 and E6 went in — E4, E5, E7, E8 and E9 have all gone in that way
-now, so only E1/E2 are left and both are owner-blocked. Also still open: collections
-(A09/A10), homepage content (A21) and store settings (A22), and the
+now, so only E1/E2 are left and both are owner-blocked. Also still open: homepage
+content (A21) and store settings (A22), and the
 customer-facing account pages (profile, addresses, signed-in order history
 — now unblocked the same way the catalogue was, since they need auth,
 which exists). The catalogue, bag and guest order
