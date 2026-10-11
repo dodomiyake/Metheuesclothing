@@ -71,17 +71,19 @@ export function AdminRail({
         </button>
       </div>
 
-      {/* Only the sections that exist. The design draws ten items across four
-          groups; the other seven have no pages, and a rail full of 404s is
-          worse for staff than a short one. They go back as each screen
-          lands. Customers (A19) is the latest to land; Collections,
-          Homepage content and Settings are what is left. */}
+      {/* THE RAIL IS NOW COMPLETE. It started at three items because the
+          design draws ten and seven had no page behind them — a rail full
+          of 404s is worse for staff than a short one — and each went back
+          as its screen landed. A21 Homepage content was the last. */}
       <div className="mc-admin-nav" id="mc-admin-nav">
         <AdminNavLink href="/admin" exact onNavigate={() => setOpen(false)}>
           Dashboard
         </AdminNavLink>
         <AdminNavLink href="/admin/products" onNavigate={() => setOpen(false)}>
           T-shirts
+        </AdminNavLink>
+        <AdminNavLink href="/admin/collections" onNavigate={() => setOpen(false)}>
+          Collections
         </AdminNavLink>
         <AdminNavLink href="/admin/inventory" onNavigate={() => setOpen(false)}>
           Inventory
@@ -94,6 +96,12 @@ export function AdminRail({
         </AdminNavLink>
         <AdminNavLink href="/admin/customers" onNavigate={() => setOpen(false)}>
           Customers
+        </AdminNavLink>
+        <AdminNavLink href="/admin/content" onNavigate={() => setOpen(false)}>
+          Homepage content
+        </AdminNavLink>
+        <AdminNavLink href="/admin/settings" onNavigate={() => setOpen(false)}>
+          Settings
         </AdminNavLink>
         <AdminNavLink href="/admin/audit" onNavigate={() => setOpen(false)}>
           Audit log

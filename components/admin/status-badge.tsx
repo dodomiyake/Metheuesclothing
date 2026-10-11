@@ -227,3 +227,19 @@ export function orderBadge(
   }
   return FULFILMENT_BADGE[fulfilmentStatus] ?? { label: fulfilmentStatus, tone: 'neutral' };
 }
+
+/**
+ * collection_status (001_schema.sql:15), for A09's list and A10's
+ * Publishing panel. Three values, three drawn states (145:2518/2544/2559),
+ * and they line up exactly — the only admin enum so far where the design
+ * and the schema agree on every label.
+ *
+ * `scheduled` is Info rather than Attention because a scheduled collection
+ * is not waiting on anybody; see A10's own note for the part that IS a
+ * problem, which is that nothing promotes it to live when the date passes.
+ */
+export const COLLECTION_BADGE: Record<string, { label: string; tone: BadgeTone }> = {
+  live: { label: 'Live', tone: 'success' },
+  scheduled: { label: 'Scheduled', tone: 'info' },
+  hidden: { label: 'Hidden', tone: 'neutral' },
+};

@@ -34,7 +34,14 @@ const SORTS = [
   { value: 'price-desc', label: 'Price high to low', short: 'High to low' },
 ] as const;
 
-export function SortSelect({ className }: { className?: string }) {
+export function SortSelect({
+  className,
+  basePath = '/shop',
+}: {
+  className?: string;
+  /** Screen 19 reuses this control on /collections/<slug>. */
+  basePath?: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sort = searchParams.get('sort') ?? '';
@@ -45,7 +52,7 @@ export function SortSelect({ className }: { className?: string }) {
     if (e.target.value) next.set('sort', e.target.value);
     else next.delete('sort');
     const qs = next.toString();
-    router.push(qs ? `/shop?${qs}` : '/shop', { scroll: false });
+    router.push(qs ? `${basePath}?${qs}` : basePath, { scroll: false });
   }
 
   return (

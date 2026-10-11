@@ -73,18 +73,46 @@ export async function POST(req: NextRequest) {
   );
 
   // ---- delivery, also from the database ----
-  const { data: settings } = await db
+  // THE PRICES USED TO BE LITERALS HERE (695 and 395) while the threshold
+  // beside them was a column, so the owner could change when delivery
+  // became free but not what it cost. Migration 018 added the two columns;
+  // A22 Store settings is what edits them.
+  const { data: settings, error: settingsError } = await db
     .from('store_settings')
-    .select('free_delivery_threshold_pence')
+    .select(
+      'free_delivery_threshold_pence, delivery_tracked_48_pence, delivery_next_day_pence, maintenance_mode',
+    )
     .single();
 
-  const threshold = settings?.free_delivery_threshold_pence ?? 15000;
+  // No fallback. store_settings is a seeded singleton (008) and the one
+  // time it had no row, a NULL silently became an unlimited returns window
+  // — the failure that migration's own comment exists to describe. Pricing
+  // a basket off a default nobody chose is the same mistake with money.
+  if (settingsError || !settings) {
+    return NextResponse.json(
+      { error: 'Checkout is unavailable right now. Please try again shortly.' },
+      { status: 503 },
+    );
+  }
+
+  // Maintenance mode: the column has existed since 001 and nothing has ever
+  // read it. A22 draws the card that turns it on and describes exactly this
+  // — "keeps the site readable but stops anything being bought" — so the
+  // storefront stays browsable and the one irreversible step refuses.
+  if (settings.maintenance_mode) {
+    return NextResponse.json(
+      { error: 'The shop is paused for maintenance and is not taking orders right now.' },
+      { status: 503 },
+    );
+  }
+
+  const threshold = settings.free_delivery_threshold_pence;
   const deliveryPence =
     delivery_method === 'next_day'
-      ? 695
+      ? settings.delivery_next_day_pence
       : subtotal >= threshold
         ? 0
-        : 395;
+        : settings.delivery_tracked_48_pence;
 
   const total = subtotal + deliveryPence;
 

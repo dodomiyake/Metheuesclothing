@@ -1,18 +1,28 @@
 /**
  * Wraps an admin editing screen that Figma never drew below 768.
  *
- * The design file is explicit about this once you count it: of 23 admin
- * screens, 7 have a Mobile frame and 16 do not, and the line between them is
- * almost exactly read vs write. Sign-in, the dashboard, the three queues and
- * Order details get a phone layout; every editor, every settings screen and
- * every consequential action — A04 Edit T-shirt, A06 Generate variants, A08
- * Adjust stock, A13 Fulfilment, A14 Add tracking, A15 Cancel, A16 Refund —
- * is Desktop and Tablet only. Monitor from a phone, operate from a bigger
- * screen.
+ * THE DECISION IS RECORDED, and this comment used to say it was not.
+ * design-system-state.json's `admin_breakpoint_decision` carries it, taken
+ * by the owner on 10 September: "Admin screens are built at 1440 and 768
+ * only. 390 is added ONLY for the handful that are genuinely phone jobs:
+ * Dashboard, Orders table, Order detail, Returns queue (plus Admin Sign In,
+ * T-shirts and Inventory, already built and kept)." Sixteen screens are
+ * listed as no_mobile: A04, A05, A06, A08, A09, A10, A13, A14, A15, A16,
+ * A18, A19, A20, A21, A22, A23.
  *
- * (That rationale is read off which frames exist; no decision to this effect
- * is recorded in design-system-state.json, so it is worth confirming with the
- * design owner rather than treating as settled.)
+ * The recorded REASON is not quite the read-vs-write line this file used to
+ * infer from counting frames. It is density: "Dense tables and multi-section
+ * editors fight a 390px screen; the T-shirt editor alone has eleven
+ * sections. Phone versions of all 23 would cost real time and produce
+ * screens nobody maintains." That matters, because it is a statement about
+ * what the DESIGN covers rather than a prohibition on a page working at
+ * 390px. Two screens on the no_mobile list are built to work there anyway
+ * and say why in their own files — A19 Customers and A23 Audit log, both of
+ * which are a stacking list rather than a dense form, and both of which you
+ * reach for precisely when you are away from a desk.
+ *
+ * This wrapper is for the other kind: multi-section editors and
+ * consequential actions. Monitor from a phone, operate from a bigger screen.
  *
  * Rendering an undesigned form at 390px anyway is the worse option: these
  * screens adjust stock and will soon issue refunds, and a squashed layout

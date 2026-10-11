@@ -768,29 +768,279 @@ migration nobody has written. And "Email this customer" IS real: a mailto,
 because nothing in this app sends staff email. Contact preferences stay
 read-only exactly as the ledger requires.
 
-BEFORE A09/A10 COLLECTIONS, KNOW THIS: both frames were pulled (145:2426
-and 145:2762 Desktop) and the screens describe a storefront that does not
-exist. There is NO collection page in this app — nothing under
-`/collections/`, and the site header has no collections menu. `collections`
-is read in exactly two places, both on the shop listing and product detail,
-as a FILTER and as a label on a card. So A09's "drag to set the order they
-appear in the menu", A10's `metheues.com/collections/the-first-drop` helper,
-its "View on the site" button, its hero image and alt text, and the note's
-"hiding a collection takes it out of the menu but its page stays reachable
-by its address" are all claims about a page nobody has built. `position`,
-`hero_path`, `hero_alt`, `seo_title` and `seo_description` on `collections`
-are written by nothing and read by nothing. The one part that IS real is
-`status`: collections_public_read is `status = 'live' or is_staff()`, so a
-hidden collection genuinely disappears from the storefront filter.
+COLLECTIONS ARE DONE, AND THE ORDER MATTERED. Pulling A09 and A10 first
+showed that both describe a storefront this app did not have: there was no
+collection page anywhere, no /collections, and `collections` was read in
+exactly two places as a filter facet and a card label. `position`,
+`hero_path`, `hero_alt`, `seo_title` and `seo_description` were written by
+nothing and read by nothing, so an editor for them would have been a form
+whose every field reached no reader. The storefront half was built first.
 
-The missing half has a frame of its own — storefront screen "19 The First
-Drop", which the ledger describes as 03 Product Listing cloned with a 16:9
-hero band and a drop metadata row, "the page IS the collection". Building 19
-is what makes A10's fields true. Doing A09/A10 without it means an editor
-whose every field edits a real column that reaches no reader, which is a
-different screen from the one the design draws — so decide the order
-deliberately rather than starting with the admin pair because it is next in
-the admin numbering.
+SCREEN 19 — the collection page (121:5606 Desktop pulled, 121:5514 Tablet
+and 121:5428 Mobile by screenshot) — now lives at `/collections/[slug]`,
+which is exactly the address A10's handle helper promises. The ledger calls
+it 03 Product Listing cloned, so it REUSES the rail, sheet, sort control
+and product card rather than copying them; all four took a `basePath`, and
+the Collection facet disappears by passing an empty option list (Group
+already returns null for no options) rather than by a special case. There
+is also a `/collections` index, which has no frame and is built anyway for
+the reason track-order was: the site header has linked "Collections" there
+since the chrome was built and it 404'd. Verified at 390/768/1440: hero
+200/320/440, grid 2/3/4, discovery bar below 1440 and rail at 1440.
+
+Two of screen 19's four metadata fields are real and two are not. RELEASED
+is collections.published_at; STYLES is a real count. RUN ("Limited — not
+restocked") has no backing column, and a shop promising never to restock is
+the one claim a customer disproves by coming back in a month. MADE is real
+as products.made_in but is PER PRODUCT, so it shows only when every product
+in the collection agrees — otherwise one origin gets claimed for all of
+them.
+
+A09 and A10 are built on top of that (145:2426 and 145:2762 Desktop pulled;
+145:2294 Tablet by screenshot), both behind WideOnly. Four routes:
+POST /api/admin/collections, PATCH .../[id], PUT .../[id]/products and
+POST .../reorder.
+
+THE ADMIN BREAKPOINT DECISION IS RECORDED AFTER ALL, and this file said it
+was not. design-system-state.json's `admin_breakpoint_decision` carries it,
+taken by the owner on 10 September, and wide-only.tsx has been corrected.
+Two things in it are worth knowing. The rule names the exception list
+exactly — 390 is built only for Dashboard, Orders, Order detail, Returns
+queue, plus Sign In, T-shirts and Inventory — and sixteen screens are
+listed no_mobile including A09, A10, A19, A20 and A23. And the REASON is
+density, not the read-vs-write line this project inferred from counting
+frames: "dense tables and multi-section editors fight a 390px screen".
+That matters because it is a statement about what the DESIGN covers, not a
+ban on a page working at 390 — which is why A19 and A23 still render a
+stacking list there rather than a gate, and why A09/A10 do not.
+
+THE DESIGN AND THE DATABASE DISAGREE ABOUT HIDDEN COLLECTIONS, and the
+database wins in the code. A09's footer says hiding one takes it out of the
+menu "but its page stays reachable by its address, so links you have
+already shared keep working". The RLS policy is `status = 'live' or
+is_staff()` (002_rls.sql:88), so a hidden collection returns no row to a
+customer and its page 404s. Both behaviours are defensible; changing a
+security policy to match a sentence in a footer is the wrong way round. The
+note says what the system does. FOR THE DESIGN OWNER — it is a policy
+change, not a copy change. Two more for the same list: the "menu" the
+design keeps referring to does not exist (the header has one static
+Collections link, not a list built from the table), so A09's subtitle and
+its "Hidden from navigation" row are narrowed to the collections page and
+the shop; and screen 19's DESKTOP frame drops the sort control that its own
+Tablet and Mobile frames draw and 03A keeps, which would remove a control
+only where there is most room for it, so sort stays.
+
+SCHEDULING IS HALF A FEATURE AND A10 SAYS SO. `scheduled` is a real status
+with a real date and the storefront honours it — RLS shows only live, so a
+scheduled collection is genuinely invisible. Nothing FLIPS it to live when
+the date arrives: no cron, no scheduled function. The design's "Scheduled
+1 Oct, 09:00" implies a system that publishes for you. The panel records
+the date, shows it, and says plainly that someone has to come back and set
+it live. Closing it needs a scheduled job.
+
+Omitted from A10: "Replace image" and "Remove" on the hero, the same
+upload-pipeline gap that leaves A05 unbuilt and every product card a well.
+ALT TEXT IS KEPT AND IS REAL — hero_alt is a column, screen 19 reads it,
+and writing it now means the photograph arrives already described. "View on
+the site" is kept and now goes somewhere, which it would not have a commit
+earlier. A new collection starts Hidden, not Live: creating something and
+having it hit the shop the same second, before it has a description or a
+single T-shirt, is the one default that cannot be undone quietly.
+
+TWO ACCESSIBILITY ADDITIONS THE FRAMES DO NOT DRAW. Both drag lists — A09's
+collections and A10's products — carry real Move up / Move down buttons at
+44px beside the "::" handle. A drag-only control cannot be operated from a
+keyboard at all, which would make the one thing those screens exist for
+unreachable; same reorder, same endpoint.
+
+THE MEMBERSHIP ROUTE'S TWO WRITES ARE ORDERED ON PURPOSE, the same
+reasoning as /refund's. No transaction is available (rule 4), so of the two
+half-failures: upsert-then-delete leaves EXTRA members, visible and fixed
+by saving again; delete-then-upsert leaves the collection EMPTY with
+nothing saying what used to be in it. Upsert goes first, and the delete is
+expressed as "not in this list" rather than a clear-and-re-add, so rows
+that stay are never gone even for an instant. Rule 4 would put this in a
+Postgres function and that is still the better home; it is recoverable as
+written, which the alternative is not. The reorder route needs no such care
+— a half-applied reorder loses nothing and the next drag fixes it.
+
+Verified against the live database read-only, because DELETE is gated in
+this environment and test rows could not be cleaned up: product_collections'
+primary key is `(product_id, collection_id)` in that order, which is what
+the upsert's onConflict names, and collections_staff_write and
+product_collections_staff_write are both ALL policies. THE WRITE PATHS
+THEMSELVES ARE UNEXERCISED — there are no collections in the live database
+at all, so /collections renders its empty state and A09 its own. Creating
+the first one is the test.
+
+A22 STORE SETTINGS IS BUILT, AND IT FOUND A REAL GAP (146:3214 Desktop
+pulled, 146:2988 Tablet; no Mobile frame, so WideOnly). This is the first
+admin screen that changes what a customer is CHARGED, and it is OWNER
+ONLY for that reason — every other write here is gated on is_staff(),
+which is right for packing a parcel and wrong for pricing a basket. A22's
+own staff card draws the line in the same place ("Staff — orders,
+fulfilment and returns, no settings"). is_owner() has existed since 002
+and nothing had ever used it. NOTE the check lives in the route, not in
+RLS: store_settings has only a staff write policy, and narrowing it is a
+migration worth doing rather than a thing to skip quietly.
+
+THE DELIVERY PRICES WERE HARDCODED. free_delivery_threshold_pence was a
+column checkout read; the prices beside it were two integer literals in
+app/api/checkout/route.ts (`next_day ? 695 : subtotal >= threshold ? 0 :
+395`). So the owner could change WHEN delivery became free but not what it
+cost, and £3.95 needed a developer and a deploy. MIGRATION 018 adds
+delivery_tracked_48_pence and delivery_next_day_pence, defaulted to
+exactly the literals they replace, and the checkout route reads them in
+the same commit — a column nothing reads would only be a third place for
+the price to disagree with itself. Verified on the live project: the
+defaults came out 395/695 (so no price moved), a write round-trip
+succeeded, and a negative price was rejected by the check constraint with
+the row unchanged. That is the first write this project has exercised
+against store_settings.
+
+Checkout gained two other things with it. It no longer falls back to a
+hardcoded threshold when the settings read fails — it returns 503, because
+pricing a basket off a default nobody chose is migration 008's mistake with
+money instead of a returns window. And MAINTENANCE MODE IS WIRED: the
+column has existed since 001 and nothing had ever read it, so checkout now
+refuses with a 503 and a plain message while the storefront stays
+browsable, which is exactly what the design's card promises. The bag
+surfaces the route's own error text, so the customer reads "the shop is
+paused for maintenance" rather than meeting a dead button.
+
+OF store_settings' NINE COLUMNS, SIX NOW HAVE READERS and three do not.
+Live: free_delivery_threshold_pence, the two new delivery prices,
+return_window_days, vat_rate_basis_points, contact_email, maintenance_mode.
+Unread: collection_fee_pence (nothing applies it to a refund) and
+from_email (emails send from the EMAIL_FROM environment variable, because
+Resend will only send from a verified domain, so the address and the
+deployment have to agree).
+
+A22 OMITS MORE THAN ANY OTHER SCREEN, because the design describes a
+settings table this shop does not have. STORE DETAILS entirely — trading
+name, registered address, company number, VAT number, none of which are
+columns, all of which are legal footer/invoice content already waiting on
+legal review. The Ireland and Rest of Europe delivery rows (delivery_method
+is an enum of exactly two values and checkout ships GB/IE only; a
+per-country rate table is a feature, not two more columns). The collection
+fee, for the reason above — a number recorded and ignored is the one shape
+of field this project keeps refusing. Condition rules (no column; the
+wording lives in the returns page and E6, and one source for both is worth
+doing properly). Both tax tick boxes — prices here are VAT-inclusive
+throughout, which is what UK law requires and what every total assumes, so
+a switch implying you could turn it off would be the most expensive wrong
+tick on the screen; and nothing collects duties because nothing ships
+beyond GB/IE. The Stripe account id and payout schedule (not stored, and
+reading them would mean a live Stripe call on an admin page load). And
+"Invite someone", because there is no invite flow — deliberately.
+
+The staff list IS real, read from profiles. The return window will not go
+below 14 days in the form, which is the UK statutory minimum and something
+the database's own `> 0` check cannot know.
+
+THE HOMEPAGE IS BUILT (02A 38:190 Desktop pulled, 36:93 Tablet and 28:2
+Mobile by screenshot), which replaces a fourteen-line placeholder that
+said the storefront was under construction — untrue for some time, with
+shop, product, bag, collections, auth and order tracking all live behind
+a front door that still apologised for them.
+
+It is also what unblocks A21, the last admin screen, by the same rule
+Collections taught: `homepage_sections` (key, content jsonb) had existed
+since 001 and NOTHING read it, so an editor for it would have been a form
+writing to a table no page consults. `lib/home/sections.ts` is the reader.
+It holds the SEVEN §9.7 slots — announcement bar, hero campaign, featured
+drop, featured T-shirts, brand/craft story, newsletter text, delivery and
+return highlights — each with a full default, so the page renders the
+designed copy against an empty table and A21 only ever overrides. Section
+order, featured count and layout are FIXED, which §9.7 is explicit about
+("a limited content system, not a general page builder") and which A21
+must say rather than imply otherwise. The Fit and size guidance block is
+deliberately NOT a slot: §9.7 does not list it, so its copy stays in the
+page.
+
+THE ANNOUNCEMENT SLOT USES A {threshold} TOKEN, and that is the whole
+reason it is safe to make editable. The Announcement Bar's own component
+description warns that the figure quoted there must match Store settings
+and that nothing validates it; today the bar DERIVES the number so the two
+cannot disagree, and plain free text would trade that guarantee away. The
+token keeps both — write any sentence, and the number in it is still the
+one checkout charges against. It lives in lib/home/tokens.ts rather than
+sections.ts because the bar is a client component and sections.ts is
+`server-only`.
+
+Two homepage copy departures, both narrowing. "On orders over £150,
+tracked with DPD" loses DPD: no carrier is configured anywhere (A14's
+carrier field is free text for exactly that reason) and naming one on the
+homepage would be the shop's most public unverifiable claim. "14-day
+returns" becomes "Returns", because the design's number and the seeded
+store_settings value (30) disagree and the homepage is the wrong place to
+settle it — whatever request_return() enforces is the real window, stated
+where someone is actually deciding. The design's "Open the size guide"
+points at screen 23, which is unbuilt, so it links to the shop; the
+measurements are owner-blocked anyway (§8.5).
+
+The featured T-shirts are real products with real labels — New, Limited
+Edition, Low stock derived exactly as the shop listing derives them. When
+featured_products names slugs they are used IN THAT ORDER (`.in()` does
+not preserve it, and the order is the curation); when it is empty, which
+it is today, the four most recently published stand in so the section is
+never blank mid-curation.
+
+Verified at 390/768/1440: hero column then row with the image 360/520/720,
+hero title 40/52/72, section title 30/42, craft headline 28/40 (40 at
+Desktop, not the section title's 42 — read off 39:266), drop grid 2/2/4
+(NOT the shop listing's 2/3/4, so it has its own class), craft and
+reassurance stacking below 768, no overflow at any width. ONE BUG CAUGHT
+BY MEASURING rather than by eye: the hero well had `flex: 1 0 0` for the
+row layout, and below 768 the hero is a COLUMN where flex-basis is the
+height — so a 360px well rendered 16px tall, its label and nothing else.
+The flex only applies from 768 up now.
+
+A21 STORE CONTENT IS BUILT (146:2755 Desktop pulled, 146:2536 Tablet;
+no Mobile, so WideOnly), WHICH COMPLETES THE ADMIN — 23 of 23 screens,
+and the rail now carries every item the design draws instead of the three
+it started with. The form is seeded from buildHomeContent(), the SAME
+function the homepage renders through, so the fields show exactly what a
+customer is seeing, defaults included; publishing is what turns a default
+into a stored row. PUT /api/admin/content writes all seven slots in ONE
+upsert rather than seven requests — a half-published homepage (new hero,
+old reassurance) is the failure worth avoiding, and an array upsert is as
+close to atomic as this gets without a function. Staff, not owner-only:
+A22 is owner-gated because those columns price a basket, while homepage
+copy is the job the shop's own people do and the worst case is wording
+somebody can change straight back.
+
+Verified read-only: homepage_sections' primary key is `key`, which is
+what the upsert's onConflict names, homepage_staff_write is an ALL policy
+and homepage_public_read is SELECT, so the storefront reads it as anon.
+The write path is unexercised — the table is empty, which is the normal
+case the defaults exist for.
+
+FOUR A21 DEPARTURES, each closing a hole rather than opening one. The
+hero's "Button goes to" stays a SELECT of real destinations (the shop,
+the collections index, each LIVE collection — a hidden one's page 404s,
+so offering it would be offering a broken link) and the route rejects
+anything else: free text would put a 404 one typo away on the busiest
+button in the shop. The hero image is shown and not editable, the same
+upload-pipeline gap as everywhere else. Each reassurance highlight gets
+TWO fields rather than the design's one, because the homepage draws a
+title and a supporting line and the page is what customers read. And the
+craft specification rows ARE editable although A21 does not draw them —
+"240 GSM", "100% combed cotton" are the most falsifiable claims on the
+homepage, and leaving them in code would mean only a developer could
+correct one.
+
+Two homepage corrections went in with it. The story section's "Read the
+story" is GONE: it pointed at /our-story, which does not exist — the site
+header already links there and 404s, and a second dead end from the
+homepage would compound that rather than match the design. And the hero's
+eyebrow is no longer its own field: both frames use the featured drop's
+words in both places, so it reads from that slot and there is one fewer
+thing to keep in step. The newsletter slot now feeds the FOOTER, which is
+on every page, making it the widest-reaching slot rather than a homepage
+one; and the announcement slot gained `visible`, which is A21's "untick to
+hide it everywhere without losing the text" — a legitimate checkbox by the
+component's own rule, unlike A14's locked send row.
 
 Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
@@ -802,8 +1052,8 @@ config against the live project. E4/E5/E7 need the admin order actions
 (dispatch, cancel), E8 needs the admin refund action, E9 needs the admin
 return decision — build each template alongside the route that triggers it,
 the way E3 and E6 went in — E4, E5, E7, E8 and E9 have all gone in that way
-now, so only E1/E2 are left and both are owner-blocked. Also still open: collections
-(A09/A10), homepage content (A21) and store settings (A22), and the
+now, so only E1/E2 are left and both are owner-blocked. Also still open: homepage
+content (A21, blocked on a real homepage — see above), and the
 customer-facing account pages (profile, addresses, signed-in order history
 — now unblocked the same way the catalogue was, since they need auth,
 which exists). The catalogue, bag and guest order

@@ -1217,3 +1217,263 @@ button.mc-icon-button[aria-label='Search'] {
     width: 340px;
   }
 }
+
+/* Screen 19's collection hero (121:5706). A 16:9 band in the design, pinned
+   to 440px at Desktop and proportionally shorter at the two narrower
+   frames. It is an empty well until there is collection photography and a
+   pipeline to upload it — the same gap the product cards carry, and the
+   reason A05 is unbuilt. */
+.mc-collection-hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 200px;
+  width: 100%;
+  background: var(--mc-mist);
+  padding: 0 var(--mc-space-md) 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+@media (min-width: 768px) {
+  .mc-collection-hero {
+    height: 320px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-collection-hero {
+    height: 440px;
+    padding-left: 48px;
+  }
+}
+
+/* ---------------------------------------------------------------- 02 Homepage
+   38:190 Desktop, 36:93 Tablet, 28:2 Mobile. Three real layout changes
+   between the frames: the hero splits at 768, the craft band goes
+   two-column at 768, and the reassurance row goes three-across at 768.
+   The drop grid is 2-up until 1440 and 4-up there — NOT the shop
+   listing's 2/3/4, which is why it has its own class. */
+
+.mc-home-hero {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--mc-bg-page);
+}
+.mc-home-hero-image {
+  /* NOT `flex: 1 0 0` here. The hero is a COLUMN below 768, where
+     flex-basis is the height, so `1 0 0` gave the well a basis of 0 and it
+     collapsed to 16px — its label and nothing else. It only becomes a
+     flex item sharing width once the hero turns into a row at 768. */
+  flex: none;
+  min-width: 0;
+  height: 360px;
+  background: var(--mc-mist);
+  display: flex;
+  align-items: flex-end;
+  padding: 0 0 16px 24px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.mc-home-hero-copy {
+  flex: 1 0 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 40px var(--mc-space-md);
+  box-sizing: border-box;
+}
+@media (min-width: 768px) {
+  .mc-home-hero {
+    flex-direction: row;
+    align-items: center;
+  }
+  .mc-home-hero-image {
+    flex: 1 0 0;
+    height: 520px;
+    padding-left: 32px;
+  }
+  .mc-home-hero-copy {
+    padding: 56px 48px;
+    gap: 24px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-home-hero-image {
+    height: 720px;
+    padding-left: 40px;
+  }
+  .mc-home-hero-copy {
+    padding: 64px 96px;
+  }
+}
+
+/* 72px at Desktop, stepped down rather than scaled — the same mistake
+   --mc-type-page-title was fixed for. */
+.mc-home-hero-title {
+  font-family: var(--mc-font-display);
+  font-size: 40px;
+  line-height: 1;
+  margin: 0;
+}
+@media (min-width: 768px) {
+  .mc-home-hero-title {
+    font-size: 52px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-home-hero-title {
+    font-size: 72px;
+  }
+}
+
+.mc-home-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 56px;
+  padding-bottom: 56px;
+}
+@media (min-width: 768px) {
+  .mc-home-section {
+    gap: 24px;
+    padding-top: 80px;
+    padding-bottom: 80px;
+  }
+}
+
+.mc-home-section-title {
+  font-family: var(--mc-font-display);
+  font-size: 30px;
+  line-height: 1.15;
+  margin: 0;
+}
+@media (min-width: 768px) {
+  .mc-home-section-title {
+    font-size: 42px;
+  }
+}
+
+.mc-home-eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.54px;
+  text-transform: uppercase;
+  color: var(--mc-text-muted);
+  margin: 0;
+}
+
+.mc-home-drop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px 16px;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .mc-home-drop-grid {
+    gap: 40px 24px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-home-drop-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.mc-home-craft {
+  background: var(--mc-bg-inverse);
+  width: 100%;
+  padding: 56px 0;
+}
+@media (min-width: 768px) {
+  .mc-home-craft {
+    padding: 80px 0;
+  }
+}
+.mc-home-craft-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+@media (min-width: 768px) {
+  .mc-home-craft-inner {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 64px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-home-craft-inner {
+    gap: 96px;
+  }
+}
+/* The craft headline is 40px at Desktop against the section title's 42 —
+   read off 39:266, not assumed to match. */
+.mc-home-craft .mc-home-section-title {
+  --mc-type-craft-title: 28px;
+}
+@media (min-width: 768px) {
+  .mc-home-craft .mc-home-section-title {
+    --mc-type-craft-title: 40px;
+  }
+}
+
+.mc-home-reassurance {
+  background: var(--mc-bg-surface);
+  width: 100%;
+  padding: 28px 0;
+}
+@media (min-width: 768px) {
+  .mc-home-reassurance {
+    padding: 36px 0;
+  }
+}
+.mc-home-reassurance-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+@media (min-width: 768px) {
+  .mc-home-reassurance-inner {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 64px;
+  }
+}
+
+.mc-home-well-label {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 1.54px;
+  text-transform: uppercase;
+  color: var(--mc-text-muted);
+}
+
+/* The three Button styles as links, for the four CTAs on this page. */
+.mc-button-primary,
+.mc-button-secondary,
+.mc-button-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 14px 24px;
+  border-radius: var(--mc-radius-sm);
+  font-family: var(--mc-font-body);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.32px;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+.mc-button-primary {
+  background: var(--mc-action-primary-bg);
+  color: var(--mc-action-primary-text);
+}
+.mc-button-secondary {
+  border: 1px solid var(--mc-border-strong);
+  color: var(--mc-text-primary);
+}
+.mc-button-ghost {
+  color: var(--mc-text-primary);
+}

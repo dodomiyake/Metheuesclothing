@@ -9,10 +9,28 @@ import { Footer } from '@/components/site/footer';
  */
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createServerComponentClient();
-  const { data: settings, error } = await supabase
-    .from('store_settings')
-    .select('free_delivery_threshold_pence')
-    .single();
+  const [{ data: settings, error }, announcementQuery] = await Promise.all([
+    supabase.from('store_settings').select('free_delivery_threshold_pence').single(),
+    // §9.7's announcement slot. Same forgiving read as the threshold below:
+    // the bar is decoration on every page, so a content row that is missing
+    // or malformed falls back to the shipped wording rather than taking the
+    // whole site down.
+    supabase.from('homepage_sections').select('key, content').in('key', ['announcement', 'newsletter']),
+  ]);
+  const slots = new Map(
+    (announcementQuery.data ?? []).map((r) => [r.key as string, r.content as Record<string, unknown>]),
+  );
+  const announcement = slots.get('announcement');
+  const newsletter = slots.get('newsletter');
+  const message =
+    typeof announcement?.message === 'string' && (announcement.message as string).trim()
+      ? (announcement.message as string)
+      : undefined;
+  // A21's "Show the announcement bar — untick to hide it everywhere
+  // without losing the text". Absent means shown, which is what every
+  // page did before the slot existed.
+  const showAnnouncement = announcement?.visible !== false;
+  const text = (v: unknown) => (typeof v === 'string' && v.trim() ? v : undefined);
   // See app/shop/page.tsx's comment on why a query error must not be
   // treated the same as "no settings" -- this one is quieter: worst case a
   // wrong number in the announcement bar, not a wrong price, so it falls
@@ -27,10 +45,10 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   // push it down themselves.
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AnnouncementBar thresholdPence={threshold} />
+      {showAnnouncement && <AnnouncementBar thresholdPence={threshold} message={message} />}
       <Header />
       <div style={{ flex: '1 0 auto', background: 'var(--mc-bg-page)' }}>{children}</div>
-      <Footer />
+      <Footer newsletterTitle={text(newsletter?.title)} newsletterBody={text(newsletter?.body)} />
     </div>
   );
 }
