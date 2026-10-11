@@ -174,9 +174,28 @@ The live database was empty for most of this project's history, and is no
 longer: it holds 1 product, 15 variants and 5 orders that none of these
 sessions created (the order count moved from 4 to 5 between the 012 session
 and the cleanup, so the owner is adding data). Scope anything scripted
-against it rather than running blanket statements. Nothing in the admin catalogue, auth flows or storefront has
-still been exercised end to end with real data — only cancel_order and
-record_refund have, and those from SQL rather than through the routes. What verification
+against it rather than running blanket statements. THE CHECKOUT PATH HAS NOW RUN FOR REAL, and this note used to say it had
+not. Order MC-10006 went all the way through on 13 September 2026: 2 x
+"STRIPED SHORT SLEEVE POLO TSHIRT" BLACK/L at £48.00 plus £3.95 delivery =
+£99.95, payment_status paid, a real Stripe payment intent recorded, the
+delivery-address snapshot written by the webhook, delivery_method
+tracked_48, and stock decremented EXACTLY ONCE (one `sale`
+inventory_adjustment of -2; that variant now sits at 0 and reads Sold out).
+Three webhook events processed. So storefront -> checkout -> Stripe ->
+webhook -> stock is proven with real money.
+
+ONE THING FAILED, and it failed the way it was built to. audit_logs holds
+`email_delivery_failed`: "E3 order confirmation to <the owner's address>
+failed: The domain is invalid" — Resend refusing the send because the
+sending domain is not verified, which is already on the owner-blocked list
+below. The webhook did not throw, the order survived, stock stayed correct,
+and a human got a record. That is exactly the §15 behaviour
+sendTransactionalEmail exists for, observed rather than assumed.
+
+Note also MC-10006 sits at fulfilment_status `processing` with no audit row
+for the transition — advance_fulfilment writes one and nothing else moves
+that column, so it was set directly in the table editor. Consistent with the
+owner exploring; worth knowing when reading the log. What verification
 found instead is in "Things that have already gone wrong" above: this
 sandbox's network egress blocks Supabase entirely (`Host not in allowlist`),
 which surfaced that every catalogue page was swallowing query errors as
@@ -588,6 +607,42 @@ draw six fixed 340px cards that wrap, this uses equal fractions so the cards
 run wider at 1440 rather than leaving a ragged gap at the end of each row.
 The column COUNT matches the frames at every breakpoint (1 / 2 / 3), which
 is the part carrying the layout; verified at 390/768/1440.
+
+A23 Audit log is built (146:3635 Desktop pulled; 146:3454 Tablet is the
+same screen narrower) and is in the rail. It has NO Mobile frame, which is
+a counterexample to the read-vs-write rationale written into
+wide-only.tsx — this is a read screen. It is not gated anyway: every entry
+is a stacking block of text with no table to squash, and refusing to show
+an append-only log on a phone withholds the one screen you reach for when
+something has gone wrong away from a desk. One more reason to settle that
+rationale with the design owner.
+
+THE DESIGN DRAWS EIGHT EVENT TYPES AND THE SYSTEM WRITES FOUR AND A HALF.
+§9.6 lists refund, stock adjustment, return, content publish, dispatch,
+archive, price change and sign-in. Recorded: refunds and cancellations
+(012), dispatch (011), return decisions (014), and stock adjustments — the
+last only as of migration 015. Partial: a return's progress is logged, a
+customer RAISING one is not, because request_return() writes no audit row.
+Missing: content publish, archive, price change, sign-in. The panel at the
+foot of the screen names all five by name, because a log that looks
+complete and is not is worse than a short one.
+
+MIGRATION 015 IS APPLIED (advisor clean, adjust_stock still absent from the
+SECURITY DEFINER findings so the REVOKE held across the `create or
+replace`). It makes adjust_stock write an audit row. This project shipped
+the claim that stock changes are audited TWICE — the A01 small print
+(corrected in 1d4059a) and A07's footer (corrected in d762e61) — so making
+it true was cheaper than retracting it a third time. The signature is
+unchanged on purpose: a p_actor_label parameter would change the function's
+identity and need a DROP, which this environment's tooling gates, so the
+label is read from `profiles` inside the function. That is better anyway —
+the label cannot then disagree with the profile it names.
+
+Entity ids are resolved to order and return NUMBERS with two batched
+lookups, because audit_logs stores only an id. Where the row it described
+is gone the entry says so rather than printing a uuid — append-only means
+an entry outlives its subject, which is the point, and four of the five
+rows in the live log are exactly that case.
 
 Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).

@@ -91,6 +91,9 @@ export function AdminRail({
         <AdminNavLink href="/admin/returns" count={awaitingReturns} onNavigate={() => setOpen(false)}>
           Returns
         </AdminNavLink>
+        <AdminNavLink href="/admin/audit" onNavigate={() => setOpen(false)}>
+          Audit log
+        </AdminNavLink>
       </div>
 
       <div className="mc-admin-rail-foot">

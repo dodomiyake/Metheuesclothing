@@ -152,3 +152,34 @@ export const RETURN_REASONS: Record<string, string> = {
   wrong_item_sent: 'Wrong item sent',
   arrived_late: 'Arrived late',
 };
+
+/**
+ * audit_logs.action, for A23. These are the actions this codebase actually
+ * writes, not the eight §9.6 asks for — see the Audit log page's own note
+ * for which of the eight are missing and why.
+ *
+ * The three failure actions are Danger because they are the only entries
+ * that mean something went wrong; a refund is Danger too, which looks odd
+ * next to them until you remember the design does exactly that (146:3734)
+ * and it is right: money leaving is the entry you scan a log for.
+ */
+export const AUDIT_BADGE: Record<string, { label: string; tone: BadgeTone }> = {
+  // Money.
+  order_refunded: { label: 'Refund issued', tone: 'danger' },
+  return_refunded: { label: 'Return refunded', tone: 'danger' },
+  order_cancelled: { label: 'Order cancelled', tone: 'attention' },
+  // Fulfilment (011).
+  fulfilment_processing: { label: 'Packing started', tone: 'info' },
+  fulfilment_packed: { label: 'Packed', tone: 'info' },
+  fulfilment_shipped: { label: 'Order shipped', tone: 'success' },
+  // Returns (014).
+  return_received: { label: 'Return received', tone: 'info' },
+  return_approved: { label: 'Return approved', tone: 'success' },
+  return_rejected: { label: 'Return rejected', tone: 'danger' },
+  // Stock (015).
+  stock_adjusted: { label: 'Stock adjusted', tone: 'attention' },
+  // Failures. Every audit row in this codebase was one of these until 011.
+  oversell_detected: { label: 'Oversell detected', tone: 'danger' },
+  email_delivery_failed: { label: 'Email failed', tone: 'danger' },
+  refund_not_recorded: { label: 'Refund not recorded', tone: 'danger' },
+};
