@@ -996,7 +996,51 @@ row layout, and below 768 the hero is a COLUMN where flex-basis is the
 height — so a 360px well rendered 16px tall, its label and nothing else.
 The flex only applies from 768 up now.
 
-A21 ITSELF IS STILL TO BUILD, and now has somewhere to publish to.
+A21 STORE CONTENT IS BUILT (146:2755 Desktop pulled, 146:2536 Tablet;
+no Mobile, so WideOnly), WHICH COMPLETES THE ADMIN — 23 of 23 screens,
+and the rail now carries every item the design draws instead of the three
+it started with. The form is seeded from buildHomeContent(), the SAME
+function the homepage renders through, so the fields show exactly what a
+customer is seeing, defaults included; publishing is what turns a default
+into a stored row. PUT /api/admin/content writes all seven slots in ONE
+upsert rather than seven requests — a half-published homepage (new hero,
+old reassurance) is the failure worth avoiding, and an array upsert is as
+close to atomic as this gets without a function. Staff, not owner-only:
+A22 is owner-gated because those columns price a basket, while homepage
+copy is the job the shop's own people do and the worst case is wording
+somebody can change straight back.
+
+Verified read-only: homepage_sections' primary key is `key`, which is
+what the upsert's onConflict names, homepage_staff_write is an ALL policy
+and homepage_public_read is SELECT, so the storefront reads it as anon.
+The write path is unexercised — the table is empty, which is the normal
+case the defaults exist for.
+
+FOUR A21 DEPARTURES, each closing a hole rather than opening one. The
+hero's "Button goes to" stays a SELECT of real destinations (the shop,
+the collections index, each LIVE collection — a hidden one's page 404s,
+so offering it would be offering a broken link) and the route rejects
+anything else: free text would put a 404 one typo away on the busiest
+button in the shop. The hero image is shown and not editable, the same
+upload-pipeline gap as everywhere else. Each reassurance highlight gets
+TWO fields rather than the design's one, because the homepage draws a
+title and a supporting line and the page is what customers read. And the
+craft specification rows ARE editable although A21 does not draw them —
+"240 GSM", "100% combed cotton" are the most falsifiable claims on the
+homepage, and leaving them in code would mean only a developer could
+correct one.
+
+Two homepage corrections went in with it. The story section's "Read the
+story" is GONE: it pointed at /our-story, which does not exist — the site
+header already links there and 404s, and a second dead end from the
+homepage would compound that rather than match the design. And the hero's
+eyebrow is no longer its own field: both frames use the featured drop's
+words in both places, so it reads from that slot and there is one fewer
+thing to keep in step. The newsletter slot now feeds the FOOTER, which is
+on every page, making it the widest-reaching slot rather than a homepage
+one; and the announcement slot gained `visible`, which is A21's "untick to
+hide it everywhere without losing the text" — a legitimate checkbox by the
+component's own rule, unlike A14's locked send row.
 
 Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).

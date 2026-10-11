@@ -89,7 +89,9 @@ export default async function HomePage() {
           <span className="mc-home-well-label">CAMPAIGN PHOTOGRAPHY 4:5</span>
         </div>
         <div className="mc-home-hero-copy">
-          <p className="mc-home-eyebrow">{content.hero.eyebrow}</p>
+          {/* The featured drop's eyebrow, not a hero field — see
+              lib/home/sections.ts. Both frames say the same words. */}
+          <p className="mc-home-eyebrow">{content.featured_drop.eyebrow}</p>
           <h1 className="mc-home-hero-title">{content.hero.title}</h1>
           <p style={{ fontSize: 18, lineHeight: 1.6, color: 'var(--mc-text-muted)', margin: 0 }}>
             {content.hero.body}
@@ -141,9 +143,10 @@ export default async function HomePage() {
         <p style={{ fontSize: 18, lineHeight: 1.6, color: 'var(--mc-text-muted)', maxWidth: 640, margin: 0 }}>
           {content.story.body}
         </p>
-        <Link href={content.story.cta_href} className="mc-button-ghost" style={{ alignSelf: 'flex-start' }}>
-          {content.story.cta_label}
-        </Link>
+        {/* The design's "Read the story" goes to screen 32 Our Story,
+            which is unbuilt — the header's own /our-story link already
+            404s, and a second dead end from the homepage would compound
+            it rather than match it. Omitted, like the size guide below. */}
       </section>
 
       {/* Fabric and construction — 39:262. The one dark band on the page.

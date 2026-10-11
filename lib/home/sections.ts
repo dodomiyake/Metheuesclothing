@@ -34,12 +34,17 @@ export type HeroContent = {
   cta_href: string;
 };
 
+/**
+ * No CTA. The design's "Read the story" points at screen 32 Our Story,
+ * which is not built — the site header already links /our-story and that
+ * link 404s, and adding a second dead end from the homepage would make it
+ * worse rather than consistent. Same call as the Fit section's "Open the
+ * size guide", which points at the unbuilt screen 23.
+ */
 export type StoryContent = {
   eyebrow: string;
   title: string;
   body: string;
-  cta_label: string;
-  cta_href: string;
 };
 
 export type CraftContent = {
@@ -51,7 +56,13 @@ export type CraftContent = {
 
 export type ReassuranceContent = { items: { title: string; body: string }[] };
 export type NewsletterContent = { title: string; body: string };
-export type AnnouncementContent = { message: string };
+/**
+ * `visible` is A21's "Show the announcement bar — untick to hide it
+ * everywhere without losing the text" (146:2849). A legitimate checkbox by
+ * the component's own rule: a setting that can actually be changed, as
+ * opposed to A14's locked send row.
+ */
+export type AnnouncementContent = { message: string; visible: boolean };
 export type FeaturedDropContent = { eyebrow: string; title: string; collection_slug: string | null };
 export type FeaturedProductsContent = { slugs: string[] };
 
@@ -83,8 +94,13 @@ export { THRESHOLD_TOKEN } from './tokens';
 import { THRESHOLD_TOKEN } from './tokens';
 
 export const HOME_DEFAULTS: HomeContent = {
-  announcement: { message: `Free UK delivery on orders over ${THRESHOLD_TOKEN}` },
+  announcement: { message: `Free UK delivery on orders over ${THRESHOLD_TOKEN}`, visible: true },
   hero: {
+    // Not an editable field. A21 gives the hero a heading, a supporting
+    // line, a button label and a destination — no eyebrow — and in both
+    // frames the hero's eyebrow and the featured drop's are the same words
+    // ("The First Drop"). So the page uses the featured drop's eyebrow and
+    // there is one fewer thing to keep in step by hand.
     eyebrow: 'The First Drop',
     title: 'Wear the Vibe',
     body: 'Premium T-shirts shaped by music, identity and original expression.',
@@ -101,8 +117,6 @@ export const HOME_DEFAULTS: HomeContent = {
     eyebrow: 'Behind the design',
     title: 'Every print starts as a sound',
     body: 'Each tee begins with a track, a memory or a phrase that stuck. The graphic comes after — drawn once, printed once, and retired when the drop closes.',
-    cta_label: 'Read the story',
-    cta_href: '/our-story',
   },
   craft: {
     eyebrow: 'Fabric, print and construction',
@@ -154,6 +168,8 @@ function mergeSlot<T extends Record<string, unknown>>(fallback: T, stored: unkno
       if (typeof value === 'string' && value.trim()) out[key] = value as T[keyof T];
     } else if (Array.isArray(base)) {
       if (Array.isArray(value)) out[key] = value as T[keyof T];
+    } else if (typeof base === 'boolean') {
+      if (typeof value === 'boolean') out[key] = value as T[keyof T];
     } else if (base === null) {
       // collection_slug: null is a legitimate stored value, so anything
       // string-or-null wins.

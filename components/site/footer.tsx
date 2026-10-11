@@ -28,7 +28,17 @@ import Link from 'next/link';
  * documents for its own email field. The heading and copy do take the
  * design's sizes (24/32/36 and 14).
  */
-export function Footer() {
+export function Footer({
+  newsletterTitle,
+  newsletterBody,
+}: {
+  /** §9.7's newsletter slot, from homepage_sections via the site layout.
+   * The footer is on every page, so this is the one content slot that is
+   * not only the homepage's. Undefined means nothing stored, and the
+   * shipped wording stands. */
+  newsletterTitle?: string;
+  newsletterBody?: string;
+}) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'sent'>('idle');
 
@@ -47,9 +57,10 @@ export function Footer() {
   return (
     <footer className="mc-footer mc-page-gutter">
       <div>
-        <p className="mc-footer-heading">Join the Metheues Frequency</p>
+        <p className="mc-footer-heading">{newsletterTitle ?? 'Join the Metheues Frequency'}</p>
         <p style={{ fontSize: 14, lineHeight: 1.45, margin: '0 0 16px' }}>
-          Drop alerts and first access. No more than twice a month, and you can leave any time.
+          {newsletterBody ??
+            'Drop alerts and first access. No more than twice a month, and you can leave any time.'}
         </p>
         {status === 'sent' ? (
           <p style={{ fontSize: 14, color: 'var(--mc-text-inverse)' }}>You&rsquo;re on the list.</p>
