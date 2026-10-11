@@ -21,6 +21,7 @@ export function DiscoveryBar({
   availableFits,
   availableCollections,
   priceRange,
+  basePath = '/shop',
 }: {
   params: ShopSearchParams;
   resultCount: number;
@@ -30,6 +31,8 @@ export function DiscoveryBar({
   availableFits: string[];
   availableCollections: string[];
   priceRange: [number, number] | null;
+  /** Screen 19 reuses this whole bar and sheet on /collections/<slug>. */
+  basePath?: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -68,7 +71,7 @@ export function DiscoveryBar({
         >
           Filter{filterCount ? ` · ${filterCount}` : ''}
         </button>
-        <SortSelect />
+        <SortSelect basePath={basePath} />
         {/* 47:334: flex 1 0 0, min-width 0, 13px Medium, right aligned. */}
         <p
           style={{
@@ -117,7 +120,7 @@ export function DiscoveryBar({
         <div className="mc-page-gutter" style={{ flex: 1, paddingBottom: 24 }}>
           {filterCount > 0 && (
             <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '16px 0' }}>
-              <Link href={clearAllHref()} style={{ color: 'var(--mc-text-muted)', fontSize: 14 }}>
+              <Link href={clearAllHref(basePath)} style={{ color: 'var(--mc-text-muted)', fontSize: 14 }}>
                 Clear all
               </Link>
             </div>
@@ -129,6 +132,7 @@ export function DiscoveryBar({
             availableFits={availableFits}
             availableCollections={availableCollections}
             priceRange={priceRange}
+            basePath={basePath}
           />
         </div>
 

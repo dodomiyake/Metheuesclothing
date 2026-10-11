@@ -5,6 +5,15 @@
  */
 export type ShopSearchParams = Record<string, string | string[] | undefined>;
 
+/**
+ * Every href here is built against a base path rather than a literal
+ * '/shop', because screen 19 (the collection page) reuses this entire rail
+ * and sheet. It IS 03 Product Listing with the Collection facet removed, so
+ * the alternative was a second copy of the filter machinery that would drift
+ * from this one the first time either changed.
+ */
+const SHOP = '/shop';
+
 function toList(value: string | string[] | undefined): string[] {
   if (!value) return [];
   const raw = Array.isArray(value) ? value[0] : value;
@@ -16,7 +25,12 @@ export function getSelected(params: ShopSearchParams, key: string): string[] {
 }
 
 /** href for a link that toggles `value` in the comma-list at `key`. */
-export function toggleHref(params: ShopSearchParams, key: string, value: string): string {
+export function toggleHref(
+  params: ShopSearchParams,
+  key: string,
+  value: string,
+  basePath: string = SHOP,
+): string {
   const selected = getSelected(params, key);
   const next = selected.includes(value)
     ? selected.filter((v) => v !== value)
@@ -30,11 +44,15 @@ export function toggleHref(params: ShopSearchParams, key: string, value: string)
   }
   if (next.length) search.set(key, next.join(','));
   const qs = search.toString();
-  return qs ? `/shop?${qs}` : '/shop';
+  return qs ? `${basePath}?${qs}` : basePath;
 }
 
 /** href for the same params but with `key` cleared entirely. */
-export function clearHref(params: ShopSearchParams, key: string): string {
+export function clearHref(
+  params: ShopSearchParams,
+  key: string,
+  basePath: string = SHOP,
+): string {
   const search = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
     if (k === key) continue;
@@ -42,11 +60,11 @@ export function clearHref(params: ShopSearchParams, key: string): string {
     if (raw) search.set(k, raw);
   }
   const qs = search.toString();
-  return qs ? `/shop?${qs}` : '/shop';
+  return qs ? `${basePath}?${qs}` : basePath;
 }
 
-export function clearAllHref(): string {
-  return '/shop';
+export function clearAllHref(basePath: string = SHOP): string {
+  return basePath;
 }
 
 export function activeFilterCount(params: ShopSearchParams): number {

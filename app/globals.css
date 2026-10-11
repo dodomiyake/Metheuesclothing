@@ -1217,3 +1217,31 @@ button.mc-icon-button[aria-label='Search'] {
     width: 340px;
   }
 }
+
+/* Screen 19's collection hero (121:5706). A 16:9 band in the design, pinned
+   to 440px at Desktop and proportionally shorter at the two narrower
+   frames. It is an empty well until there is collection photography and a
+   pipeline to upload it — the same gap the product cards carry, and the
+   reason A05 is unbuilt. */
+.mc-collection-hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 200px;
+  width: 100%;
+  background: var(--mc-mist);
+  padding: 0 var(--mc-space-md) 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+@media (min-width: 768px) {
+  .mc-collection-hero {
+    height: 320px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-collection-hero {
+    height: 440px;
+    padding-left: 48px;
+  }
+}

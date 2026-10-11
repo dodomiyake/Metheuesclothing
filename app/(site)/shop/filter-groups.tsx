@@ -22,11 +22,13 @@ function Group({
   paramKey,
   options,
   params,
+  basePath,
 }: {
   title: string;
   paramKey: string;
   options: string[];
   params: ShopSearchParams;
+  basePath: string;
 }) {
   if (!options.length) return null;
   const selected = getSelected(params, paramKey);
@@ -57,7 +59,12 @@ function Group({
         {options.map((opt) => {
           const isOn = selected.includes(opt);
           return (
-            <Link key={opt} href={toggleHref(params, paramKey, opt)} style={chipStyle(isOn)} scroll={false}>
+            <Link
+              key={opt}
+              href={toggleHref(params, paramKey, opt, basePath)}
+              style={chipStyle(isOn)}
+              scroll={false}
+            >
               {opt}
               {isOn && <span aria-hidden>×</span>}
             </Link>
@@ -75,6 +82,7 @@ export function FilterGroups({
   availableFits,
   availableCollections,
   priceRange,
+  basePath = '/shop',
 }: {
   params: ShopSearchParams;
   availableSizes: string[];
@@ -82,13 +90,26 @@ export function FilterGroups({
   availableFits: string[];
   availableCollections: string[];
   priceRange: [number, number] | null;
+  /**
+   * Screen 19 passes '/collections/<slug>'. It also passes an EMPTY
+   * availableCollections, which is how the Collection facet disappears
+   * there — Group returns null for an empty option list, and the frame
+   * removes that facet because the page IS the collection.
+   */
+  basePath?: string;
 }) {
   return (
     <>
-      <Group title="Size" paramKey="size" options={availableSizes} params={params} />
-      <Group title="Colour" paramKey="colour" options={availableColours} params={params} />
-      <Group title="Fit" paramKey="fit" options={availableFits} params={params} />
-      <Group title="Collection" paramKey="collection" options={availableCollections} params={params} />
+      <Group title="Size" paramKey="size" options={availableSizes} params={params} basePath={basePath} />
+      <Group title="Colour" paramKey="colour" options={availableColours} params={params} basePath={basePath} />
+      <Group title="Fit" paramKey="fit" options={availableFits} params={params} basePath={basePath} />
+      <Group
+        title="Collection"
+        paramKey="collection"
+        options={availableCollections}
+        params={params}
+        basePath={basePath}
+      />
       {/* Price is informational in the design -- the rail and filter sheet
           both show a plain range, no selectable chips -- and Availability
           is a single derived chip (in-stock only), not a set worth a Group. */}
@@ -100,7 +121,13 @@ export function FilterGroups({
           </p>
         </div>
       )}
-      <Group title="Availability" paramKey="availability" options={['In stock only']} params={params} />
+      <Group
+        title="Availability"
+        paramKey="availability"
+        options={['In stock only']}
+        params={params}
+        basePath={basePath}
+      />
     </>
   );
 }
