@@ -938,12 +938,65 @@ The staff list IS real, read from profiles. The return window will not go
 below 14 days in the form, which is the UK statutory minimum and something
 the database's own `> 0` check cannot know.
 
-A21 HOMEPAGE CONTENT IS THE LAST ADMIN SCREEN AND IS BLOCKED THE SAME WAY
-A09/A10 WERE. `homepage_sections` (key, content jsonb) is read by NOTHING,
-and `app/(site)/page.tsx` is a fourteen-line placeholder that says the
-storefront is under construction. Building the editor first would repeat
-exactly the mistake Collections nearly made. The real homepage has to come
-first; A21 publishes to it.
+THE HOMEPAGE IS BUILT (02A 38:190 Desktop pulled, 36:93 Tablet and 28:2
+Mobile by screenshot), which replaces a fourteen-line placeholder that
+said the storefront was under construction — untrue for some time, with
+shop, product, bag, collections, auth and order tracking all live behind
+a front door that still apologised for them.
+
+It is also what unblocks A21, the last admin screen, by the same rule
+Collections taught: `homepage_sections` (key, content jsonb) had existed
+since 001 and NOTHING read it, so an editor for it would have been a form
+writing to a table no page consults. `lib/home/sections.ts` is the reader.
+It holds the SEVEN §9.7 slots — announcement bar, hero campaign, featured
+drop, featured T-shirts, brand/craft story, newsletter text, delivery and
+return highlights — each with a full default, so the page renders the
+designed copy against an empty table and A21 only ever overrides. Section
+order, featured count and layout are FIXED, which §9.7 is explicit about
+("a limited content system, not a general page builder") and which A21
+must say rather than imply otherwise. The Fit and size guidance block is
+deliberately NOT a slot: §9.7 does not list it, so its copy stays in the
+page.
+
+THE ANNOUNCEMENT SLOT USES A {threshold} TOKEN, and that is the whole
+reason it is safe to make editable. The Announcement Bar's own component
+description warns that the figure quoted there must match Store settings
+and that nothing validates it; today the bar DERIVES the number so the two
+cannot disagree, and plain free text would trade that guarantee away. The
+token keeps both — write any sentence, and the number in it is still the
+one checkout charges against. It lives in lib/home/tokens.ts rather than
+sections.ts because the bar is a client component and sections.ts is
+`server-only`.
+
+Two homepage copy departures, both narrowing. "On orders over £150,
+tracked with DPD" loses DPD: no carrier is configured anywhere (A14's
+carrier field is free text for exactly that reason) and naming one on the
+homepage would be the shop's most public unverifiable claim. "14-day
+returns" becomes "Returns", because the design's number and the seeded
+store_settings value (30) disagree and the homepage is the wrong place to
+settle it — whatever request_return() enforces is the real window, stated
+where someone is actually deciding. The design's "Open the size guide"
+points at screen 23, which is unbuilt, so it links to the shop; the
+measurements are owner-blocked anyway (§8.5).
+
+The featured T-shirts are real products with real labels — New, Limited
+Edition, Low stock derived exactly as the shop listing derives them. When
+featured_products names slugs they are used IN THAT ORDER (`.in()` does
+not preserve it, and the order is the curation); when it is empty, which
+it is today, the four most recently published stand in so the section is
+never blank mid-curation.
+
+Verified at 390/768/1440: hero column then row with the image 360/520/720,
+hero title 40/52/72, section title 30/42, craft headline 28/40 (40 at
+Desktop, not the section title's 42 — read off 39:266), drop grid 2/2/4
+(NOT the shop listing's 2/3/4, so it has its own class), craft and
+reassurance stacking below 768, no overflow at any width. ONE BUG CAUGHT
+BY MEASURING rather than by eye: the hero well had `flex: 1 0 0` for the
+row layout, and below 768 the hero is a COLUMN where flex-basis is the
+height — so a 360px well rendered 16px tall, its label and nothing else.
+The flex only applies from 768 up now.
+
+A21 ITSELF IS STILL TO BUILD, and now has somewhere to publish to.
 
 Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).

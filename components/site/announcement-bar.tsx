@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { formatPence } from '@/lib/money';
+import { THRESHOLD_TOKEN } from '@/lib/home/tokens';
 import { DismissIcon } from './icons';
 
 /**
@@ -18,7 +19,20 @@ import { DismissIcon } from './icons';
  * rather than its prominence. Type on it uses --mc-accent-text (ink on
  * acid, 15.88:1) -- acid is a ground here, never type.
  */
-export function AnnouncementBar({ thresholdPence }: { thresholdPence: number }) {
+export function AnnouncementBar({
+  thresholdPence,
+  message,
+}: {
+  thresholdPence: number;
+  /**
+   * §9.7's first content slot, from homepage_sections. `{threshold}` in it
+   * is replaced with the real figure below, which is what makes this
+   * editable WITHOUT reintroducing the drift the component description
+   * warns about: write any sentence, and the number in it is still the one
+   * checkout charges against.
+   */
+  message?: string;
+}) {
   const [dismissed, setDismissed] = useState(false);
   if (dismissed) return null;
 
@@ -44,7 +58,9 @@ export function AnnouncementBar({ thresholdPence }: { thresholdPence: number }) 
             color: 'var(--mc-accent-text)',
           }}
         >
-          Free UK delivery on orders over {formatPence(thresholdPence)}
+          {(message ?? `Free UK delivery on orders over ${THRESHOLD_TOKEN}`)
+            .split(THRESHOLD_TOKEN)
+            .join(formatPence(thresholdPence))}
         </span>
       </div>
       <button
