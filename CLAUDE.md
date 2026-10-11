@@ -873,6 +873,78 @@ THEMSELVES ARE UNEXERCISED — there are no collections in the live database
 at all, so /collections renders its empty state and A09 its own. Creating
 the first one is the test.
 
+A22 STORE SETTINGS IS BUILT, AND IT FOUND A REAL GAP (146:3214 Desktop
+pulled, 146:2988 Tablet; no Mobile frame, so WideOnly). This is the first
+admin screen that changes what a customer is CHARGED, and it is OWNER
+ONLY for that reason — every other write here is gated on is_staff(),
+which is right for packing a parcel and wrong for pricing a basket. A22's
+own staff card draws the line in the same place ("Staff — orders,
+fulfilment and returns, no settings"). is_owner() has existed since 002
+and nothing had ever used it. NOTE the check lives in the route, not in
+RLS: store_settings has only a staff write policy, and narrowing it is a
+migration worth doing rather than a thing to skip quietly.
+
+THE DELIVERY PRICES WERE HARDCODED. free_delivery_threshold_pence was a
+column checkout read; the prices beside it were two integer literals in
+app/api/checkout/route.ts (`next_day ? 695 : subtotal >= threshold ? 0 :
+395`). So the owner could change WHEN delivery became free but not what it
+cost, and £3.95 needed a developer and a deploy. MIGRATION 018 adds
+delivery_tracked_48_pence and delivery_next_day_pence, defaulted to
+exactly the literals they replace, and the checkout route reads them in
+the same commit — a column nothing reads would only be a third place for
+the price to disagree with itself. Verified on the live project: the
+defaults came out 395/695 (so no price moved), a write round-trip
+succeeded, and a negative price was rejected by the check constraint with
+the row unchanged. That is the first write this project has exercised
+against store_settings.
+
+Checkout gained two other things with it. It no longer falls back to a
+hardcoded threshold when the settings read fails — it returns 503, because
+pricing a basket off a default nobody chose is migration 008's mistake with
+money instead of a returns window. And MAINTENANCE MODE IS WIRED: the
+column has existed since 001 and nothing had ever read it, so checkout now
+refuses with a 503 and a plain message while the storefront stays
+browsable, which is exactly what the design's card promises. The bag
+surfaces the route's own error text, so the customer reads "the shop is
+paused for maintenance" rather than meeting a dead button.
+
+OF store_settings' NINE COLUMNS, SIX NOW HAVE READERS and three do not.
+Live: free_delivery_threshold_pence, the two new delivery prices,
+return_window_days, vat_rate_basis_points, contact_email, maintenance_mode.
+Unread: collection_fee_pence (nothing applies it to a refund) and
+from_email (emails send from the EMAIL_FROM environment variable, because
+Resend will only send from a verified domain, so the address and the
+deployment have to agree).
+
+A22 OMITS MORE THAN ANY OTHER SCREEN, because the design describes a
+settings table this shop does not have. STORE DETAILS entirely — trading
+name, registered address, company number, VAT number, none of which are
+columns, all of which are legal footer/invoice content already waiting on
+legal review. The Ireland and Rest of Europe delivery rows (delivery_method
+is an enum of exactly two values and checkout ships GB/IE only; a
+per-country rate table is a feature, not two more columns). The collection
+fee, for the reason above — a number recorded and ignored is the one shape
+of field this project keeps refusing. Condition rules (no column; the
+wording lives in the returns page and E6, and one source for both is worth
+doing properly). Both tax tick boxes — prices here are VAT-inclusive
+throughout, which is what UK law requires and what every total assumes, so
+a switch implying you could turn it off would be the most expensive wrong
+tick on the screen; and nothing collects duties because nothing ships
+beyond GB/IE. The Stripe account id and payout schedule (not stored, and
+reading them would mean a live Stripe call on an admin page load). And
+"Invite someone", because there is no invite flow — deliberately.
+
+The staff list IS real, read from profiles. The return window will not go
+below 14 days in the form, which is the UK statutory minimum and something
+the database's own `> 0` check cannot know.
+
+A21 HOMEPAGE CONTENT IS THE LAST ADMIN SCREEN AND IS BLOCKED THE SAME WAY
+A09/A10 WERE. `homepage_sections` (key, content jsonb) is read by NOTHING,
+and `app/(site)/page.tsx` is a fourteen-line placeholder that says the
+storefront is under construction. Building the editor first would repeat
+exactly the mistake Collections nearly made. The real homepage has to come
+first; A21 publishes to it.
+
 Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
 E1/E2 (verify email, password reset) now have a caller — Supabase Auth sends
@@ -884,7 +956,7 @@ config against the live project. E4/E5/E7 need the admin order actions
 return decision — build each template alongside the route that triggers it,
 the way E3 and E6 went in — E4, E5, E7, E8 and E9 have all gone in that way
 now, so only E1/E2 are left and both are owner-blocked. Also still open: homepage
-content (A21) and store settings (A22), and the
+content (A21, blocked on a real homepage — see above), and the
 customer-facing account pages (profile, addresses, signed-in order history
 — now unblocked the same way the catalogue was, since they need auth,
 which exists). The catalogue, bag and guest order

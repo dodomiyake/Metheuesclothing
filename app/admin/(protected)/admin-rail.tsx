@@ -74,8 +74,9 @@ export function AdminRail({
       {/* Only the sections that exist. The design draws ten items across four
           groups; the other seven have no pages, and a rail full of 404s is
           worse for staff than a short one. They go back as each screen
-          lands. Collections (A09) is the latest; Homepage content (A21)
-          and Settings (A22) are what is left. */}
+          lands. Settings (A22) is the latest; Homepage content (A21) is
+          the only one left, and it is waiting on a real homepage to
+          publish to. */}
       <div className="mc-admin-nav" id="mc-admin-nav">
         <AdminNavLink href="/admin" exact onNavigate={() => setOpen(false)}>
           Dashboard
@@ -97,6 +98,9 @@ export function AdminRail({
         </AdminNavLink>
         <AdminNavLink href="/admin/customers" onNavigate={() => setOpen(false)}>
           Customers
+        </AdminNavLink>
+        <AdminNavLink href="/admin/settings" onNavigate={() => setOpen(false)}>
+          Settings
         </AdminNavLink>
         <AdminNavLink href="/admin/audit" onNavigate={() => setOpen(false)}>
           Audit log

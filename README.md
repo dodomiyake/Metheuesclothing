@@ -189,10 +189,11 @@ Code still to write:
 - Admin (`app/admin/`): built are the dashboard (A02), T-shirts and the
   catalogue editors (A03, A04 MVP subset, A06, A07, A08), collections
   (A09, A10), orders and the whole dispatch path (A11, A12, A13, A14),
-  cancel and refund (A15, A16), returns (A17, A18), customers (A19, A20)
-  and the audit log (A23). Not built: the image manager (A05 — no upload
-  pipeline exists, and there is no real photography to manage yet),
-  homepage content (A21) and store settings (A22). Several screens carry
+  cancel and refund (A15, A16), returns (A17, A18), customers (A19, A20),
+  store settings (A22) and the audit log (A23). Not built: the image
+  manager (A05 — no upload pipeline exists, and there is no real
+  photography to manage yet) and homepage content (A21, which needs a
+  real homepage to publish to first). Several screens carry
   deliberate omissions where the design draws an action with nothing
   behind it — each one is recorded in the page's own comment rather than
   shipped as a dead control. There is also no self-service way to *become*
