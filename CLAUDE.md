@@ -739,6 +739,30 @@ migration nobody has written. And "Email this customer" IS real: a mailto,
 because nothing in this app sends staff email. Contact preferences stay
 read-only exactly as the ledger requires.
 
+BEFORE A09/A10 COLLECTIONS, KNOW THIS: both frames were pulled (145:2426
+and 145:2762 Desktop) and the screens describe a storefront that does not
+exist. There is NO collection page in this app — nothing under
+`/collections/`, and the site header has no collections menu. `collections`
+is read in exactly two places, both on the shop listing and product detail,
+as a FILTER and as a label on a card. So A09's "drag to set the order they
+appear in the menu", A10's `metheues.com/collections/the-first-drop` helper,
+its "View on the site" button, its hero image and alt text, and the note's
+"hiding a collection takes it out of the menu but its page stays reachable
+by its address" are all claims about a page nobody has built. `position`,
+`hero_path`, `hero_alt`, `seo_title` and `seo_description` on `collections`
+are written by nothing and read by nothing. The one part that IS real is
+`status`: collections_public_read is `status = 'live' or is_staff()`, so a
+hidden collection genuinely disappears from the storefront filter.
+
+The missing half has a frame of its own — storefront screen "19 The First
+Drop", which the ledger describes as 03 Product Listing cloned with a 16:9
+hero band and a drop metadata row, "the page IS the collection". Building 19
+is what makes A10's fields true. Doing A09/A10 without it means an editor
+whose every field edits a real column that reaches no reader, which is a
+different screen from the one the design draws — so decide the order
+deliberately rather than starting with the admin pair because it is next in
+the admin numbering.
+
 Then: the remaining seven Resend templates (`lib/email/layout.ts` has the
 shared chrome — reuse it rather than duplicating table markup per template).
 E1/E2 (verify email, password reset) now have a caller — Supabase Auth sends
