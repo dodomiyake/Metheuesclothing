@@ -3,6 +3,7 @@ import { WideOnly } from '@/components/admin/wide-only';
 import { buildHomeContent } from '@/lib/home/sections';
 import type { ContentPayload } from '@/lib/admin/content-schema';
 import { ContentForm, type CollectionOption, type ProductOption } from './content-form';
+import { loadPrimaryImages } from '@/lib/shop/product-images';
 
 /**
  * A21 Store content — Figma 146:2755 (Desktop pulled) / 146:2536 (Tablet).
@@ -26,7 +27,7 @@ export default async function AdminContentPage() {
 
   const [sectionsQuery, productsQuery, collectionsQuery] = await Promise.all([
     supabase.from('homepage_sections').select('key, content, updated_at, updated_by'),
-    supabase.from('products').select('slug, name, status').order('name'),
+    supabase.from('products').select('id, slug, name, status').order('name'),
     // Only live collections: the hero button and the featured-drop link
     // both point at collection PAGES, and a hidden collection's page 404s
     // for a customer (002_rls.sql:88). Offering one would be offering a
@@ -71,6 +72,21 @@ export default async function AdminContentPage() {
     lastPublished = { at: newest.at, by: name };
   }
 
+  // The thumbnails beside the featured T-shirts are their own position-0
+  // images (A05). The point of this list is choosing which four T-shirts a
+  // customer sees first, and choosing them by name alone is choosing them
+  // blind.
+  const productImages = await loadPrimaryImages(
+    supabase,
+    (productsQuery.data ?? []).map((p) => p.id as string),
+  );
+  const productOptions: ProductOption[] = (productsQuery.data ?? []).map((p) => ({
+    slug: p.slug as string,
+    name: p.name as string,
+    status: p.status as string,
+    imageUrl: productImages.get(p.id as string)?.url ?? null,
+  }));
+
   // The form edits exactly what the route accepts: the hero's eyebrow is
   // not a field (it comes from the featured drop) and the story has no
   // CTA (screen 32 is unbuilt), so neither is passed through.
@@ -81,6 +97,8 @@ export default async function AdminContentPage() {
       body: content.hero.body,
       cta_label: content.hero.cta_label,
       cta_href: content.hero.cta_href,
+      image_path: content.hero.image_path,
+      image_alt: content.hero.image_alt,
     },
     featured_drop: content.featured_drop,
     featured_products: content.featured_products,
@@ -94,7 +112,7 @@ export default async function AdminContentPage() {
     <WideOnly title="Homepage content">
       <ContentForm
         initial={initial}
-        products={(productsQuery.data ?? []) as ProductOption[]}
+        products={productOptions}
         collections={(collectionsQuery.data ?? []) as CollectionOption[]}
         lastPublished={lastPublished}
       />

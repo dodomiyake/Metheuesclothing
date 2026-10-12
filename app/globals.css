@@ -1220,9 +1220,8 @@ button.mc-icon-button[aria-label='Search'] {
 
 /* Screen 19's collection hero (121:5706). A 16:9 band in the design, pinned
    to 440px at Desktop and proportionally shorter at the two narrower
-   frames. It is an empty well until there is collection photography and a
-   pipeline to upload it — the same gap the product cards carry, and the
-   reason A05 is unbuilt. */
+   frames. It holds `collections.hero_path` once A10 has one uploaded, and
+   the labelled well until then. */
 .mc-collection-hero {
   display: flex;
   flex-direction: column;
@@ -1476,4 +1475,31 @@ button.mc-icon-button[aria-label='Search'] {
 }
 .mc-button-ghost {
   color: var(--mc-text-primary);
+}
+
+/* A05's image grid (134:1445). 152px tiles that wrap, exactly as the frame
+   draws them — auto-fill rather than a fixed column count, so the grid
+   uses whatever width the card has at 768 and at 1440 without two
+   breakpoints saying the same thing. */
+/* A filled hero holds a photograph and nothing else — the label well's
+   bottom padding would letterbox it. Both are the same box otherwise, so
+   the height and the breakpoint steps above still apply. */
+.mc-collection-hero-filled,
+.mc-home-hero-image-filled {
+  padding: 0;
+  display: block;
+}
+.mc-collection-hero-filled > img,
+.mc-home-hero-image-filled > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mc-image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(152px, 1fr));
+  gap: 12px;
+  width: 100%;
 }

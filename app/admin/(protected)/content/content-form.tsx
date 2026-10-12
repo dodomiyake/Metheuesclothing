@@ -3,8 +3,9 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import type { ContentPayload } from '@/lib/admin/content-schema';
+import { SingleImageField } from '@/components/admin/single-image-field';
 
-export type ProductOption = { slug: string; name: string; status: string };
+export type ProductOption = { slug: string; name: string; status: string; imageUrl: string | null };
 export type CollectionOption = { slug: string; name: string };
 
 /**
@@ -24,9 +25,11 @@ export type CollectionOption = { slug: string; name: string };
  *    shop, the collections index, each live collection), and the route
  *    refuses anything else. The design draws a select too; making it free
  *    text would put a 404 one typo away on the busiest button in the shop.
- *  - The hero image slot is shown and not editable. There is no upload
- *    pipeline anywhere — the same gap that leaves A05 unbuilt — so a
- *    "replace" control would open nothing.
+ *  - The hero image IS editable now: migration 019 gave the shop a bucket,
+ *    and the path lives in the `hero` slot's own jsonb rather than in a
+ *    column, because there is no homepage table for a column to be on.
+ *    Uploading a file does not change the homepage — Save and publish
+ *    does, the same as every other field here.
  *  - Each reassurance highlight gets TWO fields, not one. A21 draws a
  *    single line per highlight while the homepage (39:289) draws a title
  *    and a supporting line under it, and the page is the thing customers
@@ -181,11 +184,19 @@ export function ContentForm({
                 onChange={(cta_href) => patch('hero', { cta_href })}
                 options={destinations}
               />
-              <Well label="HERO PHOTOGRAPHY 16:9" />
+              <SingleImageField
+                label="Hero photograph"
+                help="Shown beside the heading from 768px up and above it on a phone. Uploading does not publish it; Save and publish does."
+                scope="homepage"
+                path={values.hero.image_path}
+                alt={values.hero.image_alt}
+                onChange={({ path, alt }) => patch('hero', { image_path: path, image_alt: alt })}
+              />
               <p style={mutedSmall}>
                 One campaign, not a carousel. A rotating hero halves the attention each message
-                gets, and nobody waits for slide three. There is no way to upload the photograph
-                yet — nothing in this shop has an image pipeline.
+                gets, and nobody waits for slide three. Leave the description empty and the
+                photograph is treated as decoration — right here, because the heading beside it
+                already says what the campaign is.
               </p>
             </Panel>
 
@@ -236,7 +247,18 @@ export function ContentForm({
                       <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--mc-text-muted)', width: 16 }}>
                         {i + 1}
                       </span>
-                      <span aria-hidden style={{ width: 30, height: 38, background: 'var(--mc-mist)', borderRadius: 2, flexShrink: 0 }} />
+                      <span
+                        aria-hidden
+                        style={{ width: 30, height: 38, background: 'var(--mc-mist)', borderRadius: 2, flexShrink: 0, overflow: 'hidden', display: 'block' }}
+                      >
+                        {byslug.get(slug)?.imageUrl && (
+                          <img
+                            src={byslug.get(slug)!.imageUrl!}
+                            alt=""
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                          />
+                        )}
+                      </span>
                       <span style={{ flex: '1 0 0', minWidth: 140, fontSize: 14, fontWeight: 500 }}>
                         {byslug.get(slug)?.name ?? slug}
                         {byslug.get(slug) && byslug.get(slug)!.status !== 'published' && (
@@ -625,30 +647,6 @@ function Check({
         <span style={mutedSmall}>{description}</span>
       </span>
     </label>
-  );
-}
-
-function Well({ label }: { label: string }) {
-  return (
-    <div
-      aria-hidden
-      style={{
-        height: 150,
-        width: '100%',
-        background: 'var(--mc-mist)',
-        borderRadius: 2,
-        display: 'flex',
-        alignItems: 'flex-end',
-        padding: '0 12px 10px',
-        boxSizing: 'border-box',
-        fontSize: 10,
-        fontWeight: 600,
-        letterSpacing: '1px',
-        color: 'var(--mc-text-muted)',
-      }}
-    >
-      {label}
-    </div>
   );
 }
 

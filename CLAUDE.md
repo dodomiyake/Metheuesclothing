@@ -1066,7 +1066,66 @@ deferred and why. `app/track-order/` has no order detail page of its own
 (13 Order Detail) — everything it shows lives on the one lookup-result
 page, reusing that screen's own content rather than a generic summary.
 
-Blocked on the owner, not on code: photography, verified garment measurements
+A05 PRODUCT IMAGES IS BUILT AND SO IS THE PIPELINE UNDER IT, which is what
+every "no photography exists" note in this file was waiting on. MIGRATION
+019 IS APPLIED: one public `shop-images` bucket (10 MB, four image mime
+types) separated by path prefix rather than three buckets with three
+identical policy sets, four storage policies (public read; staff insert,
+update and delete gated on is_staff()), and a unique index on
+`product_images (product_id, position)` — the index is what makes position
+mean something, and it is why the reorder route stages negative positions
+before writing the real ones rather than colliding with itself.
+
+THE FILE NEVER PASSES THROUGH THIS APP. POST /api/admin/images/sign hands
+the browser a one-shot signed upload URL and the browser talks to Supabase
+directly: a route that accepted the bytes would meet Vercel's 4.5 MB body
+limit, pay for the bandwidth twice and bill the upload as function time.
+The PATH is chosen server-side from a uuid and the declared type, never
+sent by the client — a client-supplied path is a client-supplied place to
+write — and `isShopImagePath` is the one shape anything stored here may
+have. The sign URL is created with the CALLER'S OWN session, not the
+service role, so the storage policy gets to refuse as well.
+
+THE READERS ARE WIRED, which is the half that makes an upload visible.
+Product cards (shop, collection, homepage featured, related), the product
+detail gallery, the collection hero (`collections.hero_path`, now editable
+in A10), the homepage hero (a path in the `hero` jsonb slot, editable in
+A21 — jsonb because there is no homepage table for a column to live on),
+A12's order lines, A13's pick list, A18's return lines, A09's list and
+both curation lists. Every one of them falls back to the well it had
+before, because a catalogue mid-shoot has photographed and unphotographed
+T-shirts side by side.
+
+THE GALLERY SWAPS WITH THE CHOSEN COLOUR, which is the whole reason A05
+lets an image be assigned to one. Colour had to move out of AddToBag into
+a small wrapper (`product-media.tsx`) that owns it and renders both cells
+of 04A's grid, because the gallery and the purchase panel sit in different
+cells and the state is shared. An image assigned to no colour (a fabric or
+print detail) shows for EVERY colour rather than being uploaded four
+times, and a colour with neither its own images nor a shared one shows the
+whole set rather than nothing. Order lines use the same rule, for a
+sharper reason: the BLACK photograph beside a WHITE line on a pick list is
+how the wrong garment goes in the parcel.
+
+Deletion is ordered like /refund's: the ROW goes first and the file after,
+because an orphaned file costs storage and a row pointing at a deleted
+file is a broken image on the shop. Removing a hero in A10 or A21 clears
+the path and leaves the file, for the same reason.
+
+Verified at 390/768/1440 by measuring the live CSS, not by eye: A05 is
+gated below 768 (it is on `admin_breakpoint_decision`'s no_mobile list),
+one column at 768 and two with a 340px side panel at 1440; the gallery's
+thumb rails stay none/tablet/desktop across the three widths with the main
+image at 4:5 (350x438, 328x410, 548x685); the collection hero holds
+200/320/440 and the homepage hero image 360/520/720 — unchanged from
+before the photographs, with every picture filling its box rather than
+letterboxed by the well's own padding. No horizontal overflow at any
+width. THE WRITE PATH IS UNEXERCISED: this sandbox cannot reach Supabase,
+and there are no images, collections or homepage rows in the live
+database. Uploading the first photograph is the test.
+
+Blocked on the owner, not on code: photography (there is somewhere to put
+it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
 delivery rates, the £150 threshold, a verified sending domain for Resend, and
 legal review of the returns and privacy copy. Three seeded values in migration

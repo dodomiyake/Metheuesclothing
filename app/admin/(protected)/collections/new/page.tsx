@@ -22,6 +22,7 @@ export default function NewCollectionPage() {
           name: '',
           slug: '',
           description: '',
+          hero_path: null,
           hero_alt: '',
           status: 'hidden',
           published_at: null,

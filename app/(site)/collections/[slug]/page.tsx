@@ -6,6 +6,8 @@ import { DiscoveryBar } from '../../shop/discovery-bar';
 import { SortSelect } from '../../shop/sort-select';
 import { ProductCard, type ProductCardData } from '../../shop/product-card';
 import { summarizeProduct } from '@/lib/shop/product-summary';
+import { loadPrimaryImages } from '@/lib/shop/product-images';
+import { imageUrl } from '@/lib/images';
 import { sortSizes } from '@/lib/shop/size-order';
 import {
   activeFilterCount,
@@ -93,7 +95,7 @@ export default async function CollectionPage({
 
   const { data: collection, error: collectionError } = await supabase
     .from('collections')
-    .select('id, slug, name, description, hero_alt, status, published_at, seo_title, seo_description')
+    .select('id, slug, name, description, hero_path, hero_alt, status, published_at, seo_title, seo_description')
     .eq('slug', slug)
     .maybeSingle();
   // A query error and a missing row both leave `data` null, and only the
@@ -143,6 +145,8 @@ export default async function CollectionPage({
     variantsByProduct.set(v.product_id, list);
   }
 
+  const primaryImages = await loadPrimaryImages(supabase, memberIds);
+
   const allSizes = new Set<string>();
   const allColours = new Set<string>();
   const allFits = new Set<string>();
@@ -166,7 +170,15 @@ export default async function CollectionPage({
       // the collection is a given, so it is passed the same name a product
       // card would see anywhere else rather than an empty list.
       const summary = summarizeProduct(p.published_at, vs, [collection.name as string]);
-      return { id: p.id, slug: p.slug, name: p.name, fit: p.fit, ...summary };
+      const image = primaryImages.get(p.id);
+      return {
+        id: p.id,
+        slug: p.slug,
+        name: p.name,
+        fit: p.fit,
+        image: image ? { url: image.url, alt: image.alt } : null,
+        ...summary,
+      };
     })
     .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
 
@@ -195,29 +207,39 @@ export default async function CollectionPage({
   const filterCount = activeFilterCount(query);
   const priceRange: [number, number] | null = priceMin !== Infinity ? [priceMin, priceMax] : null;
   const madeIn = allMadeIn.size === 1 ? [...allMadeIn][0] : null;
+  const heroUrl = imageUrl(collection.hero_path as string | null);
 
   return (
     <main style={{ fontFamily: 'var(--mc-font-body)' }}>
-      {/* 121:5706. No collection photography exists (README's blocked-on-owner
-          list) and there is no upload pipeline to put any there — A05 is
-          omitted for the same reason — so this is the same honest well the
-          product cards use rather than a broken <img>.
-          Deliberately NOT role="img" with hero_alt as its label: there is no
-          image here, and announcing one to a screen reader would describe a
-          photograph nobody can see. hero_alt is selected above and goes on
-          the <img> the day one exists. */}
-      <div className="mc-collection-hero">
-        <span
-          style={{
-            fontSize: 10,
-            fontWeight: 600,
-            letterSpacing: '1.2px',
-            color: 'var(--mc-text-muted)',
-          }}
-        >
-          COLLECTION PHOTOGRAPHY 16:9
-        </span>
-      </div>
+      {/* 121:5706. The hero is `collections.hero_path`, uploaded in A10, with
+          hero_alt as its alt text — which is why A10 kept the alt field
+          editable before any photograph existed. Without one this stays the
+          same honest well the product cards use rather than a broken <img>;
+          the well is deliberately NOT role="img" labelled with hero_alt,
+          because announcing an image that is not there would describe a
+          photograph nobody can see.
+          An empty alt on a <img> that IS there is correct and not an
+          oversight: the collection's name and description sit beside it in
+          text, so an unlabelled decorative hero is better than a screen
+          reader reading a filename-ish nothing. */}
+      {heroUrl ? (
+        <div className="mc-collection-hero mc-collection-hero-filled">
+          <img src={heroUrl} alt={(collection.hero_alt as string | null) ?? ''} />
+        </div>
+      ) : (
+        <div className="mc-collection-hero">
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '1.2px',
+              color: 'var(--mc-text-muted)',
+            }}
+          >
+            COLLECTION PHOTOGRAPHY 16:9
+          </span>
+        </div>
+      )}
 
       <div
         className="mc-page-gutter"

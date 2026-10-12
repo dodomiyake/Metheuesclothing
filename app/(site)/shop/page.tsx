@@ -5,6 +5,7 @@ import { DiscoveryBar } from './discovery-bar';
 import { SortSelect } from './sort-select';
 import { ProductCard, type ProductCardData } from './product-card';
 import { summarizeProduct } from '@/lib/shop/product-summary';
+import { loadPrimaryImages } from '@/lib/shop/product-images';
 import { sortSizes } from '@/lib/shop/size-order';
 import {
   activeFilterCount,
@@ -42,8 +43,9 @@ type VariantRow = {
  * anywhere in the schema and is omitted rather than faked. New/Limited
  * Edition/Low stock/Sold out labels are derived from published_at,
  * collection membership and stock_quantity vs low_stock_threshold — never
- * hardcoded. No product photography exists yet, so every card keeps the
- * "Product photography 4:5" placeholder well.
+ * hardcoded. Cards show the product's position-0 `product_images` row
+ * where one has been uploaded through A05, and keep the "Product
+ * photography 4:5" well where one has not.
  */
 export default async function ShopPage({
   searchParams,
@@ -80,6 +82,8 @@ export default async function ShopPage({
     : { data: [] as CollectionLinkRow[], error: null };
   if (collectionsError) throw new Error(`Could not load collections: ${collectionsError.message}`);
   const collectionLinks = (collectionLinksRaw ?? []) as unknown as CollectionLinkRow[];
+
+  const primaryImages = await loadPrimaryImages(supabase, productIds);
 
   const variantsByProduct = new Map<string, VariantRow[]>();
   for (const v of (variants ?? []) as VariantRow[]) {
@@ -118,12 +122,15 @@ export default async function ShopPage({
       const collections = collectionsByProduct.get(p.id) ?? [];
       const summary = summarizeProduct(p.published_at, vs, collections);
 
+      const image = primaryImages.get(p.id);
+
       return {
         id: p.id,
         slug: p.slug,
         name: p.name,
         fit: p.fit,
         collections,
+        image: image ? { url: image.url, alt: image.alt } : null,
         ...summary,
       };
     },

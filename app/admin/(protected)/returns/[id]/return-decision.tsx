@@ -71,6 +71,8 @@ export type DecisionItem = {
   customerReason: string;
   condition: string | null;
   restock: boolean;
+  /** The photograph of this line's own colourway, where one exists. */
+  imageUrl: string | null;
 };
 
 export function ReturnDecision({
@@ -168,9 +170,10 @@ export function ReturnDecision({
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {/* No product photography exists (README's blocked-on-owner
-                  list), so this is the same honest well the rest of the admin
-                  uses rather than a broken <img>. */}
+              {/* This line's own colourway where it has been photographed
+                  (lib/admin/variant-images.ts), and the same honest well
+                  where it has not. aria-hidden either way: the garment,
+                  colour, size and SKU are in text beside it. */}
               <div
                 aria-hidden
                 style={{
@@ -179,8 +182,17 @@ export function ReturnDecision({
                   flexShrink: 0,
                   background: 'var(--mc-mist)',
                   borderRadius: 'var(--mc-radius-sm)',
+                  overflow: 'hidden',
                 }}
-              />
+              >
+                {item.imageUrl && (
+                  <img
+                    src={item.imageUrl}
+                    alt=""
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                )}
+              </div>
               <div style={{ flex: '1 0 0', minWidth: 0 }}>
                 <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>{item.label}</p>
                 <p style={{ fontSize: 12, lineHeight: '18px', color: 'var(--mc-text-muted)', margin: 0 }}>

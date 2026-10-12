@@ -11,6 +11,8 @@ export type CollectionRow = {
   name: string;
   status: string;
   published_at: string | null;
+  /** The hero as a public URL, or null while this collection has none. */
+  heroUrl: string | null;
   productCount: number;
 };
 
@@ -119,10 +121,12 @@ export function CollectionsList({ rows }: { rows: CollectionRow[] }) {
                     ⠿
                   </span>
 
-                  {/* 145:2514 — a 56x42 cover. It is a grey block in the
-                      design too: there is no collection photography and no
-                      pipeline to upload any (A05 is unbuilt for the same
-                      reason), so it stays a well rather than a broken img. */}
+                  {/* 145:2514 — a 56x42 cover, the hero A10 uploaded. A grey
+                      block in the design too, and still one here for a
+                      collection without a photograph. aria-hidden either
+                      way: the collection's name is the next thing in the
+                      row, so the thumbnail is decoration beside its own
+                      label. */}
                   <span
                     aria-hidden
                     style={{
@@ -131,8 +135,18 @@ export function CollectionsList({ rows }: { rows: CollectionRow[] }) {
                       flexShrink: 0,
                       background: 'var(--mc-mist)',
                       borderRadius: 2,
+                      overflow: 'hidden',
+                      display: 'block',
                     }}
-                  />
+                  >
+                    {c.heroUrl && (
+                      <img
+                        src={c.heroUrl}
+                        alt=""
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
+                    )}
+                  </span>
 
                   <span style={{ flex: '1 0 0', minWidth: 180, display: 'flex', flexDirection: 'column', gap: 3 }}>
                     <Link

@@ -4,14 +4,22 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { StatusBadge, COLLECTION_BADGE } from '@/components/admin/status-badge';
+import { SingleImageField } from '@/components/admin/single-image-field';
 
-export type MemberProduct = { id: string; name: string; slug: string; status: string };
+export type MemberProduct = {
+  id: string;
+  name: string;
+  slug: string;
+  status: string;
+  imageUrl: string | null;
+};
 
 export type CollectionValues = {
   id: string | null;
   name: string;
   slug: string;
   description: string;
+  hero_path: string | null;
   hero_alt: string;
   status: 'scheduled' | 'live' | 'hidden';
   published_at: string | null;
@@ -27,13 +35,13 @@ export type CollectionValues = {
  *
  * WHAT THE DESIGN DRAWS THAT IS NOT HERE, and why:
  *
- *  - "Replace image" and "Remove" on the hero (145:2876). There is no
- *    upload pipeline anywhere in this codebase — it is the same gap that
- *    leaves A05 Product image manager unbuilt and every product card
- *    showing a well. A button that opens nothing is worse than no button.
- *    ALT TEXT IS KEPT AND IS REAL: hero_alt is a column, screen 19 reads
- *    it, and writing it now means the day an image lands it already has a
- *    description instead of needing a second pass.
+ *  - "Replace image" and "Remove" on the hero (145:2876) are now REAL —
+ *    migration 019 gave the shop a bucket and A05 gave it an upload path,
+ *    so the field uploads a file and the collection page renders it. The
+ *    alt text that shipped before any of that existed is what it is for.
+ *    Upload is held back on a collection that has not been created yet,
+ *    for the same reason its T-shirt list is: the file is stored under the
+ *    collection's id, and there is no id until it is saved.
  *
  *  - "View on the site" (145:2843) is kept and now goes somewhere — it did
  *    not until screen 19 was built last commit.
@@ -96,6 +104,7 @@ export function CollectionForm({
         slug: values.slug.trim(),
         status: values.status,
         description: values.description.trim() || null,
+        hero_path: values.hero_path,
         hero_alt: values.hero_alt.trim() || null,
         seo_title: values.seo_title.trim() || null,
         seo_description: values.seo_description.trim() || null,
@@ -225,37 +234,41 @@ export function CollectionForm({
             </Panel>
 
             <Panel heading="Collection hero">
-              <div
-                aria-hidden
-                style={{
-                  height: 180,
-                  width: '100%',
-                  background: 'var(--mc-mist)',
-                  borderRadius: 2,
-                  display: 'flex',
-                  alignItems: 'flex-end',
-                  padding: '0 12px 10px',
-                  boxSizing: 'border-box',
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: '1px',
-                  color: 'var(--mc-text-muted)',
-                }}
-              >
-                COLLECTION PHOTOGRAPHY 16:9
-              </div>
-              <p style={mutedSmall}>
-                There is no way to upload an image yet — nothing in this shop has an image pipeline,
-                which is why every product card is a placeholder too. The alt text below is stored
-                now so the picture arrives already described.
-              </p>
-              <Field
-                label="Alt text"
-                value={values.hero_alt}
-                onChange={(v) => set('hero_alt', v)}
-                maxLength={500}
-                helper="What someone who cannot see the photograph should be told it shows."
-              />
+              {isNew ? (
+                <>
+                  <p style={mutedSmall}>
+                    Create the collection first, then add the hero photograph. The file is stored
+                    under the collection&apos;s own id, and it does not have one until it is saved.
+                  </p>
+                  <Field
+                    label="Alt text"
+                    value={values.hero_alt}
+                    onChange={(v) => set('hero_alt', v)}
+                    maxLength={500}
+                    helper="What someone who cannot see the photograph should be told it shows."
+                  />
+                </>
+              ) : (
+                <>
+                  <SingleImageField
+                    label="Hero photograph"
+                    help="Shown full width at the top of the collection page — 16:9 or wider. Uploading does not publish it; Save does."
+                    scope="collection"
+                    ownerId={initial.id ?? undefined}
+                    path={values.hero_path}
+                    alt={values.hero_alt}
+                    onChange={({ path, alt }) => {
+                      setValues((v) => ({ ...v, hero_path: path, hero_alt: alt }));
+                      setSaved(false);
+                    }}
+                  />
+                  <p style={mutedSmall}>
+                    Removing the image here leaves the file in storage and stops the page pointing
+                    at it. Nothing deletes the file: an unreferenced one costs storage, a broken
+                    hero costs a customer.
+                  </p>
+                </>
+              )}
             </Panel>
 
             <Panel heading={isNew ? 'T-shirts in this collection' : 'T-shirts in this collection — drag to reorder'}>
@@ -300,7 +313,18 @@ export function CollectionForm({
                           <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--mc-text-muted)', width: 18 }}>
                             {i + 1}
                           </span>
-                          <span aria-hidden style={{ width: 32, height: 40, background: 'var(--mc-mist)', borderRadius: 2, flexShrink: 0 }} />
+                          <span
+                            aria-hidden
+                            style={{ width: 32, height: 40, background: 'var(--mc-mist)', borderRadius: 2, flexShrink: 0, overflow: 'hidden', display: 'block' }}
+                          >
+                            {m.imageUrl && (
+                              <img
+                                src={m.imageUrl}
+                                alt=""
+                                style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                              />
+                            )}
+                          </span>
                           <span style={{ flex: '1 0 0', minWidth: 140, fontSize: 14, fontWeight: 500 }}>
                             {m.name}
                             {m.status !== 'published' && (

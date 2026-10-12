@@ -6,6 +6,7 @@ import { FULFILMENT_BADGE } from '@/components/admin/status-badge';
 import { countryName, customerName, orderCountryCode } from '../../order-fields';
 import { buildFulfilmentSteps } from '../fulfilment-steps';
 import { PackWorkflow, type Pick } from './pack-workflow';
+import { loadVariantImages } from '@/lib/admin/variant-images';
 
 /**
  * A13 Pack (139:2295 Desktop / 139:2116 Tablet) — the packing bench screen,
@@ -43,7 +44,7 @@ export default async function PackOrderPage({ params }: { params: Promise<{ id: 
 
   const { data: items, error: itemsError } = await supabase
     .from('order_items')
-    .select('id, product_name, sku, colour, size, quantity')
+    .select('id, variant_id, product_name, sku, colour, size, quantity')
     .eq('order_id', id);
   if (itemsError) throw new Error(`Could not load the order's items: ${itemsError.message}`);
 
@@ -85,11 +86,20 @@ export default async function PackOrderPage({ params }: { params: Promise<{ id: 
     );
   }
 
+  // A picture on a PICK LIST is the one place a thumbnail does real work:
+  // colour and size are what get picked wrong, and the photograph is for
+  // this line's own colour (lib/admin/variant-images.ts).
+  const pickImages = await loadVariantImages(
+    supabase,
+    (items ?? []).map((i) => i.variant_id as string | null),
+  );
+
   const picks: Pick[] = (items ?? []).map((item) => ({
     id: item.id,
     label: `${item.product_name} — ${item.colour} / ${item.size}`,
     sku: item.sku,
     quantity: item.quantity,
+    imageUrl: pickImages.get((item.variant_id as string | null) ?? '')?.url ?? null,
   }));
 
   const steps = buildFulfilmentSteps({

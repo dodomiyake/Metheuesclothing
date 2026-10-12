@@ -4,6 +4,7 @@ import { swatchColour } from '@/lib/shop/colour-swatch';
 
 export type ProductCardData = {
   slug: string;
+  image?: { url: string; alt: string } | null;
   name: string;
   minPrice: number;
   colours: string[];
@@ -17,8 +18,17 @@ export type ProductCardData = {
  * §8.2 Product Card (Figma node 20:60). Availability covers New / Limited
  * Edition / Low stock / Sold out -- all derived from real data (published_at
  * recency, collection membership, stock_quantity vs low_stock_threshold),
- * never fabricated. Image well stays a placeholder: no product photography
- * exists yet (README's "blocked on the owner" list).
+ * never fabricated. The image is a real `product_images` row (position 0,
+ * uploaded through A05) when one exists; the placeholder well is still the
+ * fallback, because a catalogue mid-shoot has photographed and
+ * unphotographed T-shirts side by side and a broken <img> is worse than a
+ * labelled well.
+ *
+ * A plain <img>, not next/image: the bucket is public and the files are
+ * already export-sized, so the optimiser would add a billed transform in
+ * front of a CDN that is already serving them. `loading="lazy"` and the
+ * 4:5 box carry what matters — a grid of forty that does not fetch forty
+ * images, and no layout shift when each one lands.
  */
 export function ProductCard({ product }: { product: ProductCardData }) {
   const label = !product.inStock
@@ -42,20 +52,29 @@ export function ProductCard({ product }: { product: ProductCardData }) {
           opacity: product.inStock ? 1 : 0.55,
         }}
       >
-        <p
-          style={{
-            position: 'absolute',
-            left: 16,
-            bottom: 16,
-            fontSize: 11,
-            letterSpacing: '1.32px',
-            textTransform: 'uppercase',
-            color: 'var(--mc-text-muted)',
-            margin: 0,
-          }}
-        >
-          Product photography 4:5
-        </p>
+        {product.image ? (
+          <img
+            src={product.image.url}
+            alt={product.image.alt}
+            loading="lazy"
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <p
+            style={{
+              position: 'absolute',
+              left: 16,
+              bottom: 16,
+              fontSize: 11,
+              letterSpacing: '1.32px',
+              textTransform: 'uppercase',
+              color: 'var(--mc-text-muted)',
+              margin: 0,
+            }}
+          >
+            Product photography 4:5
+          </p>
+        )}
         {label && (
           <span
             style={{

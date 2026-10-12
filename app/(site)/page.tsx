@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
 import { ProductCard, type ProductCardData } from './shop/product-card';
 import { summarizeProduct } from '@/lib/shop/product-summary';
+import { loadPrimaryImages } from '@/lib/shop/product-images';
+import { imageUrl } from '@/lib/images';
 import { formatPence } from '@/lib/money';
 import { buildHomeContent, withThreshold } from '@/lib/home/sections';
 
@@ -48,8 +50,9 @@ import { buildHomeContent, withThreshold } from '@/lib/home/sections';
  *    real window, and it is stated on the product page and in the return
  *    flow where someone is actually deciding.
  *
- * No photography exists, so the hero and every card keep the same honest
- * wells the rest of the storefront uses (README's blocked-on-owner list).
+ * The hero reads the `hero` slot's own image_path (A21) and every card its
+ * position-0 product_images row (A05). Where nothing has been uploaded yet
+ * both keep the same honest wells the rest of the storefront uses.
  */
 export default async function HomePage() {
   const supabase = await createServerComponentClient();
@@ -80,14 +83,25 @@ export default async function HomePage() {
   );
 
   const featured = await loadFeatured(supabase, content.featured_products.slugs);
+  const heroImage = imageUrl(content.hero.image_path);
 
   return (
     <main style={{ fontFamily: 'var(--mc-font-body)' }}>
       {/* Hero — 38:215. Split at 768 and above, stacked below. */}
       <section className="mc-home-hero">
-        <div className="mc-home-hero-image" aria-hidden>
-          <span className="mc-home-well-label">CAMPAIGN PHOTOGRAPHY 4:5</span>
-        </div>
+        {heroImage ? (
+          // A21 holds this path and its alt text. An empty alt is a real
+          // choice, not a missing one: the hero's words sit beside the
+          // picture in text, so an undescribed campaign shot is treated as
+          // decoration rather than given a guess at what it shows.
+          <div className="mc-home-hero-image mc-home-hero-image-filled">
+            <img src={heroImage} alt={content.hero.image_alt} />
+          </div>
+        ) : (
+          <div className="mc-home-hero-image" aria-hidden>
+            <span className="mc-home-well-label">CAMPAIGN PHOTOGRAPHY 4:5</span>
+          </div>
+        )}
         <div className="mc-home-hero-copy">
           {/* The featured drop's eyebrow, not a hero field — see
               lib/home/sections.ts. Both frames say the same words. */}
@@ -288,11 +302,17 @@ async function loadFeatured(supabase: SupabaseClient, slugs: string[]): Promise<
     collectionsByProduct.set(link.product_id, list);
   }
 
-  const cards = rows.map((p) => ({
-    slug: p.slug,
-    name: p.name,
-    ...summarizeProduct(p.published_at, variantsByProduct.get(p.id) ?? [], collectionsByProduct.get(p.id) ?? []),
-  }));
+  const primaryImages = await loadPrimaryImages(supabase, ids);
+
+  const cards = rows.map((p) => {
+    const image = primaryImages.get(p.id);
+    return {
+      slug: p.slug,
+      name: p.name,
+      image: image ? { url: image.url, alt: image.alt } : null,
+      ...summarizeProduct(p.published_at, variantsByProduct.get(p.id) ?? [], collectionsByProduct.get(p.id) ?? []),
+    };
+  });
 
   // `.in()` does not preserve the order the slugs were given in, and the
   // order IS the curation when a drop has been chosen.

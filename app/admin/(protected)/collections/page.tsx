@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
 import { WideOnly } from '@/components/admin/wide-only';
+import { imageUrl } from '@/lib/images';
 import { CollectionsList, type CollectionRow } from './collections-list';
 
 /**
@@ -47,7 +48,7 @@ export default async function AdminCollectionsPage() {
 
   const { data: collections, error } = await supabase
     .from('collections')
-    .select('id, slug, name, status, published_at, position')
+    .select('id, slug, name, status, hero_path, published_at, position')
     .order('position');
   if (error) throw new Error(`Could not load collections: ${error.message}`);
 
@@ -73,6 +74,7 @@ export default async function AdminCollectionsPage() {
     name: c.name as string,
     status: c.status as string,
     published_at: (c.published_at as string | null) ?? null,
+    heroUrl: imageUrl(c.hero_path as string | null),
     productCount: counts.get(c.id as string) ?? 0,
   }));
 

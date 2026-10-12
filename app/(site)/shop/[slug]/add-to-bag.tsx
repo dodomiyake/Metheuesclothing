@@ -51,17 +51,22 @@ export function AddToBag({
   productSlug,
   productName,
   variants,
+  colour,
+  onColourChange,
 }: {
   productSlug: string;
   productName: string;
   variants: Variant[];
+  /** Owned by ProductMedia: the gallery shows this colour's photographs,
+      so the chips cannot keep their own copy of it. */
+  colour: string | null;
+  onColourChange: (colour: string) => void;
 }) {
   const colours = useMemo(() => [...new Set(variants.map((v) => v.colour))], [variants]);
   // Not the query's order: `size` is free text, so `.order('size')` gives
   // back L, M, S, XL, XXL and the chips render in that order.
   const sizes = useMemo(() => sortSizes(new Set(variants.map((v) => v.size))), [variants]);
 
-  const [colour, setColour] = useState<string | null>(colours[0] ?? null);
   const [size, setSize] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
   const [confirmation, setConfirmation] = useState<string | null>(null);
@@ -134,7 +139,7 @@ export function AddToBag({
                 key={c}
                 type="button"
                 onClick={() => {
-                  setColour(c);
+                  onColourChange(c);
                   setSize(null);
                   setSizeError(false);
                 }}
