@@ -6,6 +6,7 @@ import { StatusBadge, returnBadge, RETURN_REASONS } from '@/components/admin/sta
 import { WideOnly } from '@/components/admin/wide-only';
 import { customerName } from '../../orders/order-fields';
 import { ReturnDecision, type DecisionItem } from './return-decision';
+import { loadVariantImages } from '@/lib/admin/variant-images';
 
 /**
  * A18 Return details — Figma 144:2278 (Desktop) / 144:2056 (Tablet). No
@@ -61,7 +62,7 @@ export default async function AdminReturnDetailPage({
     supabase
       .from('return_items')
       .select(
-        'id, quantity, reason, condition, restock, order_items(product_name, sku, colour, size, unit_price_pence)',
+        'id, quantity, reason, condition, restock, order_items(variant_id, product_name, sku, colour, size, unit_price_pence)',
       )
       .eq('return_id', id),
     supabase
@@ -91,6 +92,7 @@ export default async function AdminReturnDetailPage({
     condition: string | null;
     restock: boolean;
     order_items: {
+      variant_id: string | null;
       product_name: string;
       sku: string;
       colour: string;
@@ -99,6 +101,11 @@ export default async function AdminReturnDetailPage({
     } | null;
   };
   const lines = (items.data ?? []) as unknown as Line[];
+
+  const lineImages = await loadVariantImages(
+    supabase,
+    lines.map((l) => l.order_items?.variant_id ?? null),
+  );
 
   const decisionItems: DecisionItem[] = lines.map((l) => ({
     id: l.id,
@@ -111,6 +118,7 @@ export default async function AdminReturnDetailPage({
     customerReason: RETURN_REASONS[l.reason] ?? l.reason,
     condition: l.condition,
     restock: l.restock,
+    imageUrl: lineImages.get(l.order_items?.variant_id ?? '')?.url ?? null,
   }));
 
   const itemsValue = decisionItems.reduce((n, i) => n + i.linePence, 0);

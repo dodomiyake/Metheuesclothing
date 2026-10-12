@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isShopImagePath } from '@/lib/images';
 
 /**
  * A21 Store content. One request carrying all seven §9.7 slots, because
@@ -27,6 +28,19 @@ export const ContentRequest = z
         // typo in a free-text destination is a 404 on the busiest button
         // in the shop. The route checks it resolves, below.
         cta_href: Line.max(300),
+        // The campaign photograph, as a bucket path (migration 019). Checked
+        // against isShopImagePath for the same reason collections.hero_path
+        // is: this string becomes an <img src> on the homepage, so free text
+        // here would be an arbitrary URL there.
+        image_path: z
+          .string()
+          .trim()
+          .refine(isShopImagePath, 'Not an uploaded image path')
+          .nullable(),
+        // Empty is a real answer — the hero's words sit beside it in text,
+        // so decoration is legitimate. product_images.alt_text is NOT NULL
+        // precisely because a product photograph is not.
+        image_alt: Line.max(500),
       })
       .strict(),
     featured_drop: z

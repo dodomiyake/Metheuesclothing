@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isShopImagePath } from '@/lib/images';
 
 /**
  * Shared between POST /api/admin/collections and
@@ -24,10 +25,17 @@ export const CollectionFields = {
     .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'Lowercase letters, numbers and hyphens only'),
   status: z.enum(['scheduled', 'live', 'hidden']),
   description: z.string().trim().max(2000).nullable().optional(),
-  // hero_path has no writer: there is no upload pipeline anywhere in this
-  // codebase (A05 is unbuilt for the same reason), so the editor offers alt
-  // text and not an image. The column stays in the schema for the day one
-  // exists; nothing here sets it.
+  // hero_path IS writable now (migration 019 and A10's hero field), and it
+  // is checked against isShopImagePath rather than accepted as free text:
+  // the column ends up in an <img src> on a public page, so an arbitrary
+  // string here would be an arbitrary URL there. Only a path this app's own
+  // sign route could have issued passes.
+  hero_path: z
+    .string()
+    .trim()
+    .refine(isShopImagePath, 'Not an uploaded image path')
+    .nullable()
+    .optional(),
   hero_alt: z.string().trim().max(500).nullable().optional(),
   seo_title: z.string().trim().max(200).nullable().optional(),
   seo_description: z.string().trim().max(500).nullable().optional(),

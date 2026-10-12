@@ -32,6 +32,17 @@ export type HeroContent = {
   body: string;
   cta_label: string;
   cta_href: string;
+  /**
+   * The campaign photograph, as a path inside the shop-images bucket
+   * (migration 019) — never a URL, for the reason lib/images.ts gives.
+   *
+   * IT LIVES IN THE JSONB rather than in a column, which is the one place
+   * a homepage image could go without a migration: `homepage_sections` is
+   * (key, content jsonb) and the hero is one slot of it. A column would
+   * also have had to be a column on nothing — there is no homepage table.
+   */
+  image_path: string | null;
+  image_alt: string;
 };
 
 /**
@@ -106,6 +117,11 @@ export const HOME_DEFAULTS: HomeContent = {
     body: 'Premium T-shirts shaped by music, identity and original expression.',
     cta_label: 'Shop the First Drop',
     cta_href: '/shop',
+    // No campaign photography by default, so the hero renders the same
+    // labelled well it has since the homepage was built. A21 is where one
+    // arrives.
+    image_path: null,
+    image_alt: '',
   },
   featured_drop: {
     eyebrow: 'The First Drop',

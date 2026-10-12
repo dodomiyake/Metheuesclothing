@@ -3,7 +3,8 @@ import { createServerComponentClient } from '@/lib/supabase/server-component';
 import { formatPence } from '@/lib/money';
 import { summarizeProduct } from '@/lib/shop/product-summary';
 import { ProductCard, type ProductCardData } from '../product-card';
-import { AddToBag } from './add-to-bag';
+import { ProductMedia } from './product-media';
+import { loadPrimaryImages, loadProductImages } from '@/lib/shop/product-images';
 
 type VariantRow = {
   id: string;
@@ -25,13 +26,6 @@ type RelatedRow = {
 
 type CollectionLinkRow = { product_id: string; collections: { slug: string; name: string } | null };
 
-// Verified against each pulled screen, not assumed: Desktop (60:878) has a
-// Front thumb because the rail sits beside the main image; Tablet (58:783)
-// doesn't, because its thumbnails sit below the same image that already
-// shows the front view. Mobile (54:703) has neither -- see globals.css.
-const DESKTOP_THUMB_LABELS = ['Front', 'Back', 'Print', 'Fabric', 'Model'];
-const TABLET_THUMB_LABELS = ['Back', 'Print', 'Fabric', 'Model'];
-
 /**
  * §8.3 product detail (04A/B/C — Figma node 60:878/58:783/54:703), rebuilt
  * against the real screens rather than the earlier token-styled MVP. Every
@@ -42,8 +36,9 @@ const TABLET_THUMB_LABELS = ['Back', 'Print', 'Fabric', 'Model'];
  * design's Estimate/Carrier delivery rows are unverified data blocked on
  * the owner (see README/CLAUDE.md), so delivery and returns render only
  * store_settings.free_delivery_threshold_pence and .return_window_days.
- * No product photography exists yet, so the gallery keeps the same
- * placeholder-well treatment as the product card.
+ * The gallery shows real `product_images` rows uploaded through A05, and
+ * swaps with the chosen colour (see product-gallery.tsx); it falls back to
+ * the same placeholder wells as before when a T-shirt has no photography.
  */
 export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -71,6 +66,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     .order('colour')
     .order('size');
   if (variantsError) throw new Error(`Could not load variants: ${variantsError.message}`);
+
+  const images = await loadProductImages(supabase, product.id);
 
   const { data: settings, error: settingsError } = await supabase
     .from('store_settings')
@@ -132,10 +129,21 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       : `From ${formatPence(Math.min(...activePrices))}`
     : 'Price unavailable';
 
+  const relatedImages = await loadPrimaryImages(
+    supabase,
+    (relatedRows ?? []).map((r: RelatedRow) => r.id),
+  );
+
   const related: ProductCardData[] = (relatedRows ?? []).map((r: RelatedRow) => {
     const vs = variantsByProduct.get(r.id) ?? [];
     const summary = summarizeProduct(r.published_at, vs, collectionsByProduct.get(r.id) ?? []);
-    return { slug: r.slug, name: r.name, ...summary };
+    const image = relatedImages.get(r.id);
+    return {
+      slug: r.slug,
+      name: r.name,
+      image: image ? { url: image.url, alt: image.alt } : null,
+      ...summary,
+    };
   });
 
   const fabricFields = [product.fit, product.composition, product.fabric_weight_gsm, product.neck, product.made_in].filter(
@@ -151,57 +159,38 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       </div>
 
       <div className="mc-page-gutter mc-product-grid" style={{ paddingBottom: 'var(--mc-space-2xl)' }}>
-        <div className="mc-pdp-gallery">
-          <div className="mc-pdp-thumbs-desktop">
-            {DESKTOP_THUMB_LABELS.map((label) => (
-              <ThumbWell key={label} label={label} />
-            ))}
-          </div>
-          <div
-            className="mc-pdp-main-image"
-            style={{
-              background: 'var(--mc-mist)',
-              borderRadius: 'var(--mc-radius-md)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'var(--mc-text-muted)',
-            }}
-          >
-            No product photography yet
-          </div>
-          <div className="mc-pdp-thumbs-tablet">
-            {TABLET_THUMB_LABELS.map((label) => (
-              <ThumbWell key={label} label={label} />
-            ))}
-          </div>
-        </div>
+        <ProductMedia
+          images={images}
+          variants={variants ?? []}
+          productSlug={slug}
+          productName={product.name}
+          panelHeader={
+            <>
+              {eyebrow && (
+                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1.54px', textTransform: 'uppercase', color: 'var(--mc-text-muted)', margin: 0 }}>
+                  {eyebrow}
+                </p>
+              )}
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-          {eyebrow && (
-            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1.54px', textTransform: 'uppercase', color: 'var(--mc-text-muted)', margin: 0 }}>
-              {eyebrow}
+              <div>
+                <h1 style={{ fontFamily: 'var(--mc-font-display)', fontSize: 'var(--mc-type-page-title)', margin: 0 }}>
+                  {product.name}
+                </h1>
+                <p style={{ fontSize: 'var(--mc-type-subhead)', margin: 'var(--mc-space-2xs) 0 0' }}>{priceLabel}</p>
+              </div>
+
+              {product.description_short && (
+                <p style={{ color: 'var(--mc-text-muted)', margin: 0 }}>{product.description_short}</p>
+              )}
+            </>
+          }
+          panelFooter={
+            <p style={{ fontSize: 13, color: 'var(--mc-text-muted)', margin: 0, borderTop: '1px solid var(--mc-border-default)', paddingTop: 'var(--mc-space-md)' }}>
+              Free delivery on orders over {formatPence(settings.free_delivery_threshold_pence)}. Returns accepted
+              within {settings.return_window_days} days of delivery.
             </p>
-          )}
-
-          <div>
-            <h1 style={{ fontFamily: 'var(--mc-font-display)', fontSize: 'var(--mc-type-page-title)', margin: 0 }}>
-              {product.name}
-            </h1>
-            <p style={{ fontSize: 'var(--mc-type-subhead)', margin: 'var(--mc-space-2xs) 0 0' }}>{priceLabel}</p>
-          </div>
-
-          {product.description_short && (
-            <p style={{ color: 'var(--mc-text-muted)', margin: 0 }}>{product.description_short}</p>
-          )}
-
-          <AddToBag productSlug={slug} productName={product.name} variants={variants ?? []} />
-
-          <p style={{ fontSize: 13, color: 'var(--mc-text-muted)', margin: 0, borderTop: '1px solid var(--mc-border-default)', paddingTop: 'var(--mc-space-md)' }}>
-            Free delivery on orders over {formatPence(settings.free_delivery_threshold_pence)}. Returns accepted
-            within {settings.return_window_days} days of delivery.
-          </p>
-        </div>
+          }
+        />
       </div>
 
       <div className="mc-page-gutter" style={{ paddingBottom: 'var(--mc-space-2xl)' }}>
@@ -285,24 +274,6 @@ function SpecColumn({
         {title}
       </h2>
       {children}
-    </div>
-  );
-}
-
-function ThumbWell({ label }: { label: string }) {
-  return (
-    <div
-      style={{
-        aspectRatio: '4 / 5',
-        background: 'var(--mc-mist)',
-        borderRadius: 'var(--mc-radius-sm)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: 4,
-      }}
-    >
-      <span style={{ fontSize: 10, color: 'var(--mc-text-muted)', textAlign: 'center' }}>{label}</span>
     </div>
   );
 }

@@ -190,10 +190,15 @@ Code still to write:
   catalogue editors (A03, A04 MVP subset, A06, A07, A08), collections
   (A09, A10), orders and the whole dispatch path (A11, A12, A13, A14),
   cancel and refund (A15, A16), returns (A17, A18), customers (A19, A20),
-  store settings (A22) and the audit log (A23). Not built: the image
-  manager (A05 — no upload pipeline exists, and there is no real
-  photography to manage yet) and homepage content (A21, which needs a
-  real homepage to publish to first). Several screens carry
+  store settings (A22), the audit log (A23), homepage content (A21) and
+  the image manager (A05) — all 23 of them. A05 needed a pipeline built
+  under it first: migration 019 adds a public `shop-images` bucket with
+  staff-only write, uploads go straight from the browser to storage
+  through a signed URL (the file never passes through a Vercel function),
+  and the readers are wired — product cards, the product detail gallery
+  (which swaps with the chosen colour), the collection hero, the homepage
+  hero, and the thumbnails on order details, the pick list, return
+  details and both curation lists. Several screens carry
   deliberate omissions where the design draws an action with nothing
   behind it — each one is recorded in the page's own comment rather than
   shipped as a dead control. There is also no self-service way to *become*
@@ -203,7 +208,8 @@ Code still to write:
 
 Not code, and blocking launch rather than blocking development:
 
-- Product photography.
+- Product photography. There is somewhere to put it now (A05, and the hero
+  fields on A10 and A21); what is missing is the photographs.
 - Verified garment measurements per §8.5. The size tables in the design are
   placeholders and must not ship as-is.
 - Real delivery rates, and confirmation of the £150 free-delivery threshold.

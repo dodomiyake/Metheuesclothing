@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
 import { WideOnly } from '@/components/admin/wide-only';
 import { CollectionForm, type MemberProduct } from '../collection-form';
+import { loadPrimaryImages } from '@/lib/shop/product-images';
 
 /**
  * A10 Collection editor — Figma 145:2762 (Desktop pulled) / 145:2572
@@ -21,7 +22,7 @@ export default async function EditCollectionPage({ params }: { params: Promise<{
 
   const { data: collection, error } = await supabase
     .from('collections')
-    .select('id, slug, name, description, hero_alt, status, position, published_at, seo_title, seo_description')
+    .select('id, slug, name, description, hero_path, hero_alt, status, position, published_at, seo_title, seo_description')
     .eq('id', id)
     .maybeSingle();
   // A query error and a missing row both leave `data` null; only the second
@@ -46,7 +47,19 @@ export default async function EditCollectionPage({ params }: { params: Promise<{
     .order('name');
   if (productsError) throw new Error(`Could not load T-shirts: ${productsError.message}`);
 
-  const all = (products ?? []) as MemberProduct[];
+  // Thumbnails for the membership list: curating a drop by name alone is
+  // curating it blind, the same reason A21's featured list carries one.
+  const productImages = await loadPrimaryImages(
+    supabase,
+    (products ?? []).map((p) => p.id as string),
+  );
+  const all: MemberProduct[] = (products ?? []).map((p) => ({
+    id: p.id as string,
+    name: p.name as string,
+    slug: p.slug as string,
+    status: p.status as string,
+    imageUrl: productImages.get(p.id as string)?.url ?? null,
+  }));
   const byId = new Map(all.map((p) => [p.id, p]));
 
   const members = (links ?? [])
@@ -61,6 +74,7 @@ export default async function EditCollectionPage({ params }: { params: Promise<{
           name: (collection.name as string) ?? '',
           slug: (collection.slug as string) ?? '',
           description: (collection.description as string) ?? '',
+          hero_path: (collection.hero_path as string | null) ?? null,
           hero_alt: (collection.hero_alt as string) ?? '',
           status: (collection.status as 'scheduled' | 'live' | 'hidden') ?? 'hidden',
           published_at: (collection.published_at as string | null) ?? null,

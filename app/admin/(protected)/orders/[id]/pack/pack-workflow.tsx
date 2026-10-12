@@ -66,6 +66,8 @@ export type Pick = {
   label: string;
   sku: string;
   quantity: number;
+  /** The photograph of this exact colourway, where one has been uploaded. */
+  imageUrl: string | null;
 };
 
 export function PackWorkflow({
@@ -230,6 +232,23 @@ export function PackWorkflow({
                       onChange={(e) => setPicked((s) => ({ ...s, [pick.id]: e.target.checked }))}
                       style={checkboxStyle}
                     />
+                    {pick.imageUrl && (
+                      // Decorative: the garment, colour, size and SKU are all
+                      // in text beside it, and a picker reading the SKU is
+                      // what actually prevents the wrong pick.
+                      <img
+                        src={pick.imageUrl}
+                        alt=""
+                        style={{
+                          width: 40,
+                          height: 50,
+                          flexShrink: 0,
+                          objectFit: 'cover',
+                          borderRadius: 'var(--mc-radius-sm)',
+                          background: 'var(--mc-mist)',
+                        }}
+                      />
+                    )}
                     <span style={{ flex: '1 0 0', minWidth: 0 }}>
                       <span style={{ display: 'block', fontSize: 15, lineHeight: '22px' }}>{pick.label}</span>
                       <span style={{ display: 'block', fontSize: 13, lineHeight: '19px', color: 'var(--mc-text-muted)' }}>

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
+import { loadVariantImages } from '@/lib/admin/variant-images';
 import { formatPence } from '@/lib/money';
 import { StatusBadge, PAYMENT_BADGE, FULFILMENT_BADGE } from '@/components/admin/status-badge';
 import { countryName, customerName, orderCountryCode } from '../order-fields';
@@ -79,7 +80,7 @@ export default async function AdminOrderDetailPage({
   const [items, payment, fulfilments, refunds, audit, settings] = await Promise.all([
     supabase
       .from('order_items')
-      .select('id, product_name, sku, colour, size, unit_price_pence, quantity, line_total_pence')
+      .select('id, variant_id, product_name, sku, colour, size, unit_price_pence, quantity, line_total_pence')
       .eq('order_id', id),
     supabase
       .from('payments')
@@ -111,6 +112,11 @@ export default async function AdminOrderDetailPage({
   if (refunds.error) throw new Error(`Could not load refunds: ${refunds.error.message}`);
   if (audit.error) throw new Error(`Could not load the audit history: ${audit.error.message}`);
   if (settings.error) throw new Error(`Could not load store settings: ${settings.error.message}`);
+
+  const itemImages = await loadVariantImages(
+    supabase,
+    (items.data ?? []).map((i) => i.variant_id as string | null),
+  );
 
   // "3 orders" on the Customer panel — every order placed with this email,
   // which is the only identifier a guest order has.
@@ -185,9 +191,11 @@ export default async function AdminOrderDetailPage({
             <Panel heading="Items — snapshot taken when the order was placed">
               {(items.data ?? []).map((item) => (
                 <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0' }}>
-                  {/* No product photography exists (README's blocked-on-owner
-                      list), so this is the same honest well the storefront
-                      cards use rather than a broken <img>. */}
+                  {/* The photograph for this line's COLOUR where there is
+                      one (see lib/admin/variant-images.ts), and the same
+                      honest well where there is not. aria-hidden either
+                      way: the garment, colour, size and SKU are all in
+                      text beside it. */}
                   <div
                     aria-hidden
                     style={{
@@ -196,8 +204,17 @@ export default async function AdminOrderDetailPage({
                       flexShrink: 0,
                       background: 'var(--mc-mist)',
                       borderRadius: 'var(--mc-radius-sm)',
+                      overflow: 'hidden',
                     }}
-                  />
+                  >
+                    {itemImages.get(item.variant_id ?? '') && (
+                      <img
+                        src={itemImages.get(item.variant_id ?? '')!.url}
+                        alt=""
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                      />
+                    )}
+                  </div>
                   <div style={{ flex: '1 0 0', minWidth: 0 }}>
                     <p style={{ fontSize: 14, margin: 0 }}>{item.product_name}</p>
                     <p style={{ fontSize: 13, color: 'var(--mc-text-muted)', margin: 0 }}>

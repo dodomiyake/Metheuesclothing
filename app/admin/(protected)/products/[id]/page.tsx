@@ -35,12 +35,20 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
           <h1 style={{ fontFamily: 'var(--mc-font-display)', fontSize: 'var(--mc-type-page-title)', margin: 0 }}>
             {product.name}
           </h1>
-          <Link
-            href={`/admin/products/${product.id}/variants`}
-            style={{ fontFamily: 'var(--mc-font-body)', color: 'var(--mc-text-primary)' }}
-          >
-            Colours, sizes and stock →
-          </Link>
+          <span style={{ display: 'flex', gap: 'var(--mc-space-md)', flexWrap: 'wrap' }}>
+            <Link
+              href={`/admin/products/${product.id}/images`}
+              style={{ fontFamily: 'var(--mc-font-body)', color: 'var(--mc-text-primary)' }}
+            >
+              Images →
+            </Link>
+            <Link
+              href={`/admin/products/${product.id}/variants`}
+              style={{ fontFamily: 'var(--mc-font-body)', color: 'var(--mc-text-primary)' }}
+            >
+              Colours, sizes and stock →
+            </Link>
+          </span>
         </div>
         <ProductForm
           productId={product.id}
