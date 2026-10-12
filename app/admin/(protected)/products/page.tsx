@@ -125,6 +125,22 @@ export default async function AdminProductsPage({
     : { data: [] as { product_id: string; position: number; collections: { name: string } | null }[], error: null };
   if (membershipError) throw new Error(`Could not load collection membership: ${membershipError.message}`);
 
+  // Image counts. Counted in JavaScript for the reason the collection
+  // counts are (PostgREST has no GROUP BY), and shown because "which of
+  // these has no photography yet" is the question this list cannot
+  // otherwise answer — the one thing standing between the catalogue and
+  // a shop that looks finished.
+  const { data: imageRows, error: imagesError } = productIds.length
+    ? await supabase.from('product_images').select('product_id').in('product_id', productIds)
+    : { data: [] as { product_id: string }[], error: null };
+  if (imagesError) throw new Error(`Could not count product images: ${imagesError.message}`);
+
+  const imageCount = new Map<string, number>();
+  for (const row of imageRows ?? []) {
+    const k = row.product_id as string;
+    imageCount.set(k, (imageCount.get(k) ?? 0) + 1);
+  }
+
   const stats = new Map<string, { total: number; active: number; prices: number[] }>();
   for (const v of variants ?? []) {
     const entry = stats.get(v.product_id) ?? { total: 0, active: 0, prices: [] };
@@ -225,6 +241,25 @@ export default async function AdminProductsPage({
                           <span style={{ display: 'block', fontSize: 12, color: 'var(--mc-text-muted)' }}>
                             {p.slug}
                           </span>
+                          {/* The one route into A05. It used to be reachable only
+                              from inside the editor, which made the upload screen
+                              findable only by someone who already knew it existed. */}
+                          <Link
+                            href={`/admin/products/${p.id}/images`}
+                            style={{
+                              display: 'inline-block',
+                              marginTop: 4,
+                              fontSize: 12,
+                              color:
+                                (imageCount.get(p.id) ?? 0) === 0
+                                  ? 'var(--mc-status-attention)'
+                                  : 'var(--mc-text-muted)',
+                            }}
+                          >
+                            {(imageCount.get(p.id) ?? 0) === 0
+                              ? 'No images — add photography'
+                              : `Images (${imageCount.get(p.id)})`}
+                          </Link>
                         </Td>
                         <Td>{collectionName.get(p.id) ?? '—'}</Td>
                         <Td>
@@ -263,8 +298,22 @@ export default async function AdminProductsPage({
                         Collection: {collectionName.get(p.id) ?? '—'} · Variants: {s.active} · Stock:{' '}
                         {s.total} · Price: {priceLabel(s.prices)} · Updated: {formatUpdated(p.updated_at)}
                       </p>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px 8px' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px 12px' }}>
                         <ProductStatusBadge status={derivedStatus(p.status, s.total)} />
+                        <Link
+                          href={`/admin/products/${p.id}/images`}
+                          style={{
+                            fontSize: 13,
+                            color:
+                              (imageCount.get(p.id) ?? 0) === 0
+                                ? 'var(--mc-status-attention)'
+                                : 'var(--mc-text-muted)',
+                          }}
+                        >
+                          {(imageCount.get(p.id) ?? 0) === 0
+                            ? 'No images'
+                            : `Images (${imageCount.get(p.id)})`}
+                        </Link>
                       </div>
                     </div>
                   );
