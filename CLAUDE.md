@@ -1124,6 +1124,31 @@ width. THE WRITE PATH IS UNEXERCISED: this sandbox cannot reach Supabase,
 and there are no images, collections or homepage rows in the live
 database. Uploading the first photograph is the test.
 
+A05 IS REACHABLE FROM THE T-SHIRT LIST AND WORKS AT 390. Both are fixes
+to the same report — "i cant find upload for tshirt images" — and both
+were real. The only route in was an "Images →" link INSIDE the product
+editor, so the screen was findable only by someone who already knew it
+existed; and the editor is WideOnly, so on a phone there was no route at
+all and nothing saying why. A03's rows now carry the link and the image
+COUNT, with "No images — add photography" in Attention on anything
+unphotographed, because "which of these still has no pictures" is the
+question that list could not answer and the one thing between this
+catalogue and a shop that looks finished.
+
+THE OWNER LIFTED A05's no_mobile GATE on 18 October, and the exception is
+recorded in design-system-state.json beside the rule rather than only in a
+comment. The photographs are on the phone; gating the one screen whose
+input lives on the device you are holding is the gate working against its
+own purpose, and the rule's recorded reason is DENSITY, which a thumbnail
+grid plus a side panel is not. Measured at 390/768/1440 after ungating:
+two thumbnails per row at 390 (138px), four at 768, five at 1440 with the
+340px side panel; Move earlier/later stay 44px at every width; no
+horizontal overflow. The frames are still Desktop and Tablet only, so 390
+here is implementation beyond the design file rather than a frame nobody
+built. A05 also gained an "All T-shirts" link, because "Back to product"
+lands on A04's gate below 768 and a phone needs a way out to a screen it
+can use.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real

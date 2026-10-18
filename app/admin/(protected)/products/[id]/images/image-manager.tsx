@@ -329,6 +329,13 @@ export function ImageManager({
           <Link href={`/admin/products/${productId}`} style={ghostButton}>
             Back to product
           </Link>
+          {/* A second way out, for the phone: the product editor is still
+              WideOnly, so below 768 "Back to product" lands on the gate
+              rather than a screen you can use. The list is a phone screen
+              and is where the link in came from. */}
+          <Link href="/admin/products" style={ghostButton}>
+            All T-shirts
+          </Link>
         </div>
       </div>
 
