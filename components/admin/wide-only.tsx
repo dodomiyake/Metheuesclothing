@@ -21,6 +21,11 @@
  * which are a stacking list rather than a dense form, and both of which you
  * reach for precisely when you are away from a desk.
  *
+ * A05 Product images was the third, and the owner lifted it explicitly on
+ * 18 October: the photographs are ON the phone, so gating the screen whose
+ * input lives on the device you are holding defeats its purpose. The
+ * exception is recorded in the ledger beside the rule, not only here.
+ *
  * This wrapper is for the other kind: multi-section editors and
  * consequential actions. Monitor from a phone, operate from a bigger screen.
  *

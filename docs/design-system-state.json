@@ -749,6 +749,15 @@
       "A21",
       "A22",
       "A23"
+    ],
+    "exceptions": [
+      {
+        "screen": "A05 Product image manager",
+        "decided_by": "owner, 18 Oct",
+        "change": "Built at 390 as well, and no longer behind the WideOnly gate.",
+        "reason": "The photographs are on the phone. A05 is a thumbnail grid plus a side panel, not a dense table or a multi-section editor, so the density reason the 10 Sept rule gives does not apply to it \u2014 it reflows to two thumbnails per row at 390. Same shape of exception as A19 Customers and A23 Audit log, both already built to work at 390 while staying on this list.",
+        "note": "The frames are still Desktop and Tablet only (134:1352 / 134:1169). 390 here is implementation beyond what the design file covers, not a frame that was missed."
+      }
     ]
   },
   "A04 Edit T-shirt": {

@@ -1,12 +1,24 @@
 import { notFound } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
-import { WideOnly } from '@/components/admin/wide-only';
 import { ImageManager, type ManagedImage } from './image-manager';
 
 /**
  * A05 Product image manager — Figma 134:1352 (Desktop) / 134:1169
  * (Tablet). The last of the twenty-three admin screens, and the one that
  * needed a pipeline built under it first (migration 019).
+ *
+ * NOT BEHIND WideOnly, although A05 is on `admin_breakpoint_decision`'s
+ * no_mobile list. The owner lifted it for this screen on 18 October and
+ * the exception is recorded in the ledger beside the rule itself.
+ * THE PHOTOGRAPHS ARE ON THE PHONE — gating the one screen whose input
+ * lives on the device you are holding is the gate working against its own
+ * purpose, and the recorded REASON for the rule is density ("dense tables
+ * and multi-section editors fight a 390px screen"), which this is not: it
+ * is a thumbnail grid and a side panel, and it reflows to two thumbs per
+ * row. A19 Customers and A23 Audit log are the same shape of exception.
+ * The frames are still Desktop and Tablet only, so 390 here is
+ * implementation beyond what the design file draws rather than a frame
+ * nobody built.
  */
 export default async function ProductImagesPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -36,13 +48,11 @@ export default async function ProductImagesPage({ params }: { params: Promise<{ 
   const colours = [...new Set((variantsQuery.data ?? []).map((v) => v.colour as string))].sort();
 
   return (
-    <WideOnly title="Images">
-      <ImageManager
-        productId={productQuery.data.id as string}
-        productName={productQuery.data.name as string}
-        initial={(imagesQuery.data ?? []) as ManagedImage[]}
-        colours={colours}
-      />
-    </WideOnly>
+    <ImageManager
+      productId={productQuery.data.id as string}
+      productName={productQuery.data.name as string}
+      initial={(imagesQuery.data ?? []) as ManagedImage[]}
+      colours={colours}
+    />
   );
 }
