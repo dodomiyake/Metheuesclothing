@@ -42,8 +42,10 @@ import {
  *    a sum would claim a precision the record does not keep, so the option
  *    says what it actually is.
  *
- *  - "£284.00 returns to the Visa ending 4242". payments.card_brand and
- *    card_last4 are never written by the Stripe webhook, so the card cannot
+ *  - "£284.00 returns to the Visa ending 4242" is REAL where the payment
+ *    recorded a card, and narrows to "the card that paid" only where it did
+ *    not. What follows is what used to be true of every order:
+ *    payments.card_brand and card_last4 were never written by the webhook, so the card could not
  *    be named. Same narrowing as A15, E5, E8 and A12's omitted payment panel
  *    — one webhook change away from being true, and worth doing.
  *
@@ -75,6 +77,7 @@ export function RefundOrder({
   totalPence,
   alreadyRefundedPence,
   paymentLabel,
+  card,
 }: {
   orderId: string;
   orderNumber: string;
@@ -83,6 +86,9 @@ export function RefundOrder({
   totalPence: number;
   alreadyRefundedPence: number;
   paymentLabel: string;
+  /** See CancelOrder: the real card where one was recorded, the honest
+      fallback where the payment predates the webhook writing it. */
+  card: string;
 }) {
   const router = useRouter();
   const headingId = useId();
@@ -162,7 +168,7 @@ export function RefundOrder({
               Refund order {orderNumber}
             </h2>
             <p style={{ fontSize: 14, lineHeight: '21px', color: 'var(--mc-text-muted)', margin: 0 }}>
-              Refunds go back to the card that paid. They cannot be reversed — a refund sent by mistake
+              Refunds go back to {card}. They cannot be reversed — a refund sent by mistake
               has to be collected as a new order.
             </p>
           </div>
@@ -269,7 +275,7 @@ export function RefundOrder({
 
           <div style={{ ...panelStyle, background: 'var(--mc-bg-surface)' }}>
             <p style={{ fontSize: 16, fontWeight: 600, margin: 0 }}>
-              {amountValid ? `${formatPence(amountPence!)} returns to the card that paid` : 'Enter an amount to refund'}
+              {amountValid ? `${formatPence(amountPence!)} returns to ${card}` : 'Enter an amount to refund'}
             </p>
             <p style={mutedSmallStyle}>
               {customer} sees it in 5 to 10 working days depending on the bank.{' '}

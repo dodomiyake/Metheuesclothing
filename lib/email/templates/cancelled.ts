@@ -7,6 +7,7 @@ import {
   SAND,
   STONE,
 } from '../layout';
+import { customerCardLabel, customerCardRow, type PaymentCard } from '@/lib/payments/card-label';
 import { formatPence } from '@/lib/money';
 
 /**
@@ -23,6 +24,9 @@ import { formatPence } from '@/lib/money';
  *
  *  - "Back to — Visa ending 4242". payments.card_brand and card_last4 exist
  *    in the schema but the Stripe webhook never writes them, so the row would
+ *    IS REAL NOW where the payment recorded one, and narrows only where it
+ *    did not. What follows is what used to be true for every send, before
+ *    the webhook started writing card_brand/card_last4: the row would have
  *    read "Back to — null ending null" on every real send. It says "the card
  *    you paid with", which is true and is what the customer needs to look at
  *    anyway. The fix is a few lines in the webhook; until it lands, naming a
@@ -39,7 +43,10 @@ import { formatPence } from '@/lib/money';
 export function buildCancelledEmail(
   order: { order_number: string },
   refundPence: number | null,
+  card: PaymentCard = null,
 ): { subject: string; html: string; text: string } {
+  const cardRow = customerCardRow(card?.card_brand, card?.card_last4);
+  const cardPhrase = customerCardLabel(card?.card_brand, card?.card_last4);
   const refunded = typeof refundPence === 'number' && refundPence > 0;
   const subject = refunded
     ? `Order ${order.order_number} cancelled — ${formatPence(refundPence!)} refunded`
@@ -67,7 +74,7 @@ export function buildCancelledEmail(
                     </p>
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       ${row('Amount', formatPence(refundPence!), true)}
-                      ${row('Back to', 'The card you paid with')}
+                      ${row('Back to', cardRow)}
                       ${row('Expect it within', '5 to 10 working days')}
                     </table>
                   </td>
@@ -108,7 +115,7 @@ export function buildCancelledEmail(
     '',
     `Order ${order.order_number} has been cancelled and nothing will be sent.`,
     '',
-    refunded ? `Refund: ${formatPence(refundPence!)} back to the card you paid with.` : 'No payment was taken, so there is nothing to refund.',
+    refunded ? `Refund: ${formatPence(refundPence!)} back to ${cardPhrase}.` : 'No payment was taken, so there is nothing to refund.',
     refunded ? 'Expect it within 5 to 10 working days — banks vary.' : '',
     '',
     'If this was cancelled by mistake, the T-shirts are back in stock and you can order again. A cancellation cannot be reversed.',

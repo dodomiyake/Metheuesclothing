@@ -7,6 +7,7 @@ import {
   SAND,
   STONE,
 } from '../layout';
+import { customerCardLabel, customerCardRow, type PaymentCard } from '@/lib/payments/card-label';
 import { formatPence } from '@/lib/money';
 
 /**
@@ -37,7 +38,8 @@ import { formatPence } from '@/lib/money';
  * an omission here.
  *
  * Narrowed, for the reason E5 and E8 are: "Back to — Visa ending 4242" says
- * "the card you paid with", because payments.card_brand and card_last4 are
+ * the real card where the payment recorded one, and "the card you paid
+ * with" only where it did not. This used to say the latter always, because payments.card_brand and card_last4 were
  * never written by the Stripe webhook.
  *
  * Kept exactly: no CTA, and the two closing lines. "Delivery paid on the
@@ -51,8 +53,11 @@ export function buildReturnApprovedEmail(
   refundPence: number,
   items: { product_name: string; colour: string; size: string; quantity: number }[],
   deliveryPaidPence: number,
+  card: PaymentCard = null,
 ): { subject: string; html: string; text: string } {
   const amount = formatPence(refundPence);
+  const cardRow = customerCardRow(card?.card_brand, card?.card_last4);
+  const cardPhrase = customerCardLabel(card?.card_brand, card?.card_last4);
   const subject = `Return ${ret.return_number} accepted — ${amount} on its way`;
 
   const row = (label: string, value: string, strong?: boolean) => `
@@ -98,7 +103,7 @@ export function buildReturnApprovedEmail(
                     ${itemLines}
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                       ${row('Amount', amount, true)}
-                      ${row('Back to', 'The card you paid with')}
+                      ${row('Back to', cardRow)}
                       ${row('Expect it within', '5 to 10 working days')}
                       ${row('Order', order.order_number)}
                     </table>
@@ -137,7 +142,7 @@ export function buildReturnApprovedEmail(
     `Return ${ret.return_number} on order ${order.order_number}.`,
     ...items.map((i) => `- ${i.product_name} — ${i.colour} / ${i.size}${i.quantity > 1 ? ` × ${i.quantity}` : ''}`),
     '',
-    `Refund: ${amount} back to the card you paid with.`,
+    `Refund: ${amount} back to ${cardPhrase}.`,
     'Expect it within 5 to 10 working days — banks vary.',
     deliveryPaidPence > 0
       ? `The ${formatPence(deliveryPaidPence)} delivery paid on the original order is not refunded.`

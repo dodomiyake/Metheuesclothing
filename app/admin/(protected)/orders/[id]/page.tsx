@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
 import { loadVariantImages } from '@/lib/admin/variant-images';
 import { formatPence } from '@/lib/money';
+import { cardLabel, cardName } from '@/lib/payments/card-label';
 import { StatusBadge, PAYMENT_BADGE, FULFILMENT_BADGE } from '@/components/admin/status-badge';
 import { countryName, customerName, orderCountryCode } from '../order-fields';
 import { buildFulfilmentSteps } from './fulfilment-steps';
@@ -36,12 +37,13 @@ import { RefundOrder } from './refund-order';
  *    could leak what a customer wrote into a context staff assume is
  *    private. Needs a table and a route, not a render.
  *
- *  - PAYMENT METHOD ("Visa ending 4242"). payments.card_brand and
- *    payments.card_last4 EXIST — but the Stripe webhook never writes them
- *    (it sets status and stripe_payment_intent_id only). So the row would be
- *    permanently blank. Worth saying precisely because this one is nearly
- *    free to fix: the brand and last4 are on the session's payment intent,
- *    so it is a few lines in the webhook away from being true.
+ *  - PAYMENT METHOD is NO LONGER OMITTED. It was, because
+ *    payments.card_brand and .card_last4 existed and the webhook never
+ *    wrote them; the note here said it was a few lines away from being
+ *    true, and those lines are now in the webhook (latest_charge expanded
+ *    on the paid intent). The row reads "Visa ending 4242" for anything
+ *    paid since, and "Not recorded for this payment" for every order
+ *    before it — which is the truth rather than a blank.
  *
  *  - PHONE. Stripe only returns a shipping phone when checkout asks for it,
  *    and app/api/checkout does not. Rendered only when the snapshot happens
@@ -84,7 +86,7 @@ export default async function AdminOrderDetailPage({
       .eq('order_id', id),
     supabase
       .from('payments')
-      .select('stripe_payment_intent_id, amount_pence, status')
+      .select('stripe_payment_intent_id, amount_pence, status, card_brand, card_last4')
       .eq('order_id', id)
       .maybeSingle(),
     supabase
@@ -354,6 +356,18 @@ export default async function AdminOrderDetailPage({
             <Panel heading="Payment">
               <Field label="Status" value={PAYMENT_BADGE[order.payment_status]?.label ?? order.payment_status} />
               <Field label="Amount" value={formatPence(payment.data?.amount_pence ?? order.total_pence)} />
+              {/* The design's Payment method row (139:1936) — real at last.
+                  The webhook now writes card_brand/card_last4 from the
+                  charge. Orders paid before that was wired have neither and
+                  say so rather than showing a blank row: Stripe holds the
+                  detail and our row never will. */}
+              <Field
+                label="Card"
+                value={
+                  cardName(payment.data?.card_brand, payment.data?.card_last4) ??
+                  'Not recorded for this payment'
+                }
+              />
               {payment.data?.stripe_payment_intent_id ? (
                 <>
                   <Field label="Stripe payment intent" value={payment.data.stripe_payment_intent_id} />
@@ -426,6 +440,7 @@ export default async function AdminOrderDetailPage({
                       totalPence={order.total_pence}
                       paymentStatus={order.payment_status}
                       paymentLabel={PAYMENT_BADGE[order.payment_status]?.label ?? order.payment_status}
+                      card={cardLabel(payment.data?.card_brand, payment.data?.card_last4)}
                       skuSummary={(items.data ?? [])
                         .map((i) => `${i.quantity} × ${i.sku}`)
                         .join(', ')}
@@ -440,6 +455,7 @@ export default async function AdminOrderDetailPage({
                       totalPence={order.total_pence}
                       alreadyRefundedPence={refundedPence}
                       paymentLabel={PAYMENT_BADGE[order.payment_status]?.label ?? order.payment_status}
+                      card={cardLabel(payment.data?.card_brand, payment.data?.card_last4)}
                     />
                   )}
                 </div>

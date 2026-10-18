@@ -36,7 +36,10 @@ import {
  * £284.00, a Visa ending 4242, 4 units and two SKUs. Three of those come
  * from real data and are rendered from it. The fourth does not:
  *
- *  - "refunded to the Visa ending 4242" → "back to the card that paid".
+ *  - "refunded to the Visa ending 4242" is REAL now where the payment has
+ *    a card recorded, and narrows to "the card that paid" only where it
+ *    does not — every order placed before the webhook started writing
+ *    card_brand and card_last4. The note below is what used to be true:
  *    payments.card_brand and card_last4 exist and the Stripe webhook never
  *    writes them, so naming a card would mean printing nulls or inventing a
  *    brand. Same narrowing as E5 and A12's omitted payment-method panel.
@@ -70,6 +73,7 @@ export function CancelOrder({
   totalPence,
   paymentStatus,
   paymentLabel,
+  card,
   skuSummary,
 }: {
   orderId: string;
@@ -80,6 +84,9 @@ export function CancelOrder({
   totalPence: number;
   paymentStatus: string;
   paymentLabel: string;
+  /** "the Visa ending 4242", or "the card that paid" when the payment
+      predates the webhook writing card_brand/card_last4. */
+  card: string;
   skuSummary: string;
 }) {
   const router = useRouter();
@@ -168,7 +175,7 @@ export function CancelOrder({
             <Consequence tone="var(--mc-status-error)">
               {paid ? (
                 <>
-                  {formatPence(totalPence)} is refunded to the card that paid. Stripe does not return its
+                  {formatPence(totalPence)} is refunded to {card}. Stripe does not return its
                   processing fee.
                 </>
               ) : (
