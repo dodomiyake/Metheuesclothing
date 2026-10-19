@@ -126,10 +126,15 @@ export function Footer({
         <FooterColumn
           title="Account"
           links={[
+            // Three of these pointed at /account, which 404'd until the
+            // account cluster existed; "Orders and Returns" went to the
+            // GUEST lookup, which is the wrong door for someone with an
+            // account. /account sends anyone not signed in to sign-in and
+            // straight back here.
             ['Overview', '/account'],
-            ['Orders and Returns', '/track-order'],
-            ['Saved Addresses', '/account'],
-            ['Account Details', '/account'],
+            ['Orders and Returns', '/account/orders'],
+            ['Saved Addresses', '/account/addresses'],
+            ['Account Details', '/account/details'],
           ]}
         />
         <FooterColumn

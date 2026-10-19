@@ -1503,3 +1503,225 @@ button.mc-icon-button[aria-label='Search'] {
   gap: 12px;
   width: 100%;
 }
+
+/* ---------------------------------------------- account cluster (11/12/13/18/30)
+   11 Account Overview 100:3082 Desktop and 100:2774 Mobile, both pulled.
+   The head, the rail and the tiles are the same on every screen in the
+   cluster — the ledger says 12, 13, 18 and 30 were each built by cloning
+   this shell and replacing the content column.
+
+   THE RAIL IS A WRAPPING CHIP ROW BELOW 768, which the Account Nav Item
+   component's own description asks for. Sign out sits under the rail at
+   768 and full width under the content below it, so the body is a grid
+   with named areas rather than two copies of one button. */
+.mc-account-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 40px;
+  padding-bottom: 20px;
+}
+.mc-account-eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.54px;
+  text-transform: uppercase;
+  color: var(--mc-text-muted);
+}
+.mc-account-title {
+  margin: 0;
+  font-family: var(--mc-font-display);
+  font-weight: 400;
+  /* 32 on a phone, 48 from 768 up — read off 100:2812 and 100:3109. Not
+     --mc-type-page-title, which steps 38/44/52 for the storefront's own
+     h1s; this screen's own frames say otherwise. */
+  font-size: 32px;
+  line-height: 1.1;
+  color: var(--mc-text-primary);
+}
+.mc-account-meta {
+  margin: 0;
+  font-size: 14px;
+  color: var(--mc-text-muted);
+}
+
+.mc-account-body {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    'nav'
+    'content'
+    'signout';
+  gap: 28px;
+  padding-top: 8px;
+  padding-bottom: 72px;
+  align-items: start;
+}
+.mc-account-nav {
+  grid-area: nav;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mc-account-content {
+  grid-area: content;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.mc-account-signout {
+  grid-area: signout;
+  margin: 0;
+}
+
+/* Current is a left rule AND a filled surface AND a heavier weight — three
+   signals, so it survives greyscale (98:14's own description). */
+.mc-account-nav-item {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 13px 14px;
+  box-sizing: border-box;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--mc-text-muted);
+  text-decoration: none;
+}
+.mc-account-nav-item[data-current='true'] {
+  background: var(--mc-bg-surface);
+  border-left: 2px solid var(--mc-border-strong);
+  font-weight: 500;
+  color: var(--mc-text-primary);
+}
+
+@media (min-width: 768px) {
+  .mc-account-head {
+    padding-top: 40px;
+  }
+  /* 40 at Tablet, 48 at Desktop — read off 100:2969 and 100:3109. The
+     rail narrows with it: 210 at Tablet (100:2972), 240 at Desktop
+     (100:3112). Both are the frames' own numbers rather than one width
+     reused at two widths. */
+  .mc-account-title {
+    font-size: 40px;
+  }
+  .mc-account-body {
+    grid-template-columns: 210px minmax(0, 1fr);
+    grid-template-areas:
+      'nav content'
+      'signout content';
+    column-gap: 48px;
+    row-gap: 2px;
+  }
+  .mc-account-nav {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 2px;
+  }
+  .mc-account-nav-item {
+    width: 100%;
+  }
+  .mc-account-signout {
+    padding-top: 12px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .mc-account-title {
+    font-size: 48px;
+  }
+  .mc-account-body {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+}
+
+/* The four section tiles. 300px cards at Desktop (100:3145), 226px at
+   Tablet (100:3005) and 167px two-up on a phone (100:2845) — auto-fill
+   reproduces all three from one rule per breakpoint, and the COUNT per row
+   matches the frames: 2 at 390, 1 at 768 (two 226s do not fit a 416px
+   content column, which is what the Tablet frame draws), 3 at 1440. */
+.mc-account-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .mc-account-tiles {
+    grid-template-columns: repeat(auto-fill, minmax(226px, 226px));
+  }
+}
+@media (min-width: 1440px) {
+  .mc-account-tiles {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 300px));
+  }
+}
+
+.mc-account-card {
+  background: var(--mc-bg-surface);
+  border: 1px solid var(--mc-border-default);
+  padding: 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+.mc-account-tile {
+  border: 1px solid var(--mc-border-default);
+  padding: 18px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-decoration: none;
+}
+
+/* 13 Order Detail (103:3631). Main FILL plus a 320px rail, the pair capped
+   at 1000 — the frame's own numbers. Tablet and mobile stack, which is
+   what the ledger's note says and what the two narrower frames draw. */
+.mc-account-order-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  align-items: stretch;
+}
+.mc-account-order-main,
+.mc-account-order-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+  width: 100%;
+}
+@media (min-width: 1440px) {
+  .mc-account-order-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+  .mc-account-order-main {
+    flex: 1 0 0;
+  }
+  .mc-account-order-side {
+    width: 320px;
+    flex-shrink: 0;
+  }
+}
+
+/* 30 Saved Addresses (106:3719). 400px cards two-up that wrap, the grid
+   capped at 840 by the page; one column below 768, which is what the two
+   narrower frames draw. */
+.mc-address-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  width: 100%;
+}
+@media (min-width: 768px) {
+  .mc-address-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 400px));
+  }
+}

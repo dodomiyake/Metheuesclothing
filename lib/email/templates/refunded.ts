@@ -7,6 +7,7 @@ import {
   SAND,
   STONE,
 } from '../layout';
+import { customerCardLabel, type PaymentCard } from '@/lib/payments/card-label';
 import { formatPence } from '@/lib/money';
 
 /**
@@ -35,8 +36,9 @@ import { formatPence } from '@/lib/money';
  *    sentence tells a customer who was refunded for a fault that they
  *    requested something they did not.
  *
- * "Visa ending 4242" goes for the same reason it goes in E5: card_brand and
- * card_last4 are never written by the webhook.
+ * "Visa ending 4242" IS here now where the payment recorded a card — the
+ * webhook writes card_brand and card_last4 from the charge — and narrows to
+ * "the card you paid with" only for orders paid before that was wired.
  *
  * Everything the design's own note calls the point of the email is kept —
  * an exact amount, an exact date, and the 10-working-day escape hatch that
@@ -47,7 +49,9 @@ export function buildRefundedEmail(
   refund: { amount_pence: number; created_at?: string },
   totalRefundedPence: number,
   orderTotalPence: number,
+  card: PaymentCard = null,
 ): { subject: string; html: string; text: string } {
+  const cardPhrase = customerCardLabel(card?.card_brand, card?.card_last4);
   const amount = formatPence(refund.amount_pence);
   const partial = totalRefundedPence < orderTotalPence;
   const sentOn = new Date(refund.created_at ?? Date.now()).toLocaleDateString('en-GB', {
@@ -76,7 +80,7 @@ export function buildRefundedEmail(
                 Your refund has been sent
               </p>
               <p style="margin:0 0 18px; font-family:${BODY_FONT}; font-size:15px; line-height:24px; color:${BLACK};">
-                We have sent ${escapeHtml(amount)} back to the card you paid with. Whether it shows today or
+                We have sent ${escapeHtml(amount)} back to ${escapeHtml(cardPhrase)}. Whether it shows today or
                 next week is your bank, not us.
               </p>
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:${IVORY};">
@@ -124,7 +128,7 @@ export function buildRefundedEmail(
   const text = [
     'Your refund has been sent.',
     '',
-    `${amount} has gone back to the card you paid with, on order ${order.order_number}.`,
+    `${amount} has gone back to ${cardPhrase}, on order ${order.order_number}.`,
     totalRefundedPence !== refund.amount_pence
       ? `Refunded on this order so far: ${formatPence(totalRefundedPence)} of ${formatPence(orderTotalPence)}.`
       : `Order total: ${formatPence(orderTotalPence)}.`,
@@ -140,7 +144,7 @@ export function buildRefundedEmail(
 
   // No CTA: there is nothing to do and no page that says more than this.
   const html = renderEmailLayout({
-    preheader: `${amount} refunded to the card you paid with.`,
+    preheader: `${amount} refunded to ${cardPhrase}.`,
     bodyHtml,
   });
 

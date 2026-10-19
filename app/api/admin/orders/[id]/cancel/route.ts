@@ -88,13 +88,24 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   let refundPence: number | null = null;
   let stripeRefundId: string | null = null;
+  // Hoisted for E5: the payment row is only read on the paid path, and an
+  // unpaid cancellation has no card to name.
+  let card: { card_brand: string | null; card_last4: string | null } = {
+    card_brand: null,
+    card_last4: null,
+  };
 
   if (order.payment_status === 'paid') {
     const { data: payment } = await db
       .from('payments')
-      .select('stripe_payment_intent_id, amount_pence')
+      .select('stripe_payment_intent_id, amount_pence, card_brand, card_last4')
       .eq('order_id', id)
       .maybeSingle();
+
+    card = {
+      card_brand: (payment?.card_brand as string | null) ?? null,
+      card_last4: (payment?.card_last4 as string | null) ?? null,
+    };
 
     if (!payment?.stripe_payment_intent_id) {
       // Refusing beats cancelling without refunding. A cancelled order that
@@ -163,7 +174,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // E5. Best-effort, exactly as E3 and E4 are: the order is already
   // cancelled and the money already sent, so a failed email is §15's
   // "Email delivery failures", not a reason to pretend none of it happened.
-  const email = buildCancelledEmail({ order_number: order.order_number }, refundPence);
+  const email = buildCancelledEmail({ order_number: order.order_number }, refundPence, card);
   await sendTransactionalEmail(db, {
     template: 'E5',
     to: order.email,

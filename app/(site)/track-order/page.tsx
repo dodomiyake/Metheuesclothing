@@ -3,6 +3,8 @@
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { formatPence } from '@/lib/money';
+import { orderStatus, buildOrderTimeline } from '@/lib/orders/status';
+import { OrderTimeline } from '@/components/site/order-timeline';
 import {
   fieldStyle,
   labelStyle,
@@ -94,10 +96,16 @@ const DATE_FORMAT: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long',
  *   shown only for steps that have a real timestamp (placed_at,
  *   shipped_at, delivered_at) — the mockup's "Payment confirmed" and
  *   "Preparing" steps show a fabricated time this app doesn't track.
- * - The Payment section (card brand/last4, billing address) is omitted
- *   entirely: `payments.card_brand`, `.card_last4` and
- *   `orders.billing_address` exist as columns but no code path in this
- *   app ever writes to them, so they would always render empty.
+ * - The Payment section (card brand/last4, billing address) is still
+ *   omitted, but only half for the original reason. `payments.card_brand`
+ *   and `.card_last4` ARE written now (the Stripe webhook expands the paid
+ *   intent's latest_charge), while `orders.billing_address` is still
+ *   written by nothing. So a "Visa ending 4242" line COULD be shown here
+ *   and a billing address could not. It is held back deliberately rather
+ *   than omitted for lack of data: this page is reached by proving an
+ *   order number and an email, and what a guest may read on that evidence
+ *   is the owner's call, not a thing to widen in passing. Raise it with
+ *   them — the admin (A12) and E5/E7/E8 already name the card.
  * - "Cancel this order" is omitted, not disabled-with-explanation: there
  *   is no cancel-order route to ever enable it, and the Button
  *   component's own rule is that a disabled control needs real text
@@ -193,7 +201,7 @@ export default function TrackOrderPage() {
 
   const totalQuantity = items.reduce((sum, i) => sum + i.quantity, 0);
   const vatPence = Math.round((order.total_pence * settings.vat_rate_basis_points) / (10000 + settings.vat_rate_basis_points));
-  const status = statusFor(order);
+  const status = orderStatus(order);
   const deliveredAt = fulfilments.find((f) => f.delivered_at)?.delivered_at ?? null;
   const shippedAt = fulfilments.find((f) => f.shipped_at)?.shipped_at ?? null;
   const trackable = fulfilments.find((f) => f.tracking_number);
@@ -237,7 +245,7 @@ export default function TrackOrderPage() {
               </Card>
             ) : (
               <Card title="Progress">
-                <Timeline order={order} shippedAt={shippedAt} deliveredAt={deliveredAt} />
+                <OrderTimeline steps={buildOrderTimeline(order, shippedAt, deliveredAt)} />
               </Card>
             )}
 
@@ -296,87 +304,6 @@ export default function TrackOrderPage() {
         </div>
       </div>
     </main>
-  );
-}
-
-function statusFor(order: Order): { label: string; colour: string } {
-  if (order.cancelled_at) return { label: 'Cancelled', colour: 'var(--mc-status-attention)' };
-  if (order.payment_status === 'refunded') return { label: 'Refunded', colour: 'var(--mc-status-attention)' };
-  if (order.payment_status === 'partially_refunded') return { label: 'Partially refunded', colour: 'var(--mc-status-attention)' };
-  if (order.fulfilment_status === 'delivered') return { label: 'Delivered', colour: 'var(--mc-status-success)' };
-  if (order.fulfilment_status === 'shipped') return { label: 'Shipped', colour: 'var(--mc-status-success)' };
-  if (order.fulfilment_status === 'processing' || order.fulfilment_status === 'packed') {
-    return { label: 'Preparing', colour: 'var(--mc-text-primary)' };
-  }
-  if (order.payment_status === 'paid') return { label: 'Paid', colour: 'var(--mc-text-primary)' };
-  return { label: 'Processing', colour: 'var(--mc-text-muted)' };
-}
-
-function Timeline({ order, shippedAt, deliveredAt }: { order: Order; shippedAt: string | null; deliveredAt: string | null }) {
-  const paid = order.payment_status !== 'pending' && order.payment_status !== 'failed';
-  // "Reached" tracks how far fulfilment has actually gotten; "current" below
-  // is which single step is in progress right now, not just which steps
-  // have been reached -- conflating the two here once made a processing
-  // order (reached preparing, not yet shipped) show Dispatched as current
-  // instead of Preparing your order.
-  const reachedShipped = ['shipped', 'delivered'].includes(order.fulfilment_status);
-  const reachedDelivered = order.fulfilment_status === 'delivered';
-
-  const steps: { label: string; state: 'done' | 'current' | 'todo'; detail?: string }[] = [
-    { label: 'Order placed', state: 'done', detail: new Date(order.placed_at).toLocaleDateString('en-GB', DATE_FORMAT) },
-    { label: 'Payment confirmed', state: paid ? 'done' : 'todo' },
-    {
-      label: 'Preparing your order',
-      state: reachedShipped ? 'done' : paid ? 'current' : 'todo',
-    },
-    {
-      label: 'Dispatched',
-      state: reachedDelivered ? 'done' : reachedShipped ? 'current' : 'todo',
-      detail: shippedAt ? new Date(shippedAt).toLocaleDateString('en-GB', DATE_FORMAT) : undefined,
-    },
-    {
-      label: 'Delivered',
-      state: reachedDelivered ? 'done' : 'todo',
-      detail: deliveredAt ? new Date(deliveredAt).toLocaleDateString('en-GB', DATE_FORMAT) : undefined,
-    },
-  ];
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      {steps.map((step) => (
-        <div key={step.label} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
-          <span
-            aria-hidden
-            style={{
-              flexShrink: 0,
-              marginTop: 5,
-              width: step.state === 'current' ? 14 : step.state === 'done' ? 10 : 12,
-              height: step.state === 'current' ? 14 : step.state === 'done' ? 10 : 12,
-              borderRadius: '50%',
-              background: step.state === 'current' ? 'var(--mc-status-success)' : step.state === 'done' ? 'var(--mc-text-primary)' : 'transparent',
-              border: step.state === 'todo' ? '1px solid var(--mc-border-default)' : 'none',
-            }}
-          />
-          <div>
-            <p
-              style={{
-                fontSize: 15,
-                fontWeight: step.state === 'current' ? 600 : 500,
-                color: step.state === 'todo' ? 'var(--mc-text-muted)' : 'var(--mc-text-primary)',
-                margin: 0,
-              }}
-            >
-              {step.label}
-            </p>
-            {(step.detail || step.state === 'current') && (
-              <p style={{ fontSize: 13, color: 'var(--mc-text-muted)', margin: '3px 0 0' }}>
-                {step.state === 'current' ? 'Current step' : step.detail}
-              </p>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
   );
 }
 

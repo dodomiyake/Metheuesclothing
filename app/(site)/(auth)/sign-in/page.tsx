@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { Suspense, useState, type FormEvent } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   fieldStyle,
@@ -17,13 +18,36 @@ import {
   errorStyle,
 } from '../../form-styles';
 
-/** Figma 10A — Sign In (node 95:2620, file 9SzUlTWGVKOCkAULkbqOsr). */
+/**
+ * Figma 10A — Sign In (node 95:2620, file 9SzUlTWGVKOCkAULkbqOsr).
+ *
+ * `?next=` exists because /account bounces here when nobody is signed in,
+ * and landing on the homepage after signing in loses what you were doing.
+ * ONLY A PATH IS ACCEPTED — a `next` starting with anything but a single
+ * slash is ignored, because a sign-in form that forwards to whatever a
+ * query string says is an open redirect, and a phishing link pointing at
+ * the real shop's real sign-in page is as good as a cloned one.
+ *
+ * useSearchParams needs a Suspense boundary to prerender, so the form is
+ * wrapped rather than the page being opted out of static rendering.
+ */
 export default function SignInPage() {
+  return (
+    <Suspense fallback={null}>
+      <SignInForm />
+    </Suspense>
+  );
+}
+
+function SignInForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [keepSignedIn, setKeepSignedIn] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const params = useSearchParams();
+  const requested = params.get('next');
+  const next = requested && /^\/(?!\/)/.test(requested) ? requested : '/';
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -40,7 +64,7 @@ export default function SignInPage() {
       setError(body.error ?? 'Something went wrong. Please try again.');
       return;
     }
-    window.location.href = '/';
+    window.location.href = next;
   }
 
   return (

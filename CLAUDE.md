@@ -1149,6 +1149,91 @@ built. A05 also gained an "All T-shirts" link, because "Back to product"
 lands on A04's gate below 768 and a phone needs a way out to a screen it
 can use.
 
+THE WEBHOOK NOW WRITES THE CARD AND RECORDS A DASHBOARD REFUND, closing
+two things this file had been carrying as open. payments.card_brand and
+.card_last4 had existed since 001 with no writer, which narrowed six
+places at once; the paid intent is now retrieved with latest_charge
+expanded, best-effort and caught, and A12's Payment panel, A15, A16, E5,
+E7 and E8 all name the real card where there is one. Every order placed
+BEFORE this keeps "the card that paid" for good — Stripe holds those
+details and our row never will. lib/payments/card-label.ts is the single
+copy of that fallback wording. And charge.refunded now resolves the order,
+lists the charge's refunds from the API and calls record_refund for any
+stripe_refund_id we do not already hold, so a refund issued from the
+Stripe dashboard stops leaving orders.payment_status on 'paid' with no
+refunds row and no audit trail. A refusal writes refund_not_recorded to
+audit_logs and still returns 200, because Stripe cannot fix it by
+retrying. Track-order is deliberately NOT widened to match: the card is
+available there too, and what a guest may read on the evidence of an order
+number plus an email is the owner's call.
+
+THE CUSTOMER ACCOUNT CLUSTER IS BUILT — the last unbuilt storefront
+screens. /account (11, 100:3082 Desktop + 100:2774 Mobile + 100:2925
+Tablet, all three pulled), /account/orders (12, 102:3304 pulled),
+/account/orders/[orderNumber] (13, 103:3631 — the node track-order's
+result view was already built from, so this is that screen WITH its
+account chrome), /account/addresses (30, 106:3719) and /account/details
+(18, 107:3945). One AccountShell carries the head, the rail and sign-out,
+which is how the ledger says the design was built (every screen is 11
+cloned with the content column replaced).
+
+THREE DEAD FOOTER LINKS ARE CLOSED by it: Overview, Saved Addresses and
+Account Details had pointed at /account since the chrome was built, and
+/account 404'd. The header's Account icon now goes to /account rather than
+/sign-in, because the header cannot know whether anyone is signed in and
+/account redirects with a ?next= that comes straight back. Sign-in honours
+?next= and accepts a PATH ONLY — anything not starting with a single slash
+is ignored, since a sign-in form that forwards wherever a query string
+says is an open redirect on the real shop's real domain.
+
+RETURNS IS A RAIL ITEM WITH NO FRAME. The rail draws five items on every
+screen in the cluster and the file has 17 Return Details but no list in
+front of it, so /account/returns is built from the cluster's own grammar
+rather than left to 404 — the same call A11 made about the admin items
+whose pages did not exist. Worth settling with the design owner: a screen
+of its own, or a section of 12 Orders.
+
+MEASURED AT 390/768/1440 rather than eyeballed, and the Tablet pull
+changed two numbers a single breakpoint would have got wrong: the page
+title steps 32/40/48 (not 32/48) and the rail is 210px at Tablet against
+240 at Desktop. Section tiles come out 2/1/3 per row, which is what the
+three frames themselves draw; 13's columns split at 1440 with a 320px
+side rail; address cards 1/1/2; every nav item 44px; no horizontal
+overflow at any width.
+
+MIGRATION 020 IS WRITTEN AND NOT APPLIED, and it closes a real
+privilege-escalation hole that predates this work. profiles_self_write is
+`using (id = auth.uid()) with check (id = auth.uid())` — a ROW rule that
+says nothing about COLUMNS — and `profiles` holds `role`. The publishable
+key is in the browser by design, so any signed-in customer could call
+PostgREST directly with `update({ role: 'owner' })` on their own row and
+RLS would allow it. Being an admin here is exactly that one column. No
+route ever permitted it (every schema that writes profiles is `.strict()`
+and does not name `role`, which is why they are strict), but a route is
+not the lock. 020 revokes UPDATE on profiles from `authenticated` and
+grants it back on full_name, phone, marketing_opt_in and
+marketing_opt_in_at only; PostgREST honours column privileges, so the
+database refuses it for every caller. APPLY IT — this session's Supabase
+tooling refuses every call with a permission error, so nothing in this
+chunk was exercised against the live database either.
+
+Narrowings in the cluster, each to a column that exists: 18's First/Last
+name is ONE field (full_name is one column, and splitting a name on a
+space is wrong for a great many real names); its email is read-only with
+its real verified state, because changing it is a Supabase Auth flow
+nobody has built; the password row claims no last-changed date, since
+nothing records one; "Delivery updates by SMS" is omitted for the reason
+A20 gives. 13 omits "Cancel this order" (no customer-facing cancel route
+— A15 is staff only and issues a refund), "Download invoice" (nothing
+generates one) and the billing address (orders.billing_address is still
+written by nothing). 30's empty state is reworded: the design says
+addresses entered at checkout can be saved here, and nothing does that —
+Stripe Checkout owns that form, and the webhook stores a snapshot on the
+ORDER so an order's address cannot change when someone later edits their
+address book. 12's "Estimated delivery, tracked with DPD" becomes the real
+delivery method and the real tracking number where one exists, the same
+narrowing the homepage made.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real

@@ -78,14 +78,46 @@ export async function POST(req: NextRequest) {
           })
           .eq('id', orderId);
 
+        const paidIntentId =
+          typeof session.payment_intent === 'string'
+            ? session.payment_intent
+            : session.payment_intent?.id;
+
+        // THE CARD. payments.card_brand and .card_last4 have existed since
+        // migration 001 and nothing ever wrote them, which narrowed five
+        // screens at once: A12 omits its Payment method panel entirely, and
+        // A15, A16, E5 and E8 all say "the card that paid" where the design
+        // says "the Visa ending 4242". The details are on the CHARGE, not
+        // the session, so the intent is retrieved with latest_charge
+        // expanded — one API call on a path that already called Stripe to
+        // create the session.
+        //
+        // Best-effort on purpose. A card brand is a nicety; the payment,
+        // the order and the stock are not. A failure here must not cost the
+        // customer their confirmation email or leave the webhook unclaimed,
+        // so it is caught and the rest of the branch carries on.
+        let card: { card_brand: string; card_last4: string } | null = null;
+        if (paidIntentId) {
+          try {
+            const intent = await getStripeClient().paymentIntents.retrieve(paidIntentId, {
+              expand: ['latest_charge'],
+            });
+            const charge = intent.latest_charge as Stripe.Charge | null;
+            const details = charge?.payment_method_details?.card;
+            if (details?.brand && details?.last4) {
+              card = { card_brand: details.brand, card_last4: details.last4 };
+            }
+          } catch {
+            // Left null. The order is paid either way.
+          }
+        }
+
         await db
           .from('payments')
           .update({
             status: 'paid',
-            stripe_payment_intent_id:
-              typeof session.payment_intent === 'string'
-                ? session.payment_intent
-                : session.payment_intent?.id,
+            stripe_payment_intent_id: paidIntentId,
+            ...(card ?? {}),
           })
           .eq('stripe_checkout_session_id', session.id);
 
@@ -171,12 +203,25 @@ export async function POST(req: NextRequest) {
             : charge.payment_intent?.id;
         if (!intentId) break;
 
+        // The card, for a refund that arrived before (or without) a paid
+        // event carrying it — the charge has the details in hand here.
+        const refundCard = charge.payment_method_details?.card;
+
+        const { data: paymentRow } = await db
+          .from('payments')
+          .select('order_id')
+          .eq('stripe_payment_intent_id', intentId)
+          .maybeSingle();
+
         await db
           .from('payments')
           .update({
             status: charge.amount_refunded === charge.amount
               ? 'refunded'
               : 'partially_refunded',
+            ...(refundCard?.brand && refundCard?.last4
+              ? { card_brand: refundCard.brand, card_last4: refundCard.last4 }
+              : {}),
           })
           .eq('stripe_payment_intent_id', intentId);
 
@@ -184,16 +229,78 @@ export async function POST(req: NextRequest) {
         // different events, often days apart — see A16. Stock moves when a
         // human says the items are on the shelf.
         //
-        // A refund issued through OUR admin (A15/A16) has already written
-        // `refunds`, `orders.payment_status` and an audit row before Stripe
-        // sent this event, so this branch is a no-op repeat of the payments
-        // half. A refund issued straight from the Stripe dashboard is the
-        // case this still only half-covers: payments.status moves, but no
-        // refunds row exists, orders.payment_status stays 'paid', and
-        // nothing is audited. Closing that means calling record_refund from
-        // here with the charge's refund id — the unique index on
-        // refunds.stripe_refund_id already makes it safe to do twice. Worth
-        // doing; not done, so it is written down rather than assumed.
+        // WHAT THIS BRANCH IS ACTUALLY FOR: a refund issued straight from the
+        // Stripe DASHBOARD. One issued through our own admin (A15/A16) has
+        // already written `refunds`, `orders.payment_status` and an audit row
+        // before Stripe sent this event, so there is nothing left to do for
+        // it. A dashboard refund used to move payments.status and nothing
+        // else — no refunds row, orders.payment_status stuck on 'paid', and
+        // no audit trail — which meant the admin showed an order as paid
+        // that the customer had their money back for.
+        //
+        // The refunds are LISTED from the API rather than read off
+        // charge.refunds: the embedded list is capped and may be absent on a
+        // charge with many, and getting this wrong means missing a refund
+        // rather than merely showing a stale one.
+        const orderId = paymentRow?.order_id as string | undefined;
+        if (orderId) {
+          let stripeRefunds: Stripe.Refund[] = [];
+          try {
+            const list = await getStripeClient().refunds.list({ charge: charge.id, limit: 100 });
+            stripeRefunds = list.data;
+          } catch {
+            stripeRefunds = [];
+          }
+
+          const { data: knownRows } = await db
+            .from('refunds')
+            .select('stripe_refund_id')
+            .eq('order_id', orderId);
+          const known = new Set(
+            (knownRows ?? [])
+              .map((r) => r.stripe_refund_id as string | null)
+              .filter((id): id is string => Boolean(id)),
+          );
+
+          for (const refund of stripeRefunds) {
+            if (known.has(refund.id)) continue;
+            if (refund.status !== 'succeeded' && refund.status !== 'pending') continue;
+
+            // record_refund does the whole job: the refunds row, both status
+            // columns and the audit entry. restock stays false for the reason
+            // above. Its own over-refund check and the unique index on
+            // stripe_refund_id are what make calling it from here safe —
+            // including on a redelivery of this event.
+            const { error: recordError } = await db.rpc('record_refund', {
+              p_order_id: orderId,
+              p_amount_pence: refund.amount,
+              p_reason: refund.reason
+                ? `Refunded in Stripe (${refund.reason.replace(/_/g, ' ')})`
+                : 'Refunded in Stripe',
+              p_restock: false,
+              p_note: 'Issued in the Stripe dashboard rather than in the admin.',
+              p_stripe_refund_id: refund.id,
+              p_actor: null,
+              p_actor_label: 'Stripe',
+            });
+
+            if (recordError) {
+              // Said out loud rather than swallowed: the money has left and
+              // our record of it has not been written, which is the one
+              // failure in this file a human has to know about. The webhook
+              // still returns 200 — Stripe cannot fix this by retrying.
+              await db.from('audit_logs').insert({
+                actor_label: 'System',
+                action: 'refund_not_recorded',
+                entity_type: 'order',
+                entity_id: orderId,
+                summary: `Stripe refund ${refund.id} (GBP ${(refund.amount / 100).toFixed(
+                  2,
+                )}) could not be recorded: ${recordError.message}`,
+              });
+            }
+          }
+        }
         break;
       }
 

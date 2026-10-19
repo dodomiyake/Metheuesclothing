@@ -93,7 +93,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data: payment } = await db
     .from('payments')
-    .select('stripe_payment_intent_id')
+    .select('stripe_payment_intent_id, card_brand, card_last4')
     .eq('order_id', ret.order_id)
     .maybeSingle();
   if (!payment?.stripe_payment_intent_id) {
@@ -176,6 +176,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       quantity: l.quantity,
     })),
     order.delivery_pence,
+    { card_brand: payment.card_brand, card_last4: payment.card_last4 },
   );
   await sendTransactionalEmail(db, {
     template: 'E7',

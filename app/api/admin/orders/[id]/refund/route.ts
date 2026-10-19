@@ -90,7 +90,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { data: payment } = await db
     .from('payments')
-    .select('stripe_payment_intent_id')
+    .select('stripe_payment_intent_id, card_brand, card_last4')
     .eq('order_id', id)
     .maybeSingle();
   if (!payment?.stripe_payment_intent_id) {
@@ -164,6 +164,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     { amount_pence: refundedPence },
     already + refundedPence,
     order.total_pence,
+    // The real card where the webhook recorded one; the template narrows to
+    // "the card you paid with" on its own where it did not.
+    { card_brand: payment.card_brand, card_last4: payment.card_last4 },
   );
   await sendTransactionalEmail(db, {
     template: 'E8',
