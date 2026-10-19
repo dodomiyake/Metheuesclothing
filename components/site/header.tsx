@@ -77,7 +77,11 @@ export function Header() {
             </Link>
           ))}
           {/* Drawer only — Mobile has no account icon to reach this by. */}
-          <Link href="/sign-in" className="mc-drawer-only" style={navLinkStyle} onClick={() => setOpen(false)}>
+          {/* /account, not /sign-in: the header has no idea whether
+              anyone is signed in, and the account page redirects to
+              sign-in with a `next` that comes straight back. One link for
+              both states beats a link that is wrong for one of them. */}
+          <Link href="/account" className="mc-drawer-only" style={navLinkStyle} onClick={() => setOpen(false)}>
             Account
           </Link>
         </nav>
@@ -97,7 +101,7 @@ export function Header() {
         >
           <SearchIcon />
         </button>
-        <Link href="/sign-in" className="mc-icon-button mc-header-account" aria-label="Account">
+        <Link href="/account" className="mc-icon-button mc-header-account" aria-label="Account">
           <AccountIcon />
         </Link>
         <Link href="/bag" className="mc-icon-button" aria-label="Bag">
