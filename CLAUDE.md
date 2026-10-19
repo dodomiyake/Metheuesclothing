@@ -1216,15 +1216,19 @@ grants it back on full_name, phone, marketing_opt_in and
 marketing_opt_in_at only; PostgREST honours column privileges, so the
 database refuses it for every caller.
 
-UNVERIFIED FROM HERE, and worth confirming before it is treated as closed:
-this session's Supabase tooling refused every call with a permission
-error, including a plain `select 1`, so the grant was neither applied nor
-checked from this end and the rule 3 advisor run has not been seen either.
-The owner reports running it. The check is
-`information_schema.column_privileges` for table `profiles`,
-privilege_type UPDATE — exactly four rows, all `authenticated`, none for
-`anon`. Nothing else in this chunk was exercised against the live database
-for the same reason.
+VERIFIED, by the owner's own screenshot of
+`information_schema.column_privileges` rather than from this session:
+UPDATE on `profiles` returns exactly four rows, every one `authenticated`
+— full_name, marketing_opt_in, marketing_opt_in_at, phone — and NONE for
+`anon`. `anon` sorts first under that query's own ordering, so an empty
+top of the list is the part that proves the second revoke took. So a
+customer's own profile row is now writable in four columns and `role` is
+not one of them, enforced by Postgres rather than by a route schema.
+
+STILL UNSEEN: the rule 3 advisor run. This session's Supabase tooling
+refused every call with a permission error, including a plain `select 1`,
+so the advisor baseline has not been re-checked since 019 and nothing
+else in this chunk was exercised against the live database either.
 
 Narrowings in the cluster, each to a column that exists: 18's First/Last
 name is ONE field (full_name is one column, and splitting a name on a

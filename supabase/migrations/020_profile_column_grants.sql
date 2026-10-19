@@ -5,8 +5,9 @@
 -- permission error. Only this status note has been edited since — every
 -- statement below is byte-for-byte what ran, which is the thing the
 -- never-edit-an-applied-migration convention exists to protect. The
--- advisor run that rule 3 asks for is the owner's to confirm; nothing in
--- this session could see the database to check either.
+-- grant itself is VERIFIED: column_privileges returns exactly these four
+-- columns for `authenticated` and nothing for `anon`. The advisor run that
+-- rule 3 asks for has not been seen from here.
 --
 -- THE HOLE. profiles_self_write (002_rls.sql:48) is
 --
