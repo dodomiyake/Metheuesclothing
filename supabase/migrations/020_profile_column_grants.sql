@@ -1,10 +1,12 @@
 -- 020 — stop a customer editing their own `role`.
 --
--- NOT YET APPLIED. This session's Supabase tooling refuses every call with
--- a permission error, so this file is written and the application code is
--- already safe without it (see below) — but the hole it closes is real and
--- it must be applied. Run it, then `get_advisors(type: "security")` per
--- rule 3.
+-- APPLIED 19 October 2026, by the owner through the dashboard SQL editor,
+-- because this session's Supabase tooling refused every call with a
+-- permission error. Only this status note has been edited since — every
+-- statement below is byte-for-byte what ran, which is the thing the
+-- never-edit-an-applied-migration convention exists to protect. The
+-- advisor run that rule 3 asks for is the owner's to confirm; nothing in
+-- this session could see the database to check either.
 --
 -- THE HOLE. profiles_self_write (002_rls.sql:48) is
 --
