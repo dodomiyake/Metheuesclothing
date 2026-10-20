@@ -1272,6 +1272,61 @@ address book. 12's "Estimated delivery, tracked with DPD" becomes the real
 delivery method and the real tracking number where one exists, the same
 narrowing the homepage made.
 
+A READ-ONLY PASS AGAINST THE LIVE DATABASE, the first possible in this
+chunk, and it rewrote four things this file claimed. The connector reached
+the project at last (see the tooling note above), so the queries every new
+page makes were checked against the real schema rather than against tsc.
+
+MUCH MORE HAS RUN FOR REAL THAN THIS FILE SAYS. Order MC-10008 went the
+whole way on 11 October, by the owner, through the admin: A13 marked it
+packed (`fulfilment_packed`), A14 dispatched it with DHL and a real
+tracking number (`fulfilment_shipped`), and A16 refunded GBP 99.95 against
+a real Stripe refund id (`re_3UMlnP...`) with 2 lines restocked and the
+order left at payment_status `refunded`. So advance_fulfilment, ship_order
+and record_refund have all been exercised with real money, not just the
+012 fixture. The four ZZ-TEST audit rows are still there, as they must be.
+
+A05's WRITE PATH HAS BEEN USED TOO. One real photograph was uploaded on 18
+October, and every part of the design held: the stored path is
+`products/<product_id>/<uuid>.jpg`, exactly the shape productImagePath()
+builds and isShopImagePath() admits, at position 0, assigned to IVORY,
+which is one of the product's three real variant colours. So the signed
+upload URL, the storage policy, the path guard and the row insert all
+work. A21 was used as well — all eight homepage slots carry the same
+updated_at to the millisecond (12 October), which is the single-upsert
+design doing what it was built for.
+
+THE ALT TEXT ON THAT PHOTOGRAPH IS LOREM IPSUM, live, on the shop's only
+picture. The form requires a non-empty description and got one; nothing
+can check that a description describes. §13 wants a real text alternative
+— worth fixing in A05 before anyone relies on it.
+
+AND A REAL BUG, which is the point of looking. Every one of the five live
+orders has `profile_id` NULL, including the ones placed while signed in,
+because app/api/checkout/route.ts never set the column — it has existed
+since 001 and nothing wrote it. orders_own_read matches profile_id against
+auth.uid(), so the ENTIRE account cluster could never have shown an order
+to anyone: 12 Orders permanently empty, 13 unreachable, /account's
+latest-order card stuck on its empty state. Fixed in the same pass by
+reading the user from the SESSION (never the body — a client-supplied
+profile_id is a client-supplied claim about whose order it is) and leaving
+it null for genuine guests. The order's email stays the one typed at the
+bag rather than the account's, because someone may order to an address
+they do not sign in with. THE FIVE EXISTING ORDERS STAY GUEST ORDERS;
+backfilling them by matching email is a judgement call for the owner, not
+something to do quietly.
+
+Schema assumptions behind the new pages were checked and all hold:
+`addresses_one_default_per_profile` (what the clear-then-set default logic
+relies on), `product_images_one_per_position`, `refunds_stripe_key`
+(unique where not null — what makes the webhook's record_refund call safe
+to redeliver), and every foreign key PostgREST needs to resolve the nested
+selects in /account/returns and loadVariantImages.
+
+STILL ZERO: collections and addresses. /collections renders its empty
+state, A09 its own, and the address book's write path remains the one
+part of the account cluster nothing has touched.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
