@@ -1225,10 +1225,35 @@ top of the list is the part that proves the second revoke took. So a
 customer's own profile row is now writable in four columns and `role` is
 not one of them, enforced by Postgres rather than by a route schema.
 
-STILL UNSEEN: the rule 3 advisor run. This session's Supabase tooling
-refused every call with a permission error, including a plain `select 1`,
-so the advisor baseline has not been re-checked since 019 and nothing
-else in this chunk was exercised against the live database either.
+THE RULE 3 ADVISOR RUN IS DONE and the baseline is unchanged:
+rate_limits/webhook_events with RLS and no policy, citext in public,
+is_staff/is_owner executable by anon and by authenticated, leaked-password
+protection off. Nothing from 020 appears, `profiles` is unflagged, and
+NONE of the eleven SECURITY DEFINER functions added since 010 is listed —
+adjust_stock, advance_fulfilment, ship_order, cancel_order, record_refund,
+receive_return, decide_return, refund_return, admin_customers,
+admin_customer_account, admin_customer_stats. Every REVOKE held.
+
+The advisor has a NEW LINT NAME since the last run, "Signed-In Users Can
+Execute SECURITY DEFINER Function", beside the older anon one. It names
+the same two functions, so it is a new check rather than a new finding —
+and both are deliberate for the reason 004_lock_down_functions.sql:20
+gives: RLS policy expressions evaluate as the CALLING role, so revoking
+EXECUTE on is_staff/is_owner breaks every staff policy in the database,
+and they report only on the caller's own role, which the caller already
+knows.
+
+WORTH CARRYING FORWARD ABOUT THE TOOLING: the Supabase connector spent
+this whole chunk refusing every call — `get_advisors`, `execute_sql`, even
+`select 1` — with "You do not have permission to perform this action",
+which reads like a project problem and was not one. `list_projects` is
+what diagnosed it: the grant was authorised against a DIFFERENT Supabase
+account, whose one organisation holds two unrelated projects and not this
+one. Tool toggles and a project restart both changed nothing, because
+neither is where the grant lives. If this recurs, call list_projects
+first and check `afzuhymegntqjwtdkmfb` is in the list before assuming
+anything about the database — and never run a query against whatever
+projects the wrong grant does expose.
 
 Narrowings in the cluster, each to a column that exists: 18's First/Last
 name is ONE field (full_name is one column, and splitting a name on a
@@ -1246,6 +1271,61 @@ ORDER so an order's address cannot change when someone later edits their
 address book. 12's "Estimated delivery, tracked with DPD" becomes the real
 delivery method and the real tracking number where one exists, the same
 narrowing the homepage made.
+
+A READ-ONLY PASS AGAINST THE LIVE DATABASE, the first possible in this
+chunk, and it rewrote four things this file claimed. The connector reached
+the project at last (see the tooling note above), so the queries every new
+page makes were checked against the real schema rather than against tsc.
+
+MUCH MORE HAS RUN FOR REAL THAN THIS FILE SAYS. Order MC-10008 went the
+whole way on 11 October, by the owner, through the admin: A13 marked it
+packed (`fulfilment_packed`), A14 dispatched it with DHL and a real
+tracking number (`fulfilment_shipped`), and A16 refunded GBP 99.95 against
+a real Stripe refund id (`re_3UMlnP...`) with 2 lines restocked and the
+order left at payment_status `refunded`. So advance_fulfilment, ship_order
+and record_refund have all been exercised with real money, not just the
+012 fixture. The four ZZ-TEST audit rows are still there, as they must be.
+
+A05's WRITE PATH HAS BEEN USED TOO. One real photograph was uploaded on 18
+October, and every part of the design held: the stored path is
+`products/<product_id>/<uuid>.jpg`, exactly the shape productImagePath()
+builds and isShopImagePath() admits, at position 0, assigned to IVORY,
+which is one of the product's three real variant colours. So the signed
+upload URL, the storage policy, the path guard and the row insert all
+work. A21 was used as well — all eight homepage slots carry the same
+updated_at to the millisecond (12 October), which is the single-upsert
+design doing what it was built for.
+
+THE ALT TEXT ON THAT PHOTOGRAPH IS LOREM IPSUM, live, on the shop's only
+picture. The form requires a non-empty description and got one; nothing
+can check that a description describes. §13 wants a real text alternative
+— worth fixing in A05 before anyone relies on it.
+
+AND A REAL BUG, which is the point of looking. Every one of the five live
+orders has `profile_id` NULL, including the ones placed while signed in,
+because app/api/checkout/route.ts never set the column — it has existed
+since 001 and nothing wrote it. orders_own_read matches profile_id against
+auth.uid(), so the ENTIRE account cluster could never have shown an order
+to anyone: 12 Orders permanently empty, 13 unreachable, /account's
+latest-order card stuck on its empty state. Fixed in the same pass by
+reading the user from the SESSION (never the body — a client-supplied
+profile_id is a client-supplied claim about whose order it is) and leaving
+it null for genuine guests. The order's email stays the one typed at the
+bag rather than the account's, because someone may order to an address
+they do not sign in with. THE FIVE EXISTING ORDERS STAY GUEST ORDERS;
+backfilling them by matching email is a judgement call for the owner, not
+something to do quietly.
+
+Schema assumptions behind the new pages were checked and all hold:
+`addresses_one_default_per_profile` (what the clear-then-set default logic
+relies on), `product_images_one_per_position`, `refunds_stripe_key`
+(unique where not null — what makes the webhook's record_refund call safe
+to redeliver), and every foreign key PostgREST needs to resolve the nested
+selects in /account/returns and loadVariantImages.
+
+STILL ZERO: collections and addresses. /collections renders its empty
+state, A09 its own, and the address book's write path remains the one
+part of the account cluster nothing has touched.
 
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements

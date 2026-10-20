@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServiceClient } from '@/lib/supabase/server';
+import { createRouteHandlerClient } from '@/lib/supabase/route-handler';
 import { rateLimit, LIMITS } from '@/lib/rate-limit';
 import { getStripeClient } from '@/lib/stripe/client';
 
@@ -116,6 +117,34 @@ export async function POST(req: NextRequest) {
 
   const total = subtotal + deliveryPence;
 
+  // WHO IS BUYING. orders.profile_id has existed since 001 and nothing ever
+  // set it, so EVERY order placed through this route was a guest order even
+  // when the customer was signed in — which made the whole account cluster
+  // (12 Orders, 13 Order detail, /account's latest-order card) permanently
+  // empty, because orders_own_read matches profile_id against auth.uid().
+  // Found by looking: all five live orders have profile_id null.
+  //
+  // It is read from the SESSION, never from the body. A client-supplied
+  // profile_id would be a client-supplied claim about whose order this is,
+  // which is the same mistake as a client-supplied price.
+  //
+  // Guests still check out: no session simply means no link, which is what
+  // the guest lookup at /track-order exists to serve.
+  //
+  // The order's EMAIL is deliberately still the one typed at the bag rather
+  // than the account's. Someone may order to a different address than they
+  // sign in with, and the snapshot should say where the confirmation went.
+  let profileId: string | null = null;
+  try {
+    const sessionClient = await createRouteHandlerClient();
+    const {
+      data: { user },
+    } = await sessionClient.auth.getUser();
+    profileId = user?.id ?? null;
+  } catch {
+    // Signed out, or no readable cookie. A guest checkout, which is fine.
+  }
+
   // ---- create the order, pending ----
   // order_number comes from the sequence default (005), so two simultaneous
   // checkouts cannot collide on it.
@@ -123,6 +152,7 @@ export async function POST(req: NextRequest) {
     .from('orders')
     .insert({
       email,
+      profile_id: profileId,
       subtotal_pence: subtotal,
       delivery_pence: deliveryPence,
       total_pence: total,
