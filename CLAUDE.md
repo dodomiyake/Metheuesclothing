@@ -1225,10 +1225,35 @@ top of the list is the part that proves the second revoke took. So a
 customer's own profile row is now writable in four columns and `role` is
 not one of them, enforced by Postgres rather than by a route schema.
 
-STILL UNSEEN: the rule 3 advisor run. This session's Supabase tooling
-refused every call with a permission error, including a plain `select 1`,
-so the advisor baseline has not been re-checked since 019 and nothing
-else in this chunk was exercised against the live database either.
+THE RULE 3 ADVISOR RUN IS DONE and the baseline is unchanged:
+rate_limits/webhook_events with RLS and no policy, citext in public,
+is_staff/is_owner executable by anon and by authenticated, leaked-password
+protection off. Nothing from 020 appears, `profiles` is unflagged, and
+NONE of the eleven SECURITY DEFINER functions added since 010 is listed —
+adjust_stock, advance_fulfilment, ship_order, cancel_order, record_refund,
+receive_return, decide_return, refund_return, admin_customers,
+admin_customer_account, admin_customer_stats. Every REVOKE held.
+
+The advisor has a NEW LINT NAME since the last run, "Signed-In Users Can
+Execute SECURITY DEFINER Function", beside the older anon one. It names
+the same two functions, so it is a new check rather than a new finding —
+and both are deliberate for the reason 004_lock_down_functions.sql:20
+gives: RLS policy expressions evaluate as the CALLING role, so revoking
+EXECUTE on is_staff/is_owner breaks every staff policy in the database,
+and they report only on the caller's own role, which the caller already
+knows.
+
+WORTH CARRYING FORWARD ABOUT THE TOOLING: the Supabase connector spent
+this whole chunk refusing every call — `get_advisors`, `execute_sql`, even
+`select 1` — with "You do not have permission to perform this action",
+which reads like a project problem and was not one. `list_projects` is
+what diagnosed it: the grant was authorised against a DIFFERENT Supabase
+account, whose one organisation holds two unrelated projects and not this
+one. Tool toggles and a project restart both changed nothing, because
+neither is where the grant lives. If this recurs, call list_projects
+first and check `afzuhymegntqjwtdkmfb` is in the list before assuming
+anything about the database — and never run a query against whatever
+projects the wrong grant does expose.
 
 Narrowings in the cluster, each to a column that exists: 18's First/Last
 name is ONE field (full_name is one column, and splitting a name on a
