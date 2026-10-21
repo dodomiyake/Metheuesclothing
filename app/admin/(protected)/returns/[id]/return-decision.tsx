@@ -15,7 +15,7 @@ import {
   ghostButtonStyle,
   mutedSmallStyle,
   ruleStyle,
-} from '../../orders/[id]/dialog-styles';
+} from '@/components/admin/dialog-styles';
 
 /**
  * A18's three actions, and the per-item condition they record.

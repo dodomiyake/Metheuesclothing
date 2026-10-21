@@ -18,7 +18,7 @@ import {
   panelStyle,
   mutedSmallStyle,
   ruleStyle,
-} from './dialog-styles';
+} from '@/components/admin/dialog-styles';
 
 /**
  * A15 Cancel order — Figma 141:1910 (Desktop) / 141:1734 (Tablet). Both

@@ -1,7 +1,16 @@
 'use client';
 
-import { useState, type FormEvent, type CSSProperties } from 'react';
+import { useId, useState, type FormEvent, type CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
+import { ModalDialog } from '@/components/admin/modal-dialog';
+import {
+  sectionLabelStyle,
+  primaryButtonStyle,
+  ghostButtonStyle,
+  panelStyle,
+  mutedSmallStyle,
+  ruleStyle,
+} from '@/components/admin/dialog-styles';
 
 type ProductFormValues = {
   slug: string;
@@ -61,13 +70,36 @@ export function ProductForm({
   const [slugTouched, setSlugTouched] = useState(Boolean(initial?.slug));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [confirmArchive, setConfirmArchive] = useState(false);
+  const archiveTitleId = useId();
 
   function set<K extends keyof ProductFormValues>(key: K, value: ProductFormValues[K]) {
     setValues((v) => ({ ...v, [key]: value }));
   }
 
+  /**
+   * §9.6: "Refund, cancellation, product archive and negative stock
+   * adjustments require explicit confirmation and audit logging." Archiving
+   * was the one of the four with neither — it was an option in a status
+   * select, saved with the SEO fields and the care instructions, and it
+   * takes a T-shirt off the shop for everyone.
+   *
+   * Only on the way IN, and only for a product that already exists. Saving
+   * an archived product again, or creating one that starts archived, takes
+   * nothing off the shop that was ever on it.
+   */
+  const isArchiving = Boolean(productId) && values.status === 'archived' && initial?.status !== 'archived';
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
+    if (isArchiving && !confirmArchive) {
+      setConfirmArchive(true);
+      return;
+    }
+    await save();
+  }
+
+  async function save() {
     setError(null);
     setSaving(true);
 
@@ -100,6 +132,7 @@ export function ProductForm({
     });
 
     setSaving(false);
+    setConfirmArchive(false);
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -114,6 +147,62 @@ export function ProductForm({
 
   return (
     <form onSubmit={onSubmit} style={{ fontFamily: 'var(--mc-font-body)', maxWidth: 720 }}>
+      <ModalDialog
+        open={confirmArchive}
+        onClose={() => setConfirmArchive(false)}
+        labelledBy={archiveTitleId}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            <h2 id={archiveTitleId} style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>
+              Archive &ldquo;{values.name}&rdquo;?
+            </h2>
+            <p style={mutedSmallStyle}>
+              Archiving takes it off the shop. Nothing is deleted, and you can put it back.
+            </p>
+          </div>
+          <div style={ruleStyle} />
+
+          {/* The Button component's description says there is deliberately
+              no destructive style: consequential actions rely on a
+              consequence list instead. These four are what actually
+              happens, not a generic warning. */}
+          <div style={panelStyle}>
+            <p style={sectionLabelStyle}>WHAT HAPPENS</p>
+            <ul style={{ margin: 0, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <li style={mutedSmallStyle}>
+                It disappears from the shop, from every collection and from search. Its address
+                stops working for customers.
+              </li>
+              <li style={mutedSmallStyle}>
+                Orders already placed are unaffected. Each line holds its own snapshot of the name,
+                colour, size and price, so old orders, returns and refunds still read correctly.
+              </li>
+              <li style={mutedSmallStyle}>
+                Variants, stock and photographs stay exactly as they are. Nothing is deleted.
+              </li>
+              <li style={mutedSmallStyle}>
+                Setting it back to Published puts it in the shop again, but the archive date is kept
+                from the first time — it records when it was first taken down.
+              </li>
+            </ul>
+          </div>
+
+          <p style={mutedSmallStyle}>
+            Recorded in the audit log as: you · product archived · &ldquo;{values.name}&rdquo;.
+          </p>
+
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <button type="button" onClick={() => setConfirmArchive(false)} style={ghostButtonStyle}>
+              Keep it on the shop
+            </button>
+            <button type="button" onClick={save} disabled={saving} style={primaryButtonStyle}>
+              {saving ? 'Archiving…' : 'Archive it'}
+            </button>
+          </div>
+        </div>
+      </ModalDialog>
+
       {error && (
         <p role="alert" style={{ color: 'var(--mc-status-error)' }}>
           {error}

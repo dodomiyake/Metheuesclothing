@@ -178,6 +178,17 @@ export const AUDIT_BADGE: Record<string, { label: string; tone: BadgeTone }> = {
   return_rejected: { label: 'Return rejected', tone: 'danger' },
   // Stock (015).
   stock_adjusted: { label: 'Stock adjusted', tone: 'attention' },
+  // Catalogue and content. `product_archived` is the one §9.6 actually
+  // requires ("product archive ... require[s] explicit confirmation and
+  // audit logging"); the rest are the same write, and "who unpublished
+  // this" is the question staff ask about a T-shirt that has vanished.
+  // Attention for archive and price, matching 146:3790 and 146:3802.
+  product_published: { label: 'Product published', tone: 'success' },
+  product_unpublished: { label: 'Product unpublished', tone: 'attention' },
+  product_scheduled: { label: 'Product scheduled', tone: 'info' },
+  product_archived: { label: 'Product archived', tone: 'attention' },
+  price_changed: { label: 'Price changed', tone: 'attention' },
+  homepage_published: { label: 'Homepage published', tone: 'info' },
   // Failures. Every audit row in this codebase was one of these until 011.
   oversell_detected: { label: 'Oversell detected', tone: 'danger' },
   email_delivery_failed: { label: 'Email failed', tone: 'danger' },

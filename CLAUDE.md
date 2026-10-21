@@ -646,15 +646,16 @@ an append-only log on a phone withholds the one screen you reach for when
 something has gone wrong away from a desk. One more reason to settle that
 rationale with the design owner.
 
-THE DESIGN DRAWS EIGHT EVENT TYPES AND THE SYSTEM WRITES FOUR AND A HALF.
-§9.6 lists refund, stock adjustment, return, content publish, dispatch,
-archive, price change and sign-in. Recorded: refunds and cancellations
-(012), dispatch (011), return decisions (014), and stock adjustments — the
-last only as of migration 015. Partial: a return's progress is logged, a
-customer RAISING one is not, because request_return() writes no audit row.
-Missing: content publish, archive, price change, sign-in. The panel at the
-foot of the screen names all five by name, because a log that looks
-complete and is not is worse than a short one.
+THE DESIGN DRAWS EIGHT EVENT TYPES AND THE SYSTEM WROTE FOUR AND A HALF —
+and this file attributed that list to §9.6, which does not contain it.
+CORRECTED: §9.6 is "Returns and refunds" and its only audit sentence is
+"Refund, cancellation, product archive and negative stock adjustments
+require explicit confirmation and audit logging"; §12 adds "Audit refunds,
+cancellations, fulfilment and inventory changes". The eight events — and
+the six-year retention A23's own footer promised — come from the FRAME's
+entry list (146:3732 onwards), not from the spec. Worth knowing before
+treating any of them as a requirement. See the audit-coverage entry below
+for what closed.
 
 MIGRATION 015 IS APPLIED (advisor clean, adjust_stock still absent from the
 SECURITY DEFINER findings so the REVOKE held across the `create or
@@ -1471,6 +1472,73 @@ owner's list; /size-guide (23) is blocked on verified garment
 measurements (§8.5), the same thing the homepage's "Open the size guide"
 points past. So of the eight, five are closed and the three that are not
 are owner-blocked rather than unbuilt.
+
+THE AUDIT LOG NOW COVERS EVERYTHING THE SPEC REQUIRES, and the one gap
+that was a real requirement rather than a drawn filter option has been
+closed on both halves. §9.6's sentence asks for explicit confirmation AND
+audit logging on four things: refund, cancellation, product archive and
+negative stock adjustments. Refund and cancellation had both (A15/A16's
+consequence lists and typed confirmations, 012's audit rows). PRODUCT
+ARCHIVE HAD NEITHER — it was one option in a status select, saved
+alongside the SEO fields, taking a T-shirt off the shop for everyone with
+nothing written anywhere. A NEGATIVE STOCK ADJUSTMENT had the row (015)
+and no confirmation.
+
+Both confirmations are now real dialogs on the shared ModalDialog, with
+the consequence list the Button component's description requires in place
+of a destructive style, ending with the literal audit line they will
+write — which is what `admin_dialog_pattern` in the ledger says every
+auditable dialog does. Archiving names the four things that actually
+happen (it leaves the shop, orders already placed are unaffected because
+each line holds its own snapshot, nothing is deleted, and the archive date
+is kept from the FIRST time since the route only sets archived_at when it
+is null). The stock dialog confirms a REDUCTION rather than a mode: "Set
+to 2" on a variant holding 14 removes twelve T-shirts exactly as surely as
+"Remove 12" and is the easier of the two to do by accident. It shows
+14 → 2 rather than making someone subtract, says when the result is Sold
+out, and DISABLES itself below zero rather than letting adjust_stock
+refuse — the component's rule being that a disabled control must carry
+text saying what would enable it.
+
+THREE NEW AUDIT WRITERS, none needing a migration: product status
+transitions (PATCH /api/admin/products/[id]), price changes (PATCH
+/api/admin/variants/[id]) and homepage publishes (PUT
+/api/admin/content). `lib/admin/audit.ts` is the one place a route writes
+a row; it needs the SERVICE client because 002_rls.sql:149 revokes INSERT
+on audit_logs from `authenticated` deliberately, and it resolves
+actor_label from `profiles` rather than taking it as an argument — the
+same choice 015 made inside adjust_stock, because a label the caller
+supplies can disagree with the profile it names.
+
+THREE RULES THEY ALL FOLLOW. The row goes AFTER the write, never before:
+an append-only log cannot retract an entry, so a row describing a change
+that then failed is a lie nobody can correct. Nothing is logged when
+nothing moved — a re-save of a published product, a publish that changes
+no slot — or the four entries that matter drown in re-saves. And the
+state BEFORE the write is read first, so the entry can say what it was:
+the old status, the old price, which homepage slots actually differ. A21
+publishes all eight slots every time by design, so without that diff the
+only honest summary would be "the homepage was republished", which cannot
+answer "who changed the hero heading".
+
+Price changes are audited although NO SCREEN EDITS A PRICE — the variant
+manager shows it read-only and A06 sets it at creation — because the route
+is the only way one can move, which is exactly where the row belongs
+rather than in whichever screen eventually draws the field.
+
+A23 resolves the new entity types too. A `product` row read "product (no
+longer in the catalogue)" for a T-shirt still on the shop, because only
+orders and returns were ever looked up; products resolve to their name,
+variants to their SKU, and the homepage to a fixed id with no lookup at
+all. STILL NOT WRITTEN, and the footer says so: a customer RAISING a
+return (request_return() writes no audit row — a return's progress is
+logged, its start is not) and signing in. Both are drawn in the frame;
+neither is in the spec.
+
+`components/admin/dialog-styles.ts` moved up out of `orders/[id]/` with
+this. A18 already reached across for it with `../../orders/[id]/`, which
+is the layering mistake form-styles.ts was moved for, and these two
+dialogs would have been the fifth and sixth consumers.
 
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
