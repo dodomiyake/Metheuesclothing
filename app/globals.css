@@ -1725,3 +1725,70 @@ button.mc-icon-button[aria-label='Search'] {
     grid-template-columns: repeat(auto-fill, minmax(320px, 400px));
   }
 }
+
+/* ------------------------------------------- content pages (23/32/33/34/35)
+   The ledger's `content_page_shell`: a centred column between the chrome,
+   FIXED at 980 on desktop so it centres rather than stretching. The page
+   title is the frames' own 52 at Desktop, stepping down for the narrower
+   two — and NOT --mc-type-page-title, which the storefront h1s use. */
+.mc-content-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+.mc-content-column {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  max-width: 980px;
+  padding: 36px var(--mc-gutter-mobile) 56px;
+  box-sizing: border-box;
+}
+.mc-content-title {
+  margin: 0;
+  font-family: var(--mc-font-display);
+  font-weight: 400;
+  font-size: 38px;
+  line-height: 1.1;
+  color: var(--mc-text-primary);
+}
+@media (min-width: 768px) {
+  .mc-content-column {
+    padding-left: var(--mc-gutter-tablet);
+    padding-right: var(--mc-gutter-tablet);
+  }
+  .mc-content-title {
+    font-size: 44px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-content-column {
+    padding-left: 48px;
+    padding-right: 48px;
+  }
+  .mc-content-title {
+    font-size: 52px;
+  }
+}
+
+/* The delivery table (122:6568) is a table from 768 up and stacked cards
+   below it, which is the same answer A03, A07 and A11 give in the admin:
+   a table that needs horizontal scroll is not the honest mobile layout. */
+.mc-content-table {
+  display: none;
+}
+.mc-content-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+@media (min-width: 768px) {
+  .mc-content-table {
+    display: block;
+  }
+  .mc-content-cards {
+    display: none;
+  }
+}

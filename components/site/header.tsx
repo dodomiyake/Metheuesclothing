@@ -112,8 +112,23 @@ export function Header() {
   );
 }
 
+/**
+ * The four the design draws (10:4–10:7). TWO OF THEM POINTED AT NOTHING:
+ * /drop and /our-story have 404'd on every page since this chrome was
+ * built, and they are half the primary navigation.
+ *
+ * "New Drop" now goes to the shop, which is where a new drop actually is —
+ * `collections` has no rows, so there is no drop page to send anyone to,
+ * and the homepage's own featured-drop link makes the same call.
+ *
+ * "Our Story" is screen 32 and is still unbuilt, so it is left pointing at
+ * a page that does not exist rather than quietly removed from the nav the
+ * design specifies. It is listed with the other dead chrome links in
+ * CLAUDE.md; building it or cutting it is the owner's call, not something
+ * to decide by deleting a line.
+ */
 const NAV_LINKS: [string, string][] = [
-  ['New Drop', '/drop'],
+  ['New Drop', '/shop'],
   ['Shop T-Shirts', '/shop'],
   ['Collections', '/collections'],
   ['Our Story', '/our-story'],

@@ -1327,6 +1327,67 @@ STILL ZERO: collections and addresses. /collections renders its empty
 state, A09 its own, and the address book's write path remains the one
 part of the account cluster nothing has touched.
 
+THE CHROME HAS EIGHT LINKS TO PAGES THAT DO NOT EXIST, on every page of
+the site, and the first of them is now closed. Counted rather than
+assumed: the header's "New Drop" (/drop) and "Our Story" (/our-story),
+and the footer's Contact, Delivery, Returns and Exchanges, Size Guide,
+Privacy/Cookie Policy, Terms and Conditions and Accessibility. "New
+Drop" was repointed at /shop in the account-cluster pass (there is no
+drop page because `collections` has no rows, and the homepage's own
+featured-drop link makes the same call); the rest were real 404s.
+
+33 DELIVERY AND RETURNS IS BUILT (122:6504 Desktop pulled, 122:6179
+Mobile by screenshot), which closes two of them — Delivery and Returns
+and Exchanges, the latter as /delivery#returns rather than its old
+/track-order, which is where you go to START a return, not to read what
+the policy is.
+
+It is built on `components/site/content-page.tsx`, the ledger's
+`content_page_shell` — the shared layout screens 23/32/33/34/35 are all
+drawn from: a centred content column of FIXED width between the chrome.
+Measured at 390/768/1440/1920: the column is 390/768/980/980 and stays
+CENTRED rather than stretching at 1920 (which is the stated reason the
+ledger calls it fixed), the title steps 38/44/52, the table becomes
+stacked cards below 768, and nothing overflows at any width.
+
+EVERY FIGURE ON IT IS READ FROM store_settings, which is the only reason
+the page can exist: the two delivery prices, the free-delivery threshold
+and the return window are the SAME values checkout charges and
+request_return() enforces. A delivery page whose numbers disagree with
+the basket is worse than no delivery page, and 018 is what made the
+prices readable at all — before it they were two integer literals in the
+checkout route. The read throws on error rather than quoting defaults,
+the same call checkout makes.
+
+SEVEN NARROWINGS, and six are the same shape as A22's: the design
+describes an operation, not a column. The table's four destination rows
+become TWO, because checkout ships GB and IE only and `deliveryPence` is
+chosen by delivery_method alone — it does not vary by country, so
+"Republic of Ireland £9.95" and "Rest of Europe £14.95, duties collected
+at checkout" are a price nobody charges, a destination nobody can select
+and a duty nothing collects. Then: the 14:00 same-day cut-off (nothing
+configures or measures one); "2 to 3 working days"/"Next working day" as
+ESTIMATES (nothing computes or records one — A12's timeline omits it for
+the same reason, so the page names the real service and promises no
+date); the printable label and drop-off QR code (nothing issues a label,
+`label_expires_at` is still written by nothing, which A17/A18 record and
+E9 already narrows); "a booked collection is £4.95" (collection_fee_pence
+is a real column nothing applies to a refund — A22 refused to make it
+editable for exactly that reason, and quoting it to a customer would be
+the same fiction one step closer to the money); and "we cover the postage
+both ways" on faulty items, which keeps the statutory part — a faulty
+item is refunded in full, delivery included — without inventing the
+parcel. Exchanges keeps the design's words almost intact, because it is
+the one section describing something true: there is no exchange
+mechanism, and the reason it gives is the honest one.
+
+STILL DEAD, and each for its own reason: /our-story (32) and /contact
+(34) are unblocked and simply unbuilt; /privacy, /terms and
+/accessibility (35) are blocked on the legal review already on the
+owner's list; /size-guide (23) is blocked on verified garment
+measurements (§8.5), the same thing the homepage's "Open the size guide"
+points past.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
