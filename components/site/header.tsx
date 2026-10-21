@@ -30,8 +30,9 @@ import { SearchIcon, AccountIcon, BagIcon, MenuIcon, DismissIcon } from './icons
  * the header 60/68/84px tall rather than a constant 76.
  *
  * Search is inert at every breakpoint (§8.3 / screen 20's overlay isn't
- * built). "New Drop", "Collections" and "Our Story" point at routes that
- * don't exist yet — real links to real 404s rather than silently rewired.
+ * built). Every nav link now resolves: /collections and /our-story were
+ * both 404s when this was first built, and "New Drop" goes to the shop
+ * for the reason NAV_LINKS gives.
  *
  * The one thing not in Figma: a mobile drawer. There is no nav-drawer node
  * in the file (it is still listed in design-system-state.json's
@@ -121,11 +122,9 @@ export function Header() {
  * `collections` has no rows, so there is no drop page to send anyone to,
  * and the homepage's own featured-drop link makes the same call.
  *
- * "Our Story" is screen 32 and is still unbuilt, so it is left pointing at
- * a page that does not exist rather than quietly removed from the nav the
- * design specifies. It is listed with the other dead chrome links in
- * CLAUDE.md; building it or cutting it is the owner's call, not something
- * to decide by deleting a line.
+ * "Our Story" is screen 32 and now exists, so this link resolves. It spent
+ * a long time pointing at a 404 rather than being quietly removed from the
+ * nav the design specifies, which is what made it countable.
  */
 const NAV_LINKS: [string, string][] = [
   ['New Drop', '/shop'],

@@ -1792,3 +1792,71 @@ button.mc-icon-button[aria-label='Search'] {
     display: none;
   }
 }
+
+/* 32 Our Story. The story well, the inverse pull quote and the value row,
+   all measured off 122:5815 / 122:5948 / 122:6087 rather than scaled from
+   the desktop frame — the well steps 240/300/380 and the value cards stay
+   STACKED at tablet, going to a row only at 1440. That is the same split
+   A12 and A13 use in the admin, and it is read off the frames: 768 draws
+   three full-width cards, not three columns. */
+.mc-story-image {
+  height: 240px;
+  background: var(--mc-mist);
+  display: flex;
+  align-items: flex-end;
+  padding: 0 0 14px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.mc-story-quote {
+  background: var(--mc-bg-inverse);
+  border-radius: 4px;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mc-story-quote-title {
+  margin: 0;
+  font-family: var(--mc-font-display);
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 1.4;
+  color: var(--mc-text-inverse);
+}
+.mc-story-values {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.mc-story-value {
+  flex: 1 1 0;
+  min-width: 0;
+  background: var(--mc-bg-surface);
+  border: 1px solid var(--mc-border-default);
+  border-radius: 4px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+@media (min-width: 768px) {
+  .mc-story-image {
+    height: 300px;
+  }
+  .mc-story-quote {
+    padding: 24px 32px;
+  }
+  .mc-story-quote-title {
+    font-size: 34px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-story-image {
+    height: 380px;
+  }
+  .mc-story-values {
+    flex-direction: row;
+    align-items: stretch;
+  }
+}

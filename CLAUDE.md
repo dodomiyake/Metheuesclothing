@@ -1381,12 +1381,58 @@ parcel. Exchanges keeps the design's words almost intact, because it is
 the one section describing something true: there is no exchange
 mechanism, and the reason it gives is the honest one.
 
-STILL DEAD, and each for its own reason: /our-story (32) and /contact
-(34) are unblocked and simply unbuilt; /privacy, /terms and
-/accessibility (35) are blocked on the legal review already on the
-owner's list; /size-guide (23) is blocked on verified garment
-measurements (§8.5), the same thing the homepage's "Open the size guide"
-points past.
+32 OUR STORY IS BUILT TOO (122:6087 Desktop pulled; 122:5948 Tablet and
+122:5815 Mobile measured through get_metadata rather than eyeballed off a
+screenshot, which is what gave the exact 240/300/380 story well and the
+fact that the three value cards stay STACKED at tablet and go to a row
+only at 1440). That closes the fourth of the header's four nav links,
+which had 404'd since the chrome was built. Measured at
+390/768/1440/1920: well 240/300/380, value cards 1/1/3/3 at 350/704/284
+wide, CTA stacked at 390 and a row from 768, quote padding 20/32 and its
+display line 28/34, no overflow.
+
+THE COPY IS KEPT AS THE DESIGN WROTE IT, which is the opposite call from
+the homepage's and /delivery's and is deliberate. Those pages narrow
+claims the SYSTEM cannot keep — a carrier nothing configures, a
+collection fee nothing charges. An origin story is not a system claim;
+it is the one page whose whole content is the owner speaking for the
+business, and rewriting it from here would be inventing a different
+company.
+
+ONE SENTENCE IS DERIVED, because it is the only thing on the page the
+shop itself can contradict: "three fits — regular, relaxed and
+oversized". `products.fit` is a real column and the shop listing builds
+its Fit filter straight out of it, so a hardcoded three would sit one
+click away from a filter offering something else. The clause reads the
+same column the filter does — how many, which, and whether to make the
+claim at all — and drops out entirely when no published product has a
+fit set, which IS the live state: the one published product has fit,
+made_in, composition and fabric_weight_gsm all null. Worth telling the
+owner; A04 is where they get filled in.
+
+NOT narrowed, and worth raising with the design owner instead: "Printing
+and finishing happen in the UK" and the "Made in the UK" card.
+`products.made_in` is a per-garment fact about the blank and the
+design's wording carefully separates the two — a blank woven elsewhere
+and printed here is honestly both — but a customer reading this page and
+then a product's Made in row will take them for one claim.
+
+The story image is the same well every unphotographed surface shows, and
+stays one: A05 uploads product photographs and A21 the homepage hero,
+but §9.7 is explicit that the content system is seven homepage slots and
+not a page builder, so an eighth key in `homepage_sections`, read by a
+page that is not the homepage and editable on a screen that does not
+draw it, would be worse than the well.
+
+The homepage's "Read the story" is BACK with it (39:259, a real Ghost
+Button at the section's own gutter). It was cut when 32 did not exist,
+for the reason this file records; the reason has gone.
+
+STILL DEAD, and each for its own reason: /contact (34) is unblocked and
+simply unbuilt; /privacy, /terms and /accessibility (35) are blocked on
+the legal review already on the owner's list; /size-guide (23) is
+blocked on verified garment measurements (§8.5), the same thing the
+homepage's "Open the size guide" points past.
 
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements

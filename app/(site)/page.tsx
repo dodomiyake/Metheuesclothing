@@ -157,10 +157,17 @@ export default async function HomePage() {
         <p style={{ fontSize: 18, lineHeight: 1.6, color: 'var(--mc-text-muted)', maxWidth: 640, margin: 0 }}>
           {content.story.body}
         </p>
-        {/* The design's "Read the story" goes to screen 32 Our Story,
-            which is unbuilt — the header's own /our-story link already
-            404s, and a second dead end from the homepage would compound
-            it rather than match it. Omitted, like the size guide below. */}
+        {/* The design's "Read the story" goes to screen 32 Our Story.
+            It was omitted here while that screen was unbuilt — the
+            header's own /our-story link 404'd and a second dead end from
+            the homepage would have compounded it. 32 exists now, so the
+            link the design draws is back. */}
+        {/* A real Ghost Button instance at the section's own gutter (39:259),
+            so its label sits 24px in from the copy above — the same
+            treatment the hero's Primary button gets. */}
+        <Link href="/our-story" className="mc-button-ghost" style={{ alignSelf: 'flex-start' }}>
+          Read the story
+        </Link>
       </section>
 
       {/* Fabric and construction — 39:262. The one dark band on the page.
