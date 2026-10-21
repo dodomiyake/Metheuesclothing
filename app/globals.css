@@ -1860,3 +1860,48 @@ button.mc-icon-button[aria-label='Search'] {
     align-items: stretch;
   }
 }
+
+/* 34 Contact. ONE breakpoint, read off the frames rather than assumed to
+   match the storefront's usual 768: the 320px side column exists only at
+   1440 (123:6516), and both 768 and 390 stack the side under the main
+   card in the frames' own order. */
+.mc-contact-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.mc-contact-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.mc-contact-card {
+  background: var(--mc-bg-surface);
+  border: 1px solid var(--mc-border-default);
+  border-radius: 4px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+.mc-contact-card-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.4px;
+  color: var(--mc-text-muted);
+}
+@media (min-width: 1440px) {
+  .mc-contact-columns {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 32px;
+  }
+  .mc-contact-columns > .mc-contact-card {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .mc-contact-side {
+    flex: 0 0 320px;
+    width: 320px;
+  }
+}

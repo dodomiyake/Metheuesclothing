@@ -1428,11 +1428,49 @@ The homepage's "Read the story" is BACK with it (39:259, a real Ghost
 Button at the section's own gutter). It was cut when 32 did not exist,
 for the reason this file records; the reason has gone.
 
-STILL DEAD, and each for its own reason: /contact (34) is unblocked and
-simply unbuilt; /privacy, /terms and /accessibility (35) are blocked on
-the legal review already on the owner's list; /size-guide (23) is
-blocked on verified garment measurements (§8.5), the same thing the
-homepage's "Open the size guide" points past.
+34 CONTACT IS BUILT (123:6424 Desktop pulled; 123:6261 Tablet and
+123:6104 Mobile through get_metadata), and it has ONE breakpoint like
+A12: the 320px side column exists only at 1440, and 768 and 390 both
+stack the side under the main card in the frames' own order. Measured at
+390/768/1440/1920: main card 350/704/532/532, side 320 at 1440 only, the
+Already-ordered ghost button flush with its card's copy, no overflow.
+
+ITS FORM IS OMITTED, which is the largest omission any screen in this
+project has had. A contact form needs three things and this system has
+none of them: no `contact_messages` table or anything like one; no
+screen to read a message on, since all 23 admin screens are built and
+not one is an inbox; and no email to carry it, because Resend refuses an
+unverified sending domain — not a guess, the one thing that actually
+failed on MC-10006 and sits in audit_logs as `email_delivery_failed`,
+"The domain is invalid". A Send message button today would show someone
+"thanks, we will be in touch" and drop what they wrote: a real failure
+wearing the face of success, the same shape as store_settings having no
+row and the catalogue reading a failed query as an empty shop. The
+design's own side column already names the channel that works, so the
+page leads with it and the reason select and order-number field become
+"what to put in it" rather than controls going nowhere. BUILDING IT
+PROPERLY is a migration with RLS, an admin inbox the design does not
+draw, and the verified domain already on the owner-blocked list — a
+feature, not a field, and the owner's to ask for.
+
+THE REGISTERED ADDRESS IS OMITTED for the reason A22 omitted STORE
+DETAILS: "Metheues Clothings Ltd, Unit 7, Pollard Yard" is a column
+nowhere, it is legal content waiting on the same review as the returns
+and privacy copy, and a placeholder postal address is the one thing on
+that page a customer might act on by posting something to it. Kept as
+written, by contrast: the reply times and the opening hours. Nothing
+measures or enforces either, but they are the owner's commitments about
+the owner's own behaviour, which is what a contact page is for — the
+same call 32 makes about its copy. The address itself comes from
+store_settings.contact_email rather than the design's hardcoded one, so
+A22 moves it.
+
+STILL DEAD, and each for its own reason: /privacy, /terms and
+/accessibility (35) are blocked on the legal review already on the
+owner's list; /size-guide (23) is blocked on verified garment
+measurements (§8.5), the same thing the homepage's "Open the size guide"
+points past. So of the eight, five are closed and the three that are not
+are owner-blocked rather than unbuilt.
 
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
