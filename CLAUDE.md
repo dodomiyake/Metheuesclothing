@@ -1649,9 +1649,13 @@ affecting nobody else.
 Seven semantics exercised against a real localStorage in Chromium — clears
 after payment, a refill survives a revisit, the next order still clears, an
 empty first visit still guards, corrupt data still clears, the list caps at
-20 and keeps the most recent. That is the ALGORITHM verified, not the React
-wiring: this sandbox cannot load the page, because the (site) layout's
-footer reads homepage_sections.
+20 and keeps the most recent. That was the ALGORITHM verified and not the
+React wiring, because this sandbox cannot load the page: the (site)
+layout's footer reads homepage_sections. THE WIRING IS CONFIRMED TOO — the
+owner paid an order on the deployed app on 24 October and the badge
+cleared. So the effect runs, the event reaches the header, and the two
+halves of §8.6's "update the bag count" now both work from a real
+browser rather than a harness.
 
 MC-10010 IS THE FIRST ORDER PAID WHILE SIGNED IN, and it went the whole
 way on 24 October: payment_status `paid`, fulfilment_status `processing`,
