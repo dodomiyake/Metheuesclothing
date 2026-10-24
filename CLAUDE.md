@@ -171,10 +171,14 @@ were verified against the live database rather than assumed — see
 is due a rewrite, not a launch blocker).
 
 The live database was empty for most of this project's history, and is no
-longer: it holds 1 product, 15 variants and 5 orders that none of these
-sessions created (the order count moved from 4 to 5 between the 012 session
-and the cleanup, so the owner is adding data). Scope anything scripted
-against it rather than running blanket statements. THE CHECKOUT PATH HAS NOW RUN FOR REAL, and this note used to say it had
+longer. As of 24 October it holds 1 product, 15 variants, 7 orders (3
+paid), 5 payments, 1 image, 8 audit rows, and still zero collections and
+zero addresses — none of it created by these sessions, so the owner is
+adding data and these numbers go stale fast. COUNT THEM RATHER THAN
+QUOTING THIS LINE, and scope anything scripted against the project rather
+than running blanket statements.
+
+THE CHECKOUT PATH HAS NOW RUN FOR REAL, and this note used to say it had
 not. Order MC-10006 went all the way through on 13 September 2026: 2 x
 "STRIPED SHORT SLEEVE POLO TSHIRT" BLACK/L at £48.00 plus £3.95 delivery =
 £99.95, payment_status paid, a real Stripe payment intent recorded, the
@@ -182,7 +186,18 @@ delivery-address snapshot written by the webhook, delivery_method
 tracked_48, and stock decremented EXACTLY ONCE (one `sale`
 inventory_adjustment of -2; that variant now sits at 0 and reads Sold out).
 Three webhook events processed. So storefront -> checkout -> Stripe ->
-webhook -> stock is proven with real money.
+webhook -> stock is proven end to end.
+
+IT IS STRIPE TEST MODE, and this file twice said "real money", which was
+wrong. Every payment row's stripe_checkout_session_id begins `cs_test_` —
+all five of them, the most recent minutes old — so nothing here has ever
+moved a real pound. That changes nothing about what is proven: a test-mode
+payment intent, webhook delivery, signature verification, the duplicate
+guard and the stock decrement are the same code paths on the same Stripe
+API, which is exactly why test mode exists. What it does change is the
+claim. The first live transaction is still ahead, and it is the one that
+will exercise the things test mode cannot: a real card network, real
+settlement, and Stripe's fee.
 
 ONE THING FAILED, and it failed the way it was built to. audit_logs holds
 `email_delivery_failed`: "E3 order confirmation to <the owner's address>
@@ -1284,8 +1299,10 @@ packed (`fulfilment_packed`), A14 dispatched it with DHL and a real
 tracking number (`fulfilment_shipped`), and A16 refunded GBP 99.95 against
 a real Stripe refund id (`re_3UMlnP...`) with 2 lines restocked and the
 order left at payment_status `refunded`. So advance_fulfilment, ship_order
-and record_refund have all been exercised with real money, not just the
-012 fixture. The four ZZ-TEST audit rows are still there, as they must be.
+and record_refund have all been exercised against real Stripe objects and
+a real order, not just the 012 fixture — in TEST MODE, like everything
+else here (see the correction above; this sentence also used to say "real
+money"). The four ZZ-TEST audit rows are still there, as they must be.
 
 A05's WRITE PATH HAS BEEN USED TOO. One real photograph was uploaded on 18
 October, and every part of the design held: the stored path is
@@ -1313,9 +1330,19 @@ reading the user from the SESSION (never the body — a client-supplied
 profile_id is a client-supplied claim about whose order it is) and leaving
 it null for genuine guests. The order's email stays the one typed at the
 bag rather than the account's, because someone may order to an address
-they do not sign in with. THE FIVE EXISTING ORDERS STAY GUEST ORDERS;
-backfilling them by matching email is a judgement call for the owner, not
-something to do quietly.
+they do not sign in with. THE FIVE ORDERS THAT PREDATE THE FIX STAY GUEST
+ORDERS; backfilling them by matching email is a judgement call for the
+owner, not something to do quietly.
+
+THE FIX IS CONFIRMED IN PRODUCTION. MC-10009 and MC-10010, placed by the
+owner on 24 October while signed in as the customer test account, are the
+FIRST orders in this project's history to carry a profile_id — every one
+before them is null. So orders_own_read can finally match, and the account
+cluster has something to show. Both sit at payment_status `pending`: they
+reached Stripe and were not completed, which is what pending means and not
+a fault. Paying one with a test card is what takes it to `paid` and
+exercises the webhook, the stock decrement and the E3 send attempt from a
+real browser rather than a harness.
 
 Schema assumptions behind the new pages were checked and all hold:
 `addresses_one_default_per_profile` (what the clear-then-set default logic
