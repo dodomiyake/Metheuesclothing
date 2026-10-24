@@ -1572,6 +1572,16 @@ FILL columns exist to prevent, and the exact thing that broke the last
 time something was added to this row — the bag target stays 44x44, the
 badge stays inside it, and nothing overflows.
 
+CONFIRMED ON THE DEPLOYED APP by the owner on 24 October ("its working
+now"), which is worth recording for a reason beyond the badge: THE CART
+ITSELF HAD NEVER BEEN SEEN WORKING IN PRODUCTION. localStorage, the
+CART_EVENT dispatch and useCart's listener were all verified here by
+`tsc`, `next build` and a static harness, because this sandbox cannot load
+the real pages. An add-to-bag that updates the header without a reload
+exercises all three end to end in a real browser. The bag page's own
+reads were always implied by MC-10006 reaching checkout; the live update
+is the part that was only ever inferred.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
