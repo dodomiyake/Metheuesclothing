@@ -172,7 +172,8 @@ export const AUDIT_BADGE: Record<string, { label: string; tone: BadgeTone }> = {
   fulfilment_processing: { label: 'Packing started', tone: 'info' },
   fulfilment_packed: { label: 'Packed', tone: 'info' },
   fulfilment_shipped: { label: 'Order shipped', tone: 'success' },
-  // Returns (014).
+  // Returns (014), plus the customer raising one (021).
+  return_requested: { label: 'Return requested', tone: 'info' },
   return_received: { label: 'Return received', tone: 'info' },
   return_approved: { label: 'Return approved', tone: 'success' },
   return_rejected: { label: 'Return rejected', tone: 'danger' },
