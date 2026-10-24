@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { ClearBagOnConfirmation } from '@/components/site/clear-bag';
 
 /**
  * Where Stripe's success_url lands (app/api/checkout/route.ts). Deliberately
@@ -9,6 +10,10 @@ import Link from 'next/link';
  * alone; querying the order here to show items/address/total would be that
  * exact mistake with an extra step. Full detail stays behind /track-order,
  * which re-proves order number + email together before showing anything.
+ *
+ * It is also where the bag is emptied — see ClearBagOnConfirmation. Nothing
+ * called clearCart() before, so the bag survived checkout and the same
+ * T-shirts could be bought twice.
  */
 export default async function OrderConfirmationPage({
   params,
@@ -29,6 +34,7 @@ export default async function OrderConfirmationPage({
         textAlign: 'center',
       }}
     >
+      <ClearBagOnConfirmation orderNumber={orderNumber} />
       <p
         style={{
           fontSize: 'var(--mc-type-label)',

@@ -207,10 +207,16 @@ below. The webhook did not throw, the order survived, stock stayed correct,
 and a human got a record. That is exactly the §15 behaviour
 sendTransactionalEmail exists for, observed rather than assumed.
 
-Note also MC-10006 sits at fulfilment_status `processing` with no audit row
-for the transition — advance_fulfilment writes one and nothing else moves
-that column, so it was set directly in the table editor. Consistent with the
-owner exploring; worth knowing when reading the log. What verification
+CORRECTED: this file said MC-10006 sat at fulfilment_status `processing`
+with no audit row because "nothing else moves that column, so it was set
+directly in the table editor". THE WEBHOOK MOVES IT. Its paid branch
+updates payment_status, fulfilment_status AND delivery_address in one
+statement (webhook/route.ts:76), so every paid order goes straight to
+`processing` with no audit row and no help from anyone — confirmed on
+MC-10010, which did exactly that on 24 October with nobody touching the
+table editor. advance_fulfilment's own `processing` arm still has no
+caller, which is the true half of the original note; a direct column
+update is not that function. What verification
 found instead is in "Things that have already gone wrong" above: this
 sandbox's network egress blocks Supabase entirely (`Host not in allowlist`),
 which surfaced that every catalogue page was swallowing query errors as
@@ -1608,6 +1614,52 @@ the real pages. An add-to-bag that updates the header without a reload
 exercises all three end to end in a real browser. The bag page's own
 reads were always implied by MC-10006 reaching checkout; the live update
 is the part that was only ever inferred.
+
+THE BAG SURVIVED CHECKOUT, reported from the thank-you page: "after
+payment, theres is still indication on the shopping bag that i have items
+in the bag". `clearCart()` had existed in lib/bag/cart.ts since the bag was
+built and NOTHING EVER CALLED IT — the second function in two days found
+written, exported and unused, after useCart() and the bag count.
+
+The badge was the visible half. The real one is that /bag still listed
+everything just paid for, and Secure Checkout would have created a SECOND
+order for the same T-shirts. A stale number is cosmetic; paying twice is
+not, which is why this is cleared although the design file draws nothing
+about it.
+
+IT CLEARS ON THE CONFIRMATION PAGE, not before. Stripe's success_url lands
+on /order/[orderNumber], so that is the first moment the browser is back
+under our control after a completed payment. Clearing before the redirect
+would empty the bag of everyone who reaches Stripe and changes their mind
+— cancel_url comes straight back to /bag, and finding it empty is the one
+thing guaranteed to lose that sale.
+
+A LIST OF CLEARED ORDER NUMBERS GUARDS IT, capped at 20. That page is
+reachable by typing a URL and order numbers are sequential by design, so a
+bare clear-on-mount would empty a bag refilled since every time someone
+opened an old confirmation from their history or hit back. The guard
+answers "has this order had its turn", not "did it remove anything", so an
+order whose first visit found an empty bag still spends a slot — otherwise
+it would come back later and empty a bag that had been refilled. Corrupt
+guard data falls back to "nothing cleared yet" rather than disabling
+clearing for good. The trade-off left standing: opening a confirmation for
+an order you never placed costs you your own bag, in your own browser,
+affecting nobody else.
+
+Seven semantics exercised against a real localStorage in Chromium — clears
+after payment, a refill survives a revisit, the next order still clears, an
+empty first visit still guards, corrupt data still clears, the list caps at
+20 and keeps the most recent. That is the ALGORITHM verified, not the React
+wiring: this sandbox cannot load the page, because the (site) layout's
+footer reads homepage_sections.
+
+MC-10010 IS THE FIRST ORDER PAID WHILE SIGNED IN, and it went the whole
+way on 24 October: payment_status `paid`, fulfilment_status `processing`,
+GBP 240.00, a real profile_id, and FIVE `sale` inventory_adjustments for
+its five lines. So the checkout profile_id fix, the webhook, the stock
+decrement and the account link are all confirmed in production together.
+MC-10009 remains `pending` with no sale adjustment — reached Stripe,
+not completed, which is what pending means.
 
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
