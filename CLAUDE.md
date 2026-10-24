@@ -646,15 +646,16 @@ an append-only log on a phone withholds the one screen you reach for when
 something has gone wrong away from a desk. One more reason to settle that
 rationale with the design owner.
 
-THE DESIGN DRAWS EIGHT EVENT TYPES AND THE SYSTEM WRITES FOUR AND A HALF.
-§9.6 lists refund, stock adjustment, return, content publish, dispatch,
-archive, price change and sign-in. Recorded: refunds and cancellations
-(012), dispatch (011), return decisions (014), and stock adjustments — the
-last only as of migration 015. Partial: a return's progress is logged, a
-customer RAISING one is not, because request_return() writes no audit row.
-Missing: content publish, archive, price change, sign-in. The panel at the
-foot of the screen names all five by name, because a log that looks
-complete and is not is worse than a short one.
+THE DESIGN DRAWS EIGHT EVENT TYPES AND THE SYSTEM WROTE FOUR AND A HALF —
+and this file attributed that list to §9.6, which does not contain it.
+CORRECTED: §9.6 is "Returns and refunds" and its only audit sentence is
+"Refund, cancellation, product archive and negative stock adjustments
+require explicit confirmation and audit logging"; §12 adds "Audit refunds,
+cancellations, fulfilment and inventory changes". The eight events — and
+the six-year retention A23's own footer promised — come from the FRAME's
+entry list (146:3732 onwards), not from the spec. Worth knowing before
+treating any of them as a requirement. See the audit-coverage entry below
+for what closed.
 
 MIGRATION 015 IS APPLIED (advisor clean, adjust_stock still absent from the
 SECURITY DEFINER findings so the REVOKE held across the `create or
@@ -1326,6 +1327,218 @@ selects in /account/returns and loadVariantImages.
 STILL ZERO: collections and addresses. /collections renders its empty
 state, A09 its own, and the address book's write path remains the one
 part of the account cluster nothing has touched.
+
+THE CHROME HAS EIGHT LINKS TO PAGES THAT DO NOT EXIST, on every page of
+the site, and the first of them is now closed. Counted rather than
+assumed: the header's "New Drop" (/drop) and "Our Story" (/our-story),
+and the footer's Contact, Delivery, Returns and Exchanges, Size Guide,
+Privacy/Cookie Policy, Terms and Conditions and Accessibility. "New
+Drop" was repointed at /shop in the account-cluster pass (there is no
+drop page because `collections` has no rows, and the homepage's own
+featured-drop link makes the same call); the rest were real 404s.
+
+33 DELIVERY AND RETURNS IS BUILT (122:6504 Desktop pulled, 122:6179
+Mobile by screenshot), which closes two of them — Delivery and Returns
+and Exchanges, the latter as /delivery#returns rather than its old
+/track-order, which is where you go to START a return, not to read what
+the policy is.
+
+It is built on `components/site/content-page.tsx`, the ledger's
+`content_page_shell` — the shared layout screens 23/32/33/34/35 are all
+drawn from: a centred content column of FIXED width between the chrome.
+Measured at 390/768/1440/1920: the column is 390/768/980/980 and stays
+CENTRED rather than stretching at 1920 (which is the stated reason the
+ledger calls it fixed), the title steps 38/44/52, the table becomes
+stacked cards below 768, and nothing overflows at any width.
+
+EVERY FIGURE ON IT IS READ FROM store_settings, which is the only reason
+the page can exist: the two delivery prices, the free-delivery threshold
+and the return window are the SAME values checkout charges and
+request_return() enforces. A delivery page whose numbers disagree with
+the basket is worse than no delivery page, and 018 is what made the
+prices readable at all — before it they were two integer literals in the
+checkout route. The read throws on error rather than quoting defaults,
+the same call checkout makes.
+
+SEVEN NARROWINGS, and six are the same shape as A22's: the design
+describes an operation, not a column. The table's four destination rows
+become TWO, because checkout ships GB and IE only and `deliveryPence` is
+chosen by delivery_method alone — it does not vary by country, so
+"Republic of Ireland £9.95" and "Rest of Europe £14.95, duties collected
+at checkout" are a price nobody charges, a destination nobody can select
+and a duty nothing collects. Then: the 14:00 same-day cut-off (nothing
+configures or measures one); "2 to 3 working days"/"Next working day" as
+ESTIMATES (nothing computes or records one — A12's timeline omits it for
+the same reason, so the page names the real service and promises no
+date); the printable label and drop-off QR code (nothing issues a label,
+`label_expires_at` is still written by nothing, which A17/A18 record and
+E9 already narrows); "a booked collection is £4.95" (collection_fee_pence
+is a real column nothing applies to a refund — A22 refused to make it
+editable for exactly that reason, and quoting it to a customer would be
+the same fiction one step closer to the money); and "we cover the postage
+both ways" on faulty items, which keeps the statutory part — a faulty
+item is refunded in full, delivery included — without inventing the
+parcel. Exchanges keeps the design's words almost intact, because it is
+the one section describing something true: there is no exchange
+mechanism, and the reason it gives is the honest one.
+
+32 OUR STORY IS BUILT TOO (122:6087 Desktop pulled; 122:5948 Tablet and
+122:5815 Mobile measured through get_metadata rather than eyeballed off a
+screenshot, which is what gave the exact 240/300/380 story well and the
+fact that the three value cards stay STACKED at tablet and go to a row
+only at 1440). That closes the fourth of the header's four nav links,
+which had 404'd since the chrome was built. Measured at
+390/768/1440/1920: well 240/300/380, value cards 1/1/3/3 at 350/704/284
+wide, CTA stacked at 390 and a row from 768, quote padding 20/32 and its
+display line 28/34, no overflow.
+
+THE COPY IS KEPT AS THE DESIGN WROTE IT, which is the opposite call from
+the homepage's and /delivery's and is deliberate. Those pages narrow
+claims the SYSTEM cannot keep — a carrier nothing configures, a
+collection fee nothing charges. An origin story is not a system claim;
+it is the one page whose whole content is the owner speaking for the
+business, and rewriting it from here would be inventing a different
+company.
+
+ONE SENTENCE IS DERIVED, because it is the only thing on the page the
+shop itself can contradict: "three fits — regular, relaxed and
+oversized". `products.fit` is a real column and the shop listing builds
+its Fit filter straight out of it, so a hardcoded three would sit one
+click away from a filter offering something else. The clause reads the
+same column the filter does — how many, which, and whether to make the
+claim at all — and drops out entirely when no published product has a
+fit set, which IS the live state: the one published product has fit,
+made_in, composition and fabric_weight_gsm all null. Worth telling the
+owner; A04 is where they get filled in.
+
+NOT narrowed, and worth raising with the design owner instead: "Printing
+and finishing happen in the UK" and the "Made in the UK" card.
+`products.made_in` is a per-garment fact about the blank and the
+design's wording carefully separates the two — a blank woven elsewhere
+and printed here is honestly both — but a customer reading this page and
+then a product's Made in row will take them for one claim.
+
+The story image is the same well every unphotographed surface shows, and
+stays one: A05 uploads product photographs and A21 the homepage hero,
+but §9.7 is explicit that the content system is seven homepage slots and
+not a page builder, so an eighth key in `homepage_sections`, read by a
+page that is not the homepage and editable on a screen that does not
+draw it, would be worse than the well.
+
+The homepage's "Read the story" is BACK with it (39:259, a real Ghost
+Button at the section's own gutter). It was cut when 32 did not exist,
+for the reason this file records; the reason has gone.
+
+34 CONTACT IS BUILT (123:6424 Desktop pulled; 123:6261 Tablet and
+123:6104 Mobile through get_metadata), and it has ONE breakpoint like
+A12: the 320px side column exists only at 1440, and 768 and 390 both
+stack the side under the main card in the frames' own order. Measured at
+390/768/1440/1920: main card 350/704/532/532, side 320 at 1440 only, the
+Already-ordered ghost button flush with its card's copy, no overflow.
+
+ITS FORM IS OMITTED, which is the largest omission any screen in this
+project has had. A contact form needs three things and this system has
+none of them: no `contact_messages` table or anything like one; no
+screen to read a message on, since all 23 admin screens are built and
+not one is an inbox; and no email to carry it, because Resend refuses an
+unverified sending domain — not a guess, the one thing that actually
+failed on MC-10006 and sits in audit_logs as `email_delivery_failed`,
+"The domain is invalid". A Send message button today would show someone
+"thanks, we will be in touch" and drop what they wrote: a real failure
+wearing the face of success, the same shape as store_settings having no
+row and the catalogue reading a failed query as an empty shop. The
+design's own side column already names the channel that works, so the
+page leads with it and the reason select and order-number field become
+"what to put in it" rather than controls going nowhere. BUILDING IT
+PROPERLY is a migration with RLS, an admin inbox the design does not
+draw, and the verified domain already on the owner-blocked list — a
+feature, not a field, and the owner's to ask for.
+
+THE REGISTERED ADDRESS IS OMITTED for the reason A22 omitted STORE
+DETAILS: "Metheues Clothings Ltd, Unit 7, Pollard Yard" is a column
+nowhere, it is legal content waiting on the same review as the returns
+and privacy copy, and a placeholder postal address is the one thing on
+that page a customer might act on by posting something to it. Kept as
+written, by contrast: the reply times and the opening hours. Nothing
+measures or enforces either, but they are the owner's commitments about
+the owner's own behaviour, which is what a contact page is for — the
+same call 32 makes about its copy. The address itself comes from
+store_settings.contact_email rather than the design's hardcoded one, so
+A22 moves it.
+
+STILL DEAD, and each for its own reason: /privacy, /terms and
+/accessibility (35) are blocked on the legal review already on the
+owner's list; /size-guide (23) is blocked on verified garment
+measurements (§8.5), the same thing the homepage's "Open the size guide"
+points past. So of the eight, five are closed and the three that are not
+are owner-blocked rather than unbuilt.
+
+THE AUDIT LOG NOW COVERS EVERYTHING THE SPEC REQUIRES, and the one gap
+that was a real requirement rather than a drawn filter option has been
+closed on both halves. §9.6's sentence asks for explicit confirmation AND
+audit logging on four things: refund, cancellation, product archive and
+negative stock adjustments. Refund and cancellation had both (A15/A16's
+consequence lists and typed confirmations, 012's audit rows). PRODUCT
+ARCHIVE HAD NEITHER — it was one option in a status select, saved
+alongside the SEO fields, taking a T-shirt off the shop for everyone with
+nothing written anywhere. A NEGATIVE STOCK ADJUSTMENT had the row (015)
+and no confirmation.
+
+Both confirmations are now real dialogs on the shared ModalDialog, with
+the consequence list the Button component's description requires in place
+of a destructive style, ending with the literal audit line they will
+write — which is what `admin_dialog_pattern` in the ledger says every
+auditable dialog does. Archiving names the four things that actually
+happen (it leaves the shop, orders already placed are unaffected because
+each line holds its own snapshot, nothing is deleted, and the archive date
+is kept from the FIRST time since the route only sets archived_at when it
+is null). The stock dialog confirms a REDUCTION rather than a mode: "Set
+to 2" on a variant holding 14 removes twelve T-shirts exactly as surely as
+"Remove 12" and is the easier of the two to do by accident. It shows
+14 → 2 rather than making someone subtract, says when the result is Sold
+out, and DISABLES itself below zero rather than letting adjust_stock
+refuse — the component's rule being that a disabled control must carry
+text saying what would enable it.
+
+THREE NEW AUDIT WRITERS, none needing a migration: product status
+transitions (PATCH /api/admin/products/[id]), price changes (PATCH
+/api/admin/variants/[id]) and homepage publishes (PUT
+/api/admin/content). `lib/admin/audit.ts` is the one place a route writes
+a row; it needs the SERVICE client because 002_rls.sql:149 revokes INSERT
+on audit_logs from `authenticated` deliberately, and it resolves
+actor_label from `profiles` rather than taking it as an argument — the
+same choice 015 made inside adjust_stock, because a label the caller
+supplies can disagree with the profile it names.
+
+THREE RULES THEY ALL FOLLOW. The row goes AFTER the write, never before:
+an append-only log cannot retract an entry, so a row describing a change
+that then failed is a lie nobody can correct. Nothing is logged when
+nothing moved — a re-save of a published product, a publish that changes
+no slot — or the four entries that matter drown in re-saves. And the
+state BEFORE the write is read first, so the entry can say what it was:
+the old status, the old price, which homepage slots actually differ. A21
+publishes all eight slots every time by design, so without that diff the
+only honest summary would be "the homepage was republished", which cannot
+answer "who changed the hero heading".
+
+Price changes are audited although NO SCREEN EDITS A PRICE — the variant
+manager shows it read-only and A06 sets it at creation — because the route
+is the only way one can move, which is exactly where the row belongs
+rather than in whichever screen eventually draws the field.
+
+A23 resolves the new entity types too. A `product` row read "product (no
+longer in the catalogue)" for a T-shirt still on the shop, because only
+orders and returns were ever looked up; products resolve to their name,
+variants to their SKU, and the homepage to a fixed id with no lookup at
+all. STILL NOT WRITTEN, and the footer says so: a customer RAISING a
+return (request_return() writes no audit row — a return's progress is
+logged, its start is not) and signing in. Both are drawn in the frame;
+neither is in the spec.
+
+`components/admin/dialog-styles.ts` moved up out of `orders/[id]/` with
+this. A18 already reached across for it with `../../orders/[id]/`, which
+is the layering mistake form-styles.ts was moved for, and these two
+dialogs would have been the fifth and sixth consumers.
 
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements

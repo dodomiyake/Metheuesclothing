@@ -1725,3 +1725,183 @@ button.mc-icon-button[aria-label='Search'] {
     grid-template-columns: repeat(auto-fill, minmax(320px, 400px));
   }
 }
+
+/* ------------------------------------------- content pages (23/32/33/34/35)
+   The ledger's `content_page_shell`: a centred column between the chrome,
+   FIXED at 980 on desktop so it centres rather than stretching. The page
+   title is the frames' own 52 at Desktop, stepping down for the narrower
+   two — and NOT --mc-type-page-title, which the storefront h1s use. */
+.mc-content-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+.mc-content-column {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  max-width: 980px;
+  padding: 36px var(--mc-gutter-mobile) 56px;
+  box-sizing: border-box;
+}
+.mc-content-title {
+  margin: 0;
+  font-family: var(--mc-font-display);
+  font-weight: 400;
+  font-size: 38px;
+  line-height: 1.1;
+  color: var(--mc-text-primary);
+}
+@media (min-width: 768px) {
+  .mc-content-column {
+    padding-left: var(--mc-gutter-tablet);
+    padding-right: var(--mc-gutter-tablet);
+  }
+  .mc-content-title {
+    font-size: 44px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-content-column {
+    padding-left: 48px;
+    padding-right: 48px;
+  }
+  .mc-content-title {
+    font-size: 52px;
+  }
+}
+
+/* The delivery table (122:6568) is a table from 768 up and stacked cards
+   below it, which is the same answer A03, A07 and A11 give in the admin:
+   a table that needs horizontal scroll is not the honest mobile layout. */
+.mc-content-table {
+  display: none;
+}
+.mc-content-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+@media (min-width: 768px) {
+  .mc-content-table {
+    display: block;
+  }
+  .mc-content-cards {
+    display: none;
+  }
+}
+
+/* 32 Our Story. The story well, the inverse pull quote and the value row,
+   all measured off 122:5815 / 122:5948 / 122:6087 rather than scaled from
+   the desktop frame — the well steps 240/300/380 and the value cards stay
+   STACKED at tablet, going to a row only at 1440. That is the same split
+   A12 and A13 use in the admin, and it is read off the frames: 768 draws
+   three full-width cards, not three columns. */
+.mc-story-image {
+  height: 240px;
+  background: var(--mc-mist);
+  display: flex;
+  align-items: flex-end;
+  padding: 0 0 14px 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.mc-story-quote {
+  background: var(--mc-bg-inverse);
+  border-radius: 4px;
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mc-story-quote-title {
+  margin: 0;
+  font-family: var(--mc-font-display);
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 1.4;
+  color: var(--mc-text-inverse);
+}
+.mc-story-values {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.mc-story-value {
+  flex: 1 1 0;
+  min-width: 0;
+  background: var(--mc-bg-surface);
+  border: 1px solid var(--mc-border-default);
+  border-radius: 4px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+@media (min-width: 768px) {
+  .mc-story-image {
+    height: 300px;
+  }
+  .mc-story-quote {
+    padding: 24px 32px;
+  }
+  .mc-story-quote-title {
+    font-size: 34px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-story-image {
+    height: 380px;
+  }
+  .mc-story-values {
+    flex-direction: row;
+    align-items: stretch;
+  }
+}
+
+/* 34 Contact. ONE breakpoint, read off the frames rather than assumed to
+   match the storefront's usual 768: the 320px side column exists only at
+   1440 (123:6516), and both 768 and 390 stack the side under the main
+   card in the frames' own order. */
+.mc-contact-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.mc-contact-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.mc-contact-card {
+  background: var(--mc-bg-surface);
+  border: 1px solid var(--mc-border-default);
+  border-radius: 4px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+.mc-contact-card-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.4px;
+  color: var(--mc-text-muted);
+}
+@media (min-width: 1440px) {
+  .mc-contact-columns {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 32px;
+  }
+  .mc-contact-columns > .mc-contact-card {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .mc-contact-side {
+    flex: 0 0 320px;
+    width: 320px;
+  }
+}

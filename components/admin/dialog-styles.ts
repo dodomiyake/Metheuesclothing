@@ -1,10 +1,16 @@
 /**
- * The field, button and panel styles the three admin order dialogs share
- * (A14 Add tracking, A15 Cancel, A16 Refund). They are the same Form Field
- * (16:22) and Button (9:20) components in Figma, so a third hand-copied set
- * of inline styles would be a third place for them to drift — which is what
- * happened to the three ad-hoc status badges components/admin/status-badge
- * replaced.
+ * The field, button and panel styles every admin dialog shares — A14 Add
+ * tracking, A15 Cancel, A16 Refund, A18's return decision, and the two
+ * confirmations §9.6 requires on archive and on a stock reduction. They are
+ * the same Form Field (16:22) and Button (9:20) components in Figma, so a
+ * hand-copied set of inline styles per dialog would be another place for
+ * them to drift — which is what happened to the three ad-hoc status badges
+ * components/admin/status-badge replaced.
+ *
+ * It lived in `orders/[id]/` while the orders dialogs were its only
+ * consumers; A18 already reached across for it with `../../orders/[id]/`,
+ * which is the layering mistake form-styles.ts was moved up out of for the
+ * same reason.
  *
  * Note which border token the input uses: --mc-border-control (#767676), not
  * --mc-border-default. The Form Field component's own description is explicit

@@ -1,8 +1,18 @@
 'use client';
 
-import { useMemo, useState, type CSSProperties, type FormEvent } from 'react';
+import { useId, useMemo, useState, type CSSProperties, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatPence, parsePounds } from '@/lib/money';
+import { ModalDialog } from '@/components/admin/modal-dialog';
+import {
+  sectionLabelStyle,
+  primaryButtonStyle,
+  disabledButtonStyle,
+  ghostButtonStyle,
+  panelStyle,
+  mutedSmallStyle,
+  ruleStyle,
+} from '@/components/admin/dialog-styles';
 
 type Variant = {
   id: string;
@@ -214,6 +224,8 @@ function VariantRow({ variant }: { variant: Variant }) {
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [confirmReduce, setConfirmReduce] = useState(false);
+  const reduceTitleId = useId();
 
   async function toggleActive() {
     setTogglingActive(true);
@@ -230,14 +242,49 @@ function VariantRow({ variant }: { variant: Variant }) {
     }
   }
 
+  const amountNumber = Number(amount);
+  const amountValid = Number.isInteger(amountNumber) && amountNumber >= 0 && amount.trim() !== '';
+  /**
+   * The resulting stock, so the confirmation can show it rather than make
+   * someone do the arithmetic. adjust_stock (010) clamps nothing — it
+   * REFUSES to take stock below zero — so a Remove larger than the stock
+   * is shown as the refusal it will be rather than as a figure.
+   */
+  const resulting = !amountValid
+    ? null
+    : mode === 'add'
+      ? variant.stock_quantity + amountNumber
+      : mode === 'set'
+        ? amountNumber
+        : variant.stock_quantity - amountNumber;
+
+  /**
+   * §9.6: "Refund, cancellation, product archive and negative stock
+   * adjustments require explicit confirmation and audit logging." The audit
+   * row has been written since migration 015; the confirmation is this.
+   *
+   * A reduction is what is confirmed, not a mode — "Set to 2" on a variant
+   * holding 14 takes twelve T-shirts out of the shop just as surely as
+   * "Remove 12", and it is the easier of the two to do by accident.
+   */
+  const isReducing = amountValid && resulting !== null && resulting < variant.stock_quantity;
+
   async function onAdjustStock(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    const amountNumber = Number(amount);
-    if (!Number.isInteger(amountNumber) || amountNumber < 0) {
+    if (!amountValid) {
       setError('Enter a whole number.');
       return;
     }
+    if (isReducing && !confirmReduce) {
+      setConfirmReduce(true);
+      return;
+    }
+    await applyAdjustment();
+  }
+
+  async function applyAdjustment() {
+    setError(null);
     setSaving(true);
     const res = await fetch(`/api/admin/variants/${variant.id}/stock`, {
       method: 'POST',
@@ -245,6 +292,7 @@ function VariantRow({ variant }: { variant: Variant }) {
       body: JSON.stringify({ mode, amount: amountNumber, reason, note: note || undefined }),
     });
     setSaving(false);
+    setConfirmReduce(false);
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       setError(body.error ?? 'Could not adjust stock.');
@@ -337,6 +385,64 @@ function VariantRow({ variant }: { variant: Variant }) {
             </span>
           )}
         </form>
+
+        {/* A native <dialog> is in the top layer, so it renders over the
+            page rather than inside this cell however deeply it is nested. */}
+        <ModalDialog
+          open={confirmReduce}
+          onClose={() => setConfirmReduce(false)}
+          labelledBy={reduceTitleId}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <h2 id={reduceTitleId} style={{ margin: 0, fontSize: 20, fontWeight: 600 }}>
+                Take stock down?
+              </h2>
+              <p style={mutedSmallStyle}>
+                {variant.sku} — {variant.colour} / {variant.size}
+              </p>
+            </div>
+            <div style={ruleStyle} />
+
+            <div style={panelStyle}>
+              <p style={sectionLabelStyle}>WHAT CHANGES</p>
+              <p style={{ margin: 0, fontSize: 15, fontWeight: 600 }}>
+                {variant.stock_quantity} → {resulting}
+              </p>
+              <p style={mutedSmallStyle}>
+                {resulting !== null && resulting < 0
+                  ? 'This is more than the variant holds. Stock cannot go below zero, so this will be refused — reduce the amount.'
+                  : resulting === 0
+                    ? 'That takes it to zero, so it reads Sold out in the shop and cannot be bought.'
+                    : 'Customers see the new figure straight away.'}
+              </p>
+              <p style={mutedSmallStyle}>Reason: {reason}{note ? ` — ${note}` : ''}</p>
+            </div>
+
+            <p style={mutedSmallStyle}>
+              Recorded twice, and both are permanent: an inventory adjustment against this variant,
+              and an audit log entry naming you.
+            </p>
+
+            <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+              <button type="button" onClick={() => setConfirmReduce(false)} style={ghostButtonStyle}>
+                Leave it alone
+              </button>
+              {/* Disabled below zero rather than letting adjust_stock
+                  refuse it — the Button component's rule is that a disabled
+                  control must always carry text saying what would enable
+                  it, and the panel above says exactly that. */}
+              <button
+                type="button"
+                onClick={applyAdjustment}
+                disabled={saving || (resulting !== null && resulting < 0)}
+                style={resulting !== null && resulting < 0 ? disabledButtonStyle : primaryButtonStyle}
+              >
+                {saving ? 'Applying…' : 'Apply the reduction'}
+              </button>
+            </div>
+          </div>
+        </ModalDialog>
       </Td>
     </tr>
   );

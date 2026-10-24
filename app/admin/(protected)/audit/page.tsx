@@ -18,17 +18,27 @@ const DEFAULT_DAYS = 30;
  * something has gone wrong away from a desk. One more reason to settle that
  * rationale with the design owner rather than treating it as a rule.
  *
- * THE DESIGN DRAWS EIGHT EVENT TYPES AND THIS SYSTEM WRITES FOUR AND A HALF.
- * §9.6 lists refund, stock adjustment, return, content publish, dispatch,
- * archive, price change and sign-in. Recorded today: refunds (012),
- * dispatch (011), return decisions (014), and stock adjustments — the last
- * only as of 015, which exists because this project twice shipped a claim
- * that stock changes were audited and twice had to retract it. Partial:
- * a return's PROGRESS is logged but the customer first raising one is not,
- * because request_return() writes no audit row. Missing entirely: content
- * publish, archive, price change and sign-in. The panel at the foot of the
- * screen says so by name. A log that looks complete and is not is worse
- * than a short one, and this is the screen where that matters most.
+ * EVERYTHING THE SPEC REQUIRES AUDITED IS NOW AUDITED. That sentence used
+ * to attribute an eight-event list to §9.6, and §9.6 does not contain one —
+ * it is "Returns and refunds", and the only audit line in it is "Refund,
+ * cancellation, product archive and negative stock adjustments require
+ * explicit confirmation and audit logging" (§12 adds fulfilment and
+ * inventory changes). The eight events come from THIS FRAME's own entry
+ * list (146:3732 onwards), which is a different thing and worth not
+ * confusing with a requirement. PRODUCT ARCHIVE was the one spec-required
+ * event nothing wrote, and both halves of that line — the confirmation and
+ * the row — went in together.
+ *
+ * Recorded today: refunds and cancellations (012), dispatch (011), return
+ * decisions (014), stock adjustments (015, which exists because this
+ * project twice shipped a claim that stock changes were audited and twice
+ * had to retract it), product status changes, price changes and homepage
+ * publishes. Still not written: a customer RAISING a return — a return's
+ * progress is logged but request_return() writes no audit row — and
+ * signing in. Both are drawn in this frame; neither is required by the
+ * spec. The panel at the foot of the screen names them, because a log that
+ * looks complete and is not is worse than a short one, and this is the
+ * screen where that matters most.
  *
  * Omitted: "Export log" — no route, no format, the same call A11, A03, A07,
  * A17 and A02 all make. Here it carries extra weight, since an export of a
@@ -102,19 +112,34 @@ export default async function AdminAuditPage({
   // audit_logs stores an entity id and nothing else, so a row reads
   // "e5f1...-..." without this. Two batched lookups turn the ids on THIS
   // page into the numbers staff actually recognise.
-  const orderIds = entries.filter((e) => e.entity_type === 'order' && e.entity_id).map((e) => e.entity_id!);
-  const returnIds = entries.filter((e) => e.entity_type === 'return' && e.entity_id).map((e) => e.entity_id!);
+  const idsOfType = (type: string) =>
+    entries.filter((e) => e.entity_type === type && e.entity_id).map((e) => e.entity_id!);
+  const orderIds = idsOfType('order');
+  const returnIds = idsOfType('return');
+  // Catalogue entities joined the log with the archive, price and publish
+  // events. Without them a product row read "product (no longer in the
+  // catalogue)" for a T-shirt that is still very much there.
+  const productIds = idsOfType('product');
+  const variantIds = idsOfType('variant');
 
-  const [orderLabels, returnLabels] = await Promise.all([
+  const [orderLabels, returnLabels, productLabels, variantLabels] = await Promise.all([
     orderIds.length
       ? supabase.from('orders').select('id, order_number').in('id', orderIds)
       : Promise.resolve({ data: [] as { id: string; order_number: string }[], error: null }),
     returnIds.length
       ? supabase.from('returns').select('id, return_number').in('id', returnIds)
       : Promise.resolve({ data: [] as { id: string; return_number: string }[], error: null }),
+    productIds.length
+      ? supabase.from('products').select('id, name').in('id', productIds)
+      : Promise.resolve({ data: [] as { id: string; name: string }[], error: null }),
+    variantIds.length
+      ? supabase.from('product_variants').select('id, sku, product_id').in('id', variantIds)
+      : Promise.resolve({ data: [] as { id: string; sku: string; product_id: string }[], error: null }),
   ]);
   if (orderLabels.error) throw new Error(`Could not resolve order numbers: ${orderLabels.error.message}`);
   if (returnLabels.error) throw new Error(`Could not resolve return numbers: ${returnLabels.error.message}`);
+  if (productLabels.error) throw new Error(`Could not resolve product names: ${productLabels.error.message}`);
+  if (variantLabels.error) throw new Error(`Could not resolve variant SKUs: ${variantLabels.error.message}`);
 
   const labelById = new Map<string, { label: string; href: string }>();
   for (const o of orderLabels.data ?? []) {
@@ -123,6 +148,18 @@ export default async function AdminAuditPage({
   for (const r of returnLabels.data ?? []) {
     labelById.set(r.id as string, { label: r.return_number as string, href: `/admin/returns/${r.id}` });
   }
+  for (const p of productLabels.data ?? []) {
+    labelById.set(p.id as string, { label: p.name as string, href: `/admin/products/${p.id}` });
+  }
+  for (const v of variantLabels.data ?? []) {
+    labelById.set(v.id as string, {
+      label: v.sku as string,
+      href: `/admin/products/${v.product_id}/variants`,
+    });
+  }
+  // The homepage is one row with a fixed id rather than a uuid, so it
+  // resolves without a lookup.
+  labelById.set('homepage', { label: 'Homepage', href: '/admin/content' });
 
   const total = count ?? 0;
   const filtered = Boolean(who || what || when);
@@ -237,19 +274,21 @@ export default async function AdminAuditPage({
             Entries are append-only — nobody, including the owner, can edit or remove one. That is
             enforced by the forbid_audit_mutation triggers, not by convention.
           </p>
-          {/* §9.6 names eight auditable events. Saying which four are
-              missing is the most useful thing this screen can do: a log
-              that looks complete and is not is worse than a short one. */}
+          {/* Saying which events are missing is the most useful thing this
+              screen can do: a log that looks complete and is not is worse
+              than a short one. */}
           <p style={note}>
-            Recorded today: refunds and cancellations, dispatch, return decisions, and manual stock
-            changes. NOT yet recorded: a customer raising a return, publishing homepage content,
-            archiving a product, changing a price, and signing in. Those five write nothing here, so
-            their absence from the list above means nothing happened to record — not that nothing
-            happened.
+            Recorded: refunds and cancellations, dispatch, return decisions, manual stock changes,
+            publishing, unpublishing and archiving a T-shirt, price changes, and homepage
+            publishes. NOT recorded: a customer raising a return, and signing in. Those two write
+            nothing here, so their absence from the list above means nothing happened to record —
+            not that nothing happened.
           </p>
           <p style={note}>
-            Nothing deletes entries, so the log only grows. The six-year retention §9.6 asks for is a
-            policy, not something this system enforces in either direction yet.
+            Nothing deletes entries, so the log only grows. Keeping them for six years is the
+            design&rsquo;s stated intention rather than a rule this system enforces in either
+            direction — nothing expires an entry, and nothing stops someone removing them at the
+            database.
           </p>
         </section>
 
@@ -278,8 +317,9 @@ export default async function AdminAuditPage({
  * behind — append-only means an entry outlives what it describes, which is
  * the point. Say what the entry was about rather than printing a uuid. */
 function entityFallback(e: Entry): string {
-  if (e.entity_type === 'variant') return 'Variant';
   if (!e.entity_id) return e.entity_type;
+  // Append-only means an entry outlives its subject, which is the point.
+  // Saying so beats printing a uuid at someone.
   return `${e.entity_type} (no longer in the catalogue)`;
 }
 

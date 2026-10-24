@@ -117,9 +117,14 @@ export function Footer({
         <FooterColumn
           title="Help"
           links={[
+            // Delivery and Returns is one page (33), so both links go to
+            // it — the second to the section it names. "Returns and
+            // Exchanges" pointed at /track-order, which is the guest
+            // LOOKUP form rather than the policy anyone clicking that
+            // wanted to read.
             ['Contact', '/contact'],
             ['Delivery', '/delivery'],
-            ['Returns and Exchanges', '/track-order'],
+            ['Returns and Exchanges', '/delivery#returns'],
             ['Size Guide', '/size-guide'],
           ]}
         />

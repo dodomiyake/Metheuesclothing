@@ -18,7 +18,7 @@ import {
   panelStyle,
   mutedSmallStyle,
   ruleStyle,
-} from './dialog-styles';
+} from '@/components/admin/dialog-styles';
 
 /**
  * A16 Refund — Figma 141:1967 (Desktop) / 141:1791 (Tablet), both pulled.
