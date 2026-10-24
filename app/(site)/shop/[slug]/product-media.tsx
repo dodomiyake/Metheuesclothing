@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { AddToBag } from './add-to-bag';
 import { ProductGallery } from './product-gallery';
 import type { ProductImage } from '@/lib/shop/product-images';
+import type { CrossSellItem } from '@/components/site/add-to-bag-panel';
 
 type Variant = {
   id: string;
@@ -31,6 +32,7 @@ export function ProductMedia({
   variants,
   productSlug,
   productName,
+  crossSell,
   panelHeader,
   panelFooter,
 }: {
@@ -38,11 +40,21 @@ export function ProductMedia({
   variants: Variant[];
   productSlug: string;
   productName: string;
+  crossSell: CrossSellItem[];
   panelHeader: React.ReactNode;
   panelFooter: React.ReactNode;
 }) {
   const colours = useMemo(() => [...new Set(variants.map((v) => v.colour))], [variants]);
   const [colour, setColour] = useState<string | null>(colours[0] ?? null);
+
+  // The confirmation panel shows the photograph of the colour actually
+  // being added, picked the same way the gallery picks one: this colour's
+  // images, plus any assigned to no colour, falling back to the whole set.
+  const panelImage = useMemo(() => {
+    const forColour = colour ? images.filter((i) => i.colour === colour || i.colour === null) : images;
+    const visible = forColour.length > 0 ? forColour : images;
+    return visible[0] ? { url: visible[0].url, alt: visible[0].alt } : null;
+  }, [images, colour]);
 
   return (
     <>
@@ -55,6 +67,8 @@ export function ProductMedia({
           variants={variants}
           colour={colour}
           onColourChange={setColour}
+          image={panelImage}
+          crossSell={crossSell}
         />
         {panelFooter}
       </div>

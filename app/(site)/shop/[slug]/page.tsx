@@ -3,6 +3,7 @@ import { createServerComponentClient } from '@/lib/supabase/server-component';
 import { formatPence } from '@/lib/money';
 import { summarizeProduct } from '@/lib/shop/product-summary';
 import { ProductCard, type ProductCardData } from '../product-card';
+import type { CrossSellItem } from '@/components/site/add-to-bag-panel';
 import { ProductMedia } from './product-media';
 import { loadPrimaryImages, loadProductImages } from '@/lib/shop/product-images';
 
@@ -146,6 +147,51 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     };
   });
 
+  /**
+   * 05G/H/I's "You may also like" rows. The same related products the page
+   * already shows, narrowed to what a 48px row can carry.
+   *
+   * The design's sublines are "Limited Edition · 3 sizes left" and
+   * "Regular fit · all sizes". The LABEL comes from summarizeProduct, the
+   * same derivation the product cards and the shop listing use — that
+   * helper exists precisely so one T-shirt cannot show different
+   * availability in two places. The SIZE COUNT is real: distinct sizes
+   * with stock among the active variants, which this page has already
+   * loaded for the cards. FIT is dropped from the subline, because
+   * products.fit is null on every published T-shirt today (the same gap
+   * Our Story's fits clause reports) and a row reading "· all sizes" with
+   * a leading separator and nothing before it is worse than one without.
+   */
+  const crossSell: CrossSellItem[] = (relatedRows ?? []).slice(0, 2).map((r: RelatedRow) => {
+    const vs = (variantsByProduct.get(r.id) ?? []).filter((v) => v.is_active);
+    const summary = summarizeProduct(r.published_at, vs, collectionsByProduct.get(r.id) ?? []);
+    const image = relatedImages.get(r.id);
+
+    const allSizes = new Set(vs.map((v) => v.size));
+    const sizesWithStock = new Set(vs.filter((v) => v.stock_quantity > 0).map((v) => v.size));
+    const sizeNote = !summary.inStock
+      ? 'Sold out'
+      : sizesWithStock.size === allSizes.size
+        ? 'All sizes'
+        : `${sizesWithStock.size} size${sizesWithStock.size === 1 ? '' : 's'} left`;
+
+    const label = summary.isLimitedEdition
+      ? 'Limited Edition'
+      : summary.isNew
+        ? 'New'
+        : summary.lowStock
+          ? 'Low stock'
+          : null;
+
+    return {
+      slug: r.slug,
+      name: r.name,
+      image: image ? { url: image.url, alt: image.alt } : null,
+      pricePence: summary.minPrice,
+      note: [label, sizeNote].filter(Boolean).join(' · '),
+    };
+  });
+
   const fabricFields = [product.fit, product.composition, product.fabric_weight_gsm, product.neck, product.made_in].filter(
     Boolean,
   );
@@ -164,6 +210,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           variants={variants ?? []}
           productSlug={slug}
           productName={product.name}
+          crossSell={crossSell}
           panelHeader={
             <>
               {eyebrow && (

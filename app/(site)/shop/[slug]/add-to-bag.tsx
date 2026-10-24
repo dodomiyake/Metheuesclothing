@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import Link from 'next/link';
 import { addToCart } from '@/lib/bag/cart';
+import { AddToBagPanel, type CrossSellItem } from '@/components/site/add-to-bag-panel';
 import { formatPence } from '@/lib/money';
 import { sortSizes } from '@/lib/shop/size-order';
 
@@ -45,7 +45,8 @@ const chipStyle = (state: 'default' | 'selected' | 'disabled'): React.CSSPropert
  * components/site/header.tsx already gives the inert search icon: a size
  * guide needs verified garment measurements, which CLAUDE.md says are
  * placeholders that must not ship (§8.5). The design's side-panel/bottom-
- * sheet confirmation (§8.6) stays deferred — this is still an inline one.
+ * sheet confirmation (§8.6) IS built now — components/site/add-to-bag-panel
+ * — and has replaced the line of text that stood in for it.
  */
 export function AddToBag({
   productSlug,
@@ -53,10 +54,15 @@ export function AddToBag({
   variants,
   colour,
   onColourChange,
+  image,
+  crossSell,
 }: {
   productSlug: string;
   productName: string;
   variants: Variant[];
+  /** The chosen colour's photograph, for the confirmation panel's line. */
+  image: { url: string; alt: string } | null;
+  crossSell: CrossSellItem[];
   /** Owned by ProductMedia: the gallery shows this colour's photographs,
       so the chips cannot keep their own copy of it. */
   colour: string | null;
@@ -69,7 +75,7 @@ export function AddToBag({
 
   const [size, setSize] = useState<string | null>(null);
   const [sizeError, setSizeError] = useState(false);
-  const [confirmation, setConfirmation] = useState<string | null>(null);
+  const [added, setAdded] = useState<{ variantId: string; colour: string; size: string; unitPricePence: number } | null>(null);
   const [stickyVisible, setStickyVisible] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -117,7 +123,12 @@ export function AddToBag({
       quantity: 1,
       unitPricePence: variant.price_pence,
     });
-    setConfirmation(`Added ${productName} — ${variant.colour} / ${variant.size} to your bag.`);
+    setAdded({
+      variantId: variant.id,
+      colour: variant.colour,
+      size: variant.size,
+      unitPricePence: variant.price_pence,
+    });
   }
 
   const stockState = !selected
@@ -233,13 +244,17 @@ export function AddToBag({
         </button>
       </div>
 
-      {confirmation && (
-        <p style={{ fontSize: 15, margin: 0 }}>
-          {confirmation}{' '}
-          <Link href="/bag" style={{ color: 'var(--mc-text-primary)', fontWeight: 600 }}>
-            View Bag
-          </Link>
-        </p>
+      {added && (
+        <AddToBagPanel
+          variantId={added.variantId}
+          productName={productName}
+          colour={added.colour}
+          size={added.size}
+          unitPricePence={added.unitPricePence}
+          image={image}
+          crossSell={crossSell}
+          onClose={() => setAdded(null)}
+        />
       )}
 
       <div className="mc-page-gutter mc-pdp-sticky-bar" data-visible={stickyVisible} style={{ paddingTop: 12, paddingBottom: 20 }}>

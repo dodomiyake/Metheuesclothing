@@ -1081,8 +1081,9 @@ customer-facing account pages (profile, addresses, signed-in order history
 which exists). The catalogue, bag and guest order
 lookup+return (`app/shop/`, `app/bag/`, `app/track-order/`) are now
 matched against their real Figma screens, not just built — but each still
-carries disclosed, deliberate gaps (no product photography, cart stays
-localStorage, no side-panel/bottom-sheet confirmations) — see README's
+carries disclosed, deliberate gaps (cart stays localStorage; the
+photography and the side-panel/bottom-sheet confirmation have since been
+closed — see A05 and 05G/H/I below) — see README's
 "What is not here yet" for exactly which parts of §8.2/§8.4/§8.7 are
 deferred and why. `app/track-order/` has no order detail page of its own
 (13 Order Detail) — everything it shows lives on the one lookup-result
@@ -1664,6 +1665,59 @@ its five lines. So the checkout profile_id fix, the webhook, the stock
 decrement and the account link are all confirmed in production together.
 MC-10009 remains `pending` with no sale adjustment — reached Stripe,
 not completed, which is what pending means.
+
+05G/H/I ADD TO BAG IS BUILT, which finishes §8.6 and was the last
+unbuilt storefront screen set (75:1580 Desktop drawer pulled; 75:1660
+Tablet and 75:1740 Mobile measured through get_metadata). The three
+frames are the SAME content anchored three ways, and the only other
+difference is the gutter: 24/24/20. Measured at 390/768/1440/1920 —
+full-width bottom sheet at 390, a 480 sheet centred at 768, a 420 right
+drawer at full height from 1440; the line photograph 88x110 and the
+cross-sell thumbs 48x60 at every width, Close 44x44, both actions
+stacked and full width, no overflow.
+
+§8.6 lists five things and the header badge closed one ("update the bag
+count"). This is the other four: confirm product, colour, size, quantity
+and price; a side panel on desktop or a bottom sheet on mobile; View Bag
+and Continue shopping; and never force navigation to the bag. Continue
+shopping is therefore a BUTTON that closes, not a link — the ledger's
+note on these frames says the panel "never navigates away", and a link
+back to the page you are already on would still be a navigation.
+
+A NATIVE <dialog> with showModal(), the same choice
+components/admin/modal-dialog.tsx records: the focus trap, the inert
+background, Escape and ::backdrop all come free. Anchoring it is
+entirely which margins are auto, because a dialog centres itself by
+default — `margin: auto auto 0 auto` is the sheet and `margin: 0 0 0
+auto` with a full height is the drawer.
+
+IT READS THE LIVE CART, not the line it was opened with, so the stepper,
+the subtotal and the count are the same numbers /bag shows. Adding the
+same variant twice opens the panel reading quantity 2 rather than two
+panels each claiming 1. Removing the line closes the panel — a
+confirmation whose subject has been deleted has nothing left to confirm,
+and the frames draw no empty state for it.
+
+`components/site/quantity-control.tsx` came out of the bag page with
+this. The frames put the REAL Quantity Control (24:25) inside the panel,
+and a second hand-copy of the stepper is exactly what
+components/admin/status-badge.tsx was created to stop. Same move as
+dialog-styles.ts and form-styles.ts before it.
+
+THE CROSS-SELL SUBLINE IS DERIVED, not copied. The design draws "Limited
+Edition · 3 sizes left" and "Regular fit · all sizes". The label comes
+from summarizeProduct — the same helper the product cards and the shop
+listing use, which exists so one T-shirt cannot show different
+availability in two places — and the SIZE COUNT is real: distinct sizes
+with stock among the active variants, which the product page has already
+loaded for its related cards. FIT is dropped from the subline, because
+products.fit is null on every published T-shirt today (the same gap Our
+Story's fits clause reports) and a row reading "· all sizes" with a
+leading separator and nothing before it is worse than one without.
+
+The inline line of text the product page used to show is GONE. It was
+always the stand-in — add-to-bag.tsx's own comment said so — and two
+confirmations for one action is noise.
 
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
