@@ -1540,6 +1540,38 @@ this. A18 already reached across for it with `../../orders/[id]/`, which
 is the layering mistake form-styles.ts was moved for, and these two
 dialogs would have been the fifth and sixth consumers.
 
+THE BAG ICON NEVER INDICATED ANYTHING, reported as "when i add to bag, it
+doesnt indicate in the bag icon", and it was real. §8.6 lists five things
+that must happen after adding a variant and the second is "Update the bag
+count". Nothing did: the header's Bag was a plain `<Link>` wrapping an
+icon, and the only feedback anywhere was one line of text on the product
+page itself.
+
+The machinery was already there and unused — `useCart()` has listened for
+CART_EVENT and `storage` since the bag was built, so this is six lines in
+the header plus a class. The count is a SUM OF QUANTITIES, matching what
+the bag page's own totalQuantity calls the item count: two of one T-shirt
+is two items there and must be two here.
+
+IT IS A DELIBERATE ADDITION BEYOND THE DESIGN FILE. The Header component
+set draws no badge in any of its three variants — 15:29 is a bare 44px
+Icon / Bag — because the design's answer to "did that work" is the side
+panel at 05G/H/I, which is still unbuilt (§8.6's three remaining bullets:
+the panel, View Bag / Continue Shopping, and not navigating away). So the
+count is the spec's requirement met without the screen that was meant to
+carry it. Worth raising with the design owner: either the Header gains a
+count variant, or 05G/H/I gets built and this becomes a second signal.
+
+Two rule-8 details. The count is in the ACCESSIBLE NAME ("Bag, 3 items" /
+"Bag, empty") and the badge is aria-hidden, so it is not a visual-only
+signal and the number is not announced twice. The badge is `--mc-accent`
+as a FILL with `--mc-accent-text` on it, never accent as type on the Paper
+ground. Measured at 390/768/1440 empty, at 3 and at 99+: wordmark offset
+stays 0 at every width with the badge present — the 44px imbalance the
+FILL columns exist to prevent, and the exact thing that broke the last
+time something was added to this row — the bag target stays 44x44, the
+badge stays inside it, and nothing overflows.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real

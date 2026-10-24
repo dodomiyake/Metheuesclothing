@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import type { CSSProperties } from 'react';
 import { SearchIcon, AccountIcon, BagIcon, MenuIcon, DismissIcon } from './icons';
+import { useCart } from '@/lib/bag/use-cart';
 
 /**
  * Site header — Figma component set 15:32, all three Breakpoint variants
@@ -40,9 +41,26 @@ import { SearchIcon, AccountIcon, BagIcon, MenuIcon, DismissIcon } from './icons
  * carries the four nav links plus Account, because Mobile has no account
  * icon and losing the route entirely on a phone would be worse than a
  * disclosed deviation.
+ *
+ * THE BAG COUNT IS A SECOND THING NOT IN FIGMA, and it is here because §8.6
+ * requires it in so many words: "After adding a variant: ... Update the bag
+ * count". The Header component set draws no badge in ANY of its three
+ * variants — 15:29 is a bare 44px Icon / Bag — because the design's answer
+ * to "did that work" is the side panel at 05G/H/I, which is unbuilt. Until
+ * it is, adding to the bag changed nothing a customer could see outside the
+ * product page's own inline line of text, which is the report this closes.
+ *
+ * Reported as a sum of quantities, matching what the bag page itself calls
+ * the item count (page.tsx's totalQuantity) rather than counting lines —
+ * two of one T-shirt is two items there and must be two here.
  */
 export function Header() {
   const [open, setOpen] = useState(false);
+
+  // useCart returns [] until its effect runs, so the server render and the
+  // first client render agree on an empty bag and the count appears on the
+  // same pass that reads localStorage. No hydration mismatch to suppress.
+  const count = useCart().reduce((sum, line) => sum + line.quantity, 0);
 
   return (
     <header className="mc-header">
@@ -105,8 +123,22 @@ export function Header() {
         <Link href="/account" className="mc-icon-button mc-header-account" aria-label="Account">
           <AccountIcon />
         </Link>
-        <Link href="/bag" className="mc-icon-button" aria-label="Bag">
+        {/* The count lives in the accessible name rather than only in the
+            badge, so it is not a visual-only signal (rule 8); the badge is
+            hidden from the accessibility tree so the number is not read
+            twice. --mc-accent is a FILL with --mc-accent-text on it, never
+            accent as type on a pale ground. */}
+        <Link
+          href="/bag"
+          className="mc-icon-button mc-bag-link"
+          aria-label={count === 0 ? 'Bag, empty' : `Bag, ${count} ${count === 1 ? 'item' : 'items'}`}
+        >
           <BagIcon />
+          {count > 0 && (
+            <span className="mc-bag-count" aria-hidden>
+              {count > 99 ? '99+' : count}
+            </span>
+          )}
         </Link>
       </div>
     </header>

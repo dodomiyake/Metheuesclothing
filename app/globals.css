@@ -1905,3 +1905,32 @@ button.mc-icon-button[aria-label='Search'] {
     width: 320px;
   }
 }
+
+/* The bag count (§8.6, "Update the bag count"). No Header variant in Figma
+   draws a badge — the design's feedback is the 05G/H/I side panel, which is
+   unbuilt — so this is a deliberate addition, recorded in header.tsx.
+
+   Not an inline style, for the reason the icon buttons document: anything
+   sitting on a per-breakpoint element is safer as a class. It rides on the
+   44px target rather than shrinking it, so the tap area is unchanged. */
+.mc-bag-link {
+  position: relative;
+}
+.mc-bag-count {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: var(--mc-accent);
+  color: var(--mc-accent-text);
+  font-family: var(--mc-font-body);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+  pointer-events: none;
+}
