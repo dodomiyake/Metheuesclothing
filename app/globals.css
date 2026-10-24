@@ -1934,3 +1934,137 @@ button.mc-icon-button[aria-label='Search'] {
   text-align: center;
   pointer-events: none;
 }
+
+/* 05G/H/I Add to Bag confirmation. One set of content anchored three ways,
+   read off 75:1580 (Desktop drawer 420 wide, full height), 75:1660 (Tablet
+   sheet 480) and 75:1740 (Mobile sheet, full width). §8.6: "Open a side
+   panel on desktop or bottom sheet on mobile."
+
+   A native <dialog> centres itself with `margin: auto`, so the anchoring is
+   entirely which margins are auto. */
+.mc-bag-panel {
+  margin: auto auto 0 auto;           /* bottom sheet, centred horizontally */
+  width: 100%;
+  max-width: 480px;
+  max-height: 88vh;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: var(--mc-bg-surface);
+  color: var(--mc-text-primary);
+  font-family: var(--mc-font-body);
+  box-shadow: 0 -4px 24px rgba(18, 16, 14, 0.16);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.mc-bag-panel::backdrop {
+  background: rgba(10, 10, 10, 0.4);
+}
+.mc-bag-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 8px 12px 20px;
+  border-bottom: 1px solid var(--mc-border-default);
+}
+.mc-bag-panel-title {
+  flex: 1 0 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--mc-status-success);
+}
+.mc-bag-panel-body {
+  padding: 0 20px;
+}
+.mc-bag-panel-line {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--mc-border-default);
+}
+/* 4:5 at 88 wide, the Bag Line Item's own photograph box. The well is the
+   same fallback every unphotographed surface shows. */
+.mc-bag-panel-thumb {
+  flex: none;
+  width: 88px;
+  height: 110px;
+  background: var(--mc-mist);
+  overflow: hidden;
+}
+.mc-bag-panel-thumb > img,
+.mc-bag-panel-cross-thumb > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.mc-bag-panel-total {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 16px 0;
+}
+.mc-bag-panel-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 20px;
+}
+.mc-bag-panel-actions > * {
+  width: 100%;
+}
+.mc-bag-panel-cross {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 20px 24px;
+  border-top: 1px solid var(--mc-border-default);
+}
+/* Compact rows, not product cards. The ledger records why: "Cross-sell
+   uses compact rows — full product cards overflowed the panel on the
+   first attempt." */
+.mc-bag-panel-cross-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--mc-border-default);
+  color: inherit;
+  text-decoration: none;
+}
+.mc-bag-panel-cross-thumb {
+  flex: none;
+  width: 48px;
+  height: 60px;
+  background: var(--mc-mist);
+  overflow: hidden;
+}
+@media (min-width: 768px) {
+  .mc-bag-panel-head {
+    padding-left: 24px;
+  }
+  .mc-bag-panel-body {
+    padding: 0 24px;
+  }
+  .mc-bag-panel-cross {
+    padding: 20px 24px 24px;
+  }
+}
+/* The drawer. Anchored right and full height instead of bottom and
+   centred — the only structural difference between the three frames. */
+@media (min-width: 1440px) {
+  .mc-bag-panel {
+    margin: 0 0 0 auto;
+    width: 420px;
+    max-width: 420px;
+    height: 100%;
+    max-height: 100%;
+    box-shadow: -4px 0 24px rgba(18, 16, 14, 0.16);
+  }
+}

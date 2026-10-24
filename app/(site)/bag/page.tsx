@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/lib/bag/use-cart';
 import { updateCartQuantity, removeFromCart, type CartLine } from '@/lib/bag/cart';
+import { QuantityControl } from '@/components/site/quantity-control';
 import { formatPence } from '@/lib/money';
 import { createClient } from '@/lib/supabase/public';
 
@@ -40,7 +41,6 @@ type LiveVariant = {
   is_active: boolean;
 };
 
-const MAX_QTY = 10;
 
 /**
  * `includeDisplay: false` for the two "Continue shopping" instances that a
@@ -73,16 +73,6 @@ const buttonStyle = (
   boxSizing: 'border-box',
 });
 
-const stepStyle: React.CSSProperties = {
-  width: 44,
-  height: 44,
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background: 'none',
-  border: 'none',
-  cursor: 'pointer',
-};
 
 export default function BagPage() {
   const cart = useCart();
@@ -328,41 +318,6 @@ function BagLineRow({
           </button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function QuantityControl({ quantity, onChange }: { quantity: number; onChange: (q: number) => void }) {
-  const canDecrease = quantity > 1;
-  const canIncrease = quantity < MAX_QTY;
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--mc-border-control)', borderRadius: 'var(--mc-radius-sm)' }}>
-      <button
-        type="button"
-        aria-label="Decrease quantity"
-        disabled={!canDecrease}
-        onClick={() => onChange(quantity - 1)}
-        style={{ ...stepStyle, cursor: canDecrease ? 'pointer' : 'not-allowed', color: canDecrease ? 'var(--mc-text-primary)' : 'var(--mc-text-muted)' }}
-      >
-        <svg width="13" height="2" viewBox="0 0 13 2" aria-hidden>
-          <rect width="13" height="1.25" fill="currentColor" />
-        </svg>
-      </button>
-      <div style={{ width: 36, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span style={{ fontSize: 16, fontWeight: 500 }}>{quantity}</span>
-      </div>
-      <button
-        type="button"
-        aria-label="Increase quantity"
-        disabled={!canIncrease}
-        onClick={() => onChange(quantity + 1)}
-        style={{ ...stepStyle, cursor: canIncrease ? 'pointer' : 'not-allowed', color: canIncrease ? 'var(--mc-text-primary)' : 'var(--mc-text-muted)' }}
-      >
-        <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden>
-          <rect y="5.5" width="13" height="1.25" fill="currentColor" />
-          <rect x="5.5" width="1.25" height="13" fill="currentColor" />
-        </svg>
-      </button>
     </div>
   );
 }
