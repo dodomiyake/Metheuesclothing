@@ -1590,11 +1590,14 @@ is two items there and must be two here.
 IT IS A DELIBERATE ADDITION BEYOND THE DESIGN FILE. The Header component
 set draws no badge in any of its three variants — 15:29 is a bare 44px
 Icon / Bag — because the design's answer to "did that work" is the side
-panel at 05G/H/I, which is still unbuilt (§8.6's three remaining bullets:
-the panel, View Bag / Continue Shopping, and not navigating away). So the
-count is the spec's requirement met without the screen that was meant to
-carry it. Worth raising with the design owner: either the Header gains a
-count variant, or 05G/H/I gets built and this becomes a second signal.
+panel at 05G/H/I. That panel was unbuilt when the badge went in, so the
+count was the spec's requirement met without the screen meant to carry
+it; 05G/H/I has since been built, so the badge is now the SECOND signal
+it was always going to become — the panel answers the moment, the badge
+answers every moment after it. The open question narrows to one thing
+for the design owner: whether the Header component should gain a count
+variant, since the implementation is ahead of the file here and a
+re-sync from Figma would otherwise drop it.
 
 Two rule-8 details. The count is in the ACCESSIBLE NAME ("Bag, 3 items" /
 "Bag, empty") and the badge is aria-hidden, so it is not a visual-only
