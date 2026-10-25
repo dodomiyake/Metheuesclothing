@@ -15,10 +15,24 @@ export const runtime = 'nodejs';
  * settings". `is_owner()` has existed since 002 and nothing has ever used
  * it; this is what it was for.
  *
- * store_settings has no owner-only RLS policy — the staff write policy is
- * the only one on it — so the check lives here. Narrowing the policy itself
- * would be the stronger move and is a migration; worth doing, and noted
- * rather than quietly skipped.
+ * CORRECTED: an earlier version of this comment said store_settings had no
+ * owner-only RLS policy and that narrowing it was a migration still worth
+ * doing. It was wrong on both counts. 002_rls.sql:136 is
+ *
+ *   create policy settings_owner_write on store_settings for update
+ *     using (is_owner()) with check (is_owner())
+ *
+ * and there is no staff write policy on the table at all — verified against
+ * pg_policies on the live database, which returns exactly that policy and
+ * `store_settings_public_read`. So the database has been the lock since 002.
+ *
+ * THIS CHECK STILL EARNS ITS PLACE, for the reason the update below makes
+ * visible rather than for defence in depth. A staff caller who is not an
+ * owner is refused by RLS as zero rows matched, which arrives here as
+ * `data` being null — indistinguishable from the singleton row having gone
+ * missing, so the honest-looking error underneath would tell someone their
+ * database was broken when their account simply is not an owner. The 403 is
+ * what makes the refusal legible.
  */
 export async function PATCH(req: NextRequest) {
   const session = await requireStaffSession();

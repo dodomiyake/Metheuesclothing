@@ -903,9 +903,23 @@ ONLY for that reason — every other write here is gated on is_staff(),
 which is right for packing a parcel and wrong for pricing a basket. A22's
 own staff card draws the line in the same place ("Staff — orders,
 fulfilment and returns, no settings"). is_owner() has existed since 002
-and nothing had ever used it. NOTE the check lives in the route, not in
-RLS: store_settings has only a staff write policy, and narrowing it is a
-migration worth doing rather than a thing to skip quietly.
+and nothing had ever used it.
+
+CORRECTED: this file said "the check lives in the route, not in RLS:
+store_settings has only a staff write policy, and narrowing it is a
+migration worth doing". BOTH HALVES WERE WRONG, and pg_policies on the live
+database settles it — the table has exactly two policies,
+`store_settings_public_read` (select, true) and `settings_owner_write`
+(update, `using (is_owner()) with check (is_owner())`). There is no staff
+write policy on it and never was; 002_rls.sql:136 put the owner gate in the
+database on the day RLS was written, under its own "owner only" heading. So
+the migration that was "worth doing" had been done before the note claiming
+otherwise was written, and the route's comment repeated the same error.
+Both are corrected. The route check stays, and is worth keeping for a
+sharper reason than defence in depth: RLS refuses a non-owner staff caller
+as zero rows matched, which the route reads as a missing singleton row, so
+without the 403 the error would tell someone the database was broken when
+their account is simply not an owner.
 
 THE DELIVERY PRICES WERE HARDCODED. free_delivery_threshold_pence was a
 column checkout read; the prices beside it were two integer literals in
@@ -1779,14 +1793,23 @@ database level rather than what was open a year ago.
 TWO THINGS THE REWRITE FOUND, both by counting against the live database
 rather than reading the file.
 
-020 IS APPLIED BUT IS NOT IN THE MIGRATION HISTORY. `list_migrations`
-returns 001-019 and then 021; 020 is missing, because the owner ran it
-through the dashboard SQL editor rather than the tooling. The GRANTs are
-real — verified here, not just by the owner's screenshot:
-`information_schema.column_privileges` gives `authenticated` UPDATE on
-exactly full_name, marketing_opt_in, marketing_opt_in_at and phone, and
-`anon` no UPDATE row at all. Re-running the file through the tooling is
-harmless (it is only REVOKE and GRANT) and would close the hole.
+020 WAS APPLIED AND WAS NOT IN THE MIGRATION HISTORY — `list_migrations`
+returned 001-019 and then 021, because the owner ran it through the
+dashboard SQL editor rather than the tooling. CLOSED on 25 October by
+re-running the file through apply_migration, which was safe for the reason
+this note gave: it is only REVOKE and GRANT, so a no-op against grants
+already in place. `information_schema.column_privileges` was checked either
+side and is identical — `authenticated` UPDATE on exactly full_name,
+marketing_opt_in, marketing_opt_in_at and phone, and `anon` no UPDATE row
+at all. The advisor run 020 had never had from a session was done with it;
+the baseline is unchanged and `profiles` is flagged by nothing.
+
+020 NOW SORTS LAST IN THE HISTORY, after 021, and that is correct rather
+than a mistake to fix. Versions are assigned when a migration is APPLIED,
+not read off the file name, so 020 carries `20261025085615` against 021's
+`20261024223909`. The history records when each statement ran and 020 ran
+through the tooling last. Reordering it would mean editing a history table
+to make it disagree with what happened.
 
 store_settings HAS SEVEN READ COLUMNS AND TWO UNREAD, not six and three.
 That line had been carrying its own arithmetic error — it said six while
