@@ -406,37 +406,54 @@ implementation beyond the design file rather than a frame nobody built.
 
 ## Part C — waiting on content or an account, not on a design decision
 
-1. **Photography.** There is somewhere to put it now: A05 uploads, the storage
-   policies are applied, and every reader is wired with a fallback well. What is
-   missing is the pictures.
-2. **The alt text on the one live photograph is lorem ipsum.** The form requires a
+1. **The one live photograph is not the product it is attached to.** This is the
+   most visible thing on the list and it is live now. The image was fetched and
+   looked at: a model front and back in an **oversized crew-neck** T-shirt with a
+   large red and black scripture graphic across the back ("IT TAKES FAITH TO
+   BELIEVE THE PROMISES GOD HAS FOR YOU", 2 Corinthians 5:7) and a small matching
+   chest print. The product is **"STRIPED SHORT SLEEVE POLO TSHIRT"**. It is not
+   striped, it is not a polo, and it carries a print the product has no record of.
+   Only the IVORY colour assignment matches. So the shop's single published
+   T-shirt is illustrated by a different garment, on the listing, the product page
+   and the homepage's featured row. The system cannot know which of the two is
+   wrong — the photograph or the product it sits on — so it is yours to settle in
+   A05.
+2. **More photography.** The pipeline is done and proven: A05 uploads, the storage
+   policies hold, the path guard admits exactly the shape it builds, and every
+   reader falls back to a well. What is missing is the pictures.
+3. **The alt text on that photograph is lorem ipsum.** The form requires a
    non-empty description and got one; nothing can check that a description
-   describes. §13 wants a real text alternative, and this is on the shop's only
-   picture.
-3. **The garment specification is empty.** The one published product has `fit`,
+   describes. §13 wants a real text alternative. A real one has been written from
+   the image and is ready to paste into A05 —
+
+   > Front and back views of a model in an oversized off-white short-sleeve
+   > T-shirt worn with black shorts. The back carries a large red and black
+   > graphic reading "IT TAKES FAITH TO BELIEVE THE PROMISES GOD HAS FOR YOU",
+   > with "For we walk by faith not by sight, 2 Corinthians 5:7" beneath it; the
+   > front has a smaller matching chest print.
+
+   — but writing it to the database was refused by this environment's
+   confirmation gate, and it describes a photograph that probably wants replacing
+   rather than describing. Fix item 1 first and this one may not arise.
+4. **The garment specification is empty.** The one published product has `fit`,
    `made_in`, `composition` and `fabric_weight_gsm` all null. A04 is where they
    get filled in. Until then Our Story's fits clause drops out entirely and the
    product page's specification section is thin.
-4. **Verified garment measurements** (§8.5). The size tables in the design are
+5. **Verified garment measurements** (§8.5). The size tables in the design are
    placeholders and must not ship. Screen 23 is unbuilt for this reason, and the
    homepage's "Open the size guide" points at the shop instead.
-5. **Legal review** of the returns and privacy copy. `/privacy`, `/terms` and
+6. **Legal review** of the returns and privacy copy. `/privacy`, `/terms` and
    `/accessibility` (35) are the three remaining dead links in the site chrome,
    and all three are blocked on this rather than on build time.
-6. **A verified Resend sending domain.** This is the one thing that has actually
+7. **A verified Resend sending domain.** This is the one thing that has actually
    failed in production: E3 for MC-10006 was refused with "The domain is
    invalid", and the row is in `audit_logs`. It also blocks the contact form
    (A15 above) and E1/E2.
-7. **E1/E2 need a Supabase Auth "send email" hook**, which is a dashboard
+8. **E1/E2 need a Supabase Auth "send email" hook**, which is a dashboard
    setting rather than application code. Supabase sends its own default emails
    today; routing them through the Resend templates needs that hook configured.
    The same is true of the 12-hour session expiry A01's small print used to
    claim.
-8. **Real delivery rates and the £150 threshold.** Migration 008 marks three
+9. **Real delivery rates and the £150 threshold.** Migration 008 marks three
    seeded values PLACEHOLDER. The prices are now columns rather than literals
    (migration 018) so changing them is an A22 edit, not a deploy.
-9. **Whether to backfill the five pre-fix guest orders.** Every order placed
-   before 24 October has `profile_id` null, because the checkout route never set
-   the column. The fix is live and confirmed (MC-10009 and MC-10010 both carry
-   one), but matching the older five by email is a judgement call about someone
-   else's order history, so it was not done quietly.

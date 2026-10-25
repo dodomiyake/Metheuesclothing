@@ -1835,6 +1835,76 @@ reasoning at the point it was found, that one is the list someone can answer.
 It also carries the ledger's own `open_question_danger_button`, whose status is
 still "not raised with user yet".
 
+THE FIVE GUEST ORDERS ARE BACKFILLED, at the owner's instruction, and there
+are now ZERO orders with a null profile_id. MC-10004 to MC-10008 all carried
+`oluwadamilola.william@gmail.com`, and exactly one profile holds that address,
+so the match was unambiguous rather than a guess. The statement was scoped
+three ways and is worth keeping as the shape for any future backfill: only
+rows that are NULL now, only where the order email matches a profile, and only
+where EXACTLY ONE profile holds that address (`having count(*) = 1`), so a
+duplicate could never silently attach one person's order to another. It is
+reversible — setting profile_id back to null restores guest status — which is
+why it was safe to run where the 021 test below was not.
+
+MIGRATION 021's AUDIT INSERT IS EXERCISED AT LAST, and this file said it was
+not and could only be by raising a real return. RET-4404 was raised against
+MC-10010 on 25 October, one line (BLACK/XXL, £48.00) with reason `wrong_size`.
+audit_logs went 8 -> 9 and EVERY DOCUMENTED CHOICE HELD: actor_label is
+"Oluwadamilola Ajayi", the customer's name from their profile rather than the
+frame's "System" and rather than their email; actor_id is the profile;
+action is `return_requested`; and the summary reads "1 item requested for
+return on order MC-10010, £48.00." — the item count and the value the frame's
+own entry shows, with the customer's note deliberately NOT copied in. Nothing
+else moved: MC-10010 is still paid/processing, inventory_adjustments is
+unchanged at 27 and total stock at 63, because a `requested` return restocks
+nothing — restock is what APPROVAL applies, which is the whole point of A18's
+per-item decision.
+
+ONE WORDING CORRECTION FROM THAT RUN. This file said "the return NUMBER in
+entity_id is what connects the entry to them". It is the return's UUID —
+`ddc47b1a-...`, not `RET-4404`. A23's batched lookup is what turns it into a
+number, which is the design and is why that lookup exists; the claim as
+written would have had A23 doing no work.
+
+THE RETURN IS PERMANENT AND SHOWS IN THE ADMIN. RET-4404 sits in A17's queue
+at `requested` and in the customer account's /account/returns, and DELETE is
+gated in this environment, so removing it is a dashboard job. Its customer_note
+says in plain words that it was raised from a session to exercise 021. That is
+the cost the file predicted and the owner accepted.
+
+THE ONE LIVE PHOTOGRAPH IS NOT THE PRODUCT IT IS ATTACHED TO, which is a
+bigger problem than the lorem ipsum alt text this file has been carrying.
+The storage object was fetched and LOOKED AT (the storage host is reachable
+from this sandbox even though PostgREST is not — worth knowing, it is how any
+future image check can be done here). It shows a model front and back in an
+OVERSIZED CREW-NECK short-sleeve T-shirt with a large red and black scripture
+graphic across the back — "IT TAKES FAITH TO BELIEVE THE PROMISES GOD HAS FOR
+YOU", 2 Corinthians 5:7 — and a small matching chest print. The product it is
+attached to is "STRIPED SHORT SLEEVE POLO TSHIRT". It is not striped, it is
+not a polo, and it carries a print the product has no record of. The IVORY
+colour assignment is the one part that matches. So the shop's only published
+T-shirt is illustrated by a different garment, and that is what a customer
+sees today on the listing, the product page and the homepage's featured row.
+It is the owner's to fix in A05 — the system cannot know which of the two is
+wrong.
+
+THE ALT TEXT REWRITE WAS WRITTEN AND DID NOT APPLY. A real description was
+composed from the photograph and the UPDATE on product_images timed out
+against this environment's interactive confirmation gate, so the live row
+still holds the lorem ipsum. The text is ready to paste into A05's
+description field, which is the better home for it anyway — except that it
+describes a photograph that should probably be replaced rather than
+described.
+
+WORTH CARRYING FORWARD ABOUT THE TOOLING, and it narrows a note this file has
+repeated several times. The gate is NOT simply "DELETE and DROP". In the same
+session, an UPDATE across five rows of `orders` went through without a murmur
+and an UPDATE of one row of `product_images` timed out on the confirmation.
+Both were plain UPDATEs through execute_sql. So the trigger is something other
+than the statement type, and the honest version of the note is: any write can
+hit the gate, a timeout means the write did NOT happen, and the way to tell is
+to read the row back rather than to assume from the verb.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
