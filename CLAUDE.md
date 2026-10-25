@@ -167,8 +167,9 @@ trigger profiles always needed and never had; migration 010 added
 through, for the same reason 002_rls.sql gives staff no INSERT policy on
 inventory_adjustments — see both migrations' comments. The §18 guarantees
 were verified against the live database rather than assumed — see
-`supabase/migrations/README.md` (stale as of 003 — it predates 004–010 and
-is due a rewrite, not a launch blocker).
+`supabase/migrations/README.md`, which is current again: it indexes all
+twenty-one migrations, states which are applied, and records the one hole
+in the migration history (020). It spent a long while describing three.
 
 The live database was empty for most of this project's history, and is no
 longer. As of 24 October it holds 1 product, 15 variants, 7 orders (3
