@@ -33,18 +33,28 @@ applied; both were true in September and neither has been since.
 | `020_profile_column_grants.sql` | Stops a customer editing their own `role` |
 | `021_audit_return_requested.sql` | `request_return()` writes an audit row |
 
-### 020 is applied but is not in the migration history
+### 020 sits last in the migration history, and that is not a mistake
 
-The owner ran it through the dashboard SQL editor on 19 October rather than
-through the migration tooling, so `supabase_migrations.schema_migrations` has a
-hole where 020 should be — the list runs 001–019, then 021.
+All twenty-one migrations are now recorded. 020 was first applied on 19 October
+through the dashboard SQL editor rather than through the migration tooling, so
+`supabase_migrations.schema_migrations` had a hole where it should have been —
+the list ran 001–019, then 021. It was re-run through the tooling on 25 October
+and the hole is closed.
 
-The GRANTs themselves are in place; verified against
-`information_schema.column_privileges`, where `authenticated` can UPDATE
-exactly `full_name`, `marketing_opt_in`, `marketing_opt_in_at` and `phone` on
-`profiles`, and `anon` has no UPDATE at all. Re-running the file is harmless —
-it is only REVOKE and GRANT — so the fix, if the history ever needs to be
-clean, is to apply it through the tooling and let it be a no-op.
+VERSIONS ARE ASSIGNED WHEN A MIGRATION IS APPLIED, not read off the file name,
+so 020's version is `20261025085615` and it sorts AFTER 021's `20261024223909`.
+`list_migrations` therefore reads 001–019, 021, 020. Nothing is wrong with
+that: the history records when each statement ran, and 020 genuinely ran
+through the tooling last. Do not try to reorder it — the fix would mean editing
+a history table to make it disagree with what happened.
+
+Re-running was safe because the file is only REVOKE and GRANT, so it is a no-op
+against grants already in place. Verified either side of the re-run against
+`information_schema.column_privileges`: `authenticated` can UPDATE exactly
+`full_name`, `marketing_opt_in`, `marketing_opt_in_at` and `phone` on
+`profiles`, and `anon` has no UPDATE row at all. The rule 3 advisor run that
+020 had never had from a session has now been done, and the baseline is
+unchanged — `profiles` is not flagged by anything.
 
 ## The guarantees, and where they actually live
 

@@ -6,8 +6,16 @@
 -- statement below is byte-for-byte what ran, which is the thing the
 -- never-edit-an-applied-migration convention exists to protect. The
 -- grant itself is VERIFIED: column_privileges returns exactly these four
--- columns for `authenticated` and nothing for `anon`. The advisor run that
--- rule 3 asks for has not been seen from here.
+-- columns for `authenticated` and nothing for `anon`.
+--
+-- RE-RUN THROUGH THE TOOLING 25 October 2026, so the migration history
+-- records it — it had been missing from `list_migrations` entirely, which
+-- read 001-019 then 021. Safe because the file is only REVOKE and GRANT:
+-- column_privileges was checked either side and is identical. It sorts
+-- after 021 in the history, because versions are assigned at apply time;
+-- see the README. The rule 3 advisor run this note said had not been seen
+-- has now been done — the baseline is unchanged and `profiles` is not
+-- flagged.
 --
 -- THE HOLE. profiles_self_write (002_rls.sql:48) is
 --

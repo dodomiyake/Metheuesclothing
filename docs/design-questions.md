@@ -440,8 +440,3 @@ implementation beyond the design file rather than a frame nobody built.
    the column. The fix is live and confirmed (MC-10009 and MC-10010 both carry
    one), but matching the older five by email is a judgement call about someone
    else's order history, so it was not done quietly.
-10. **Re-run `020_profile_column_grants.sql` through the migration tooling.** It
-    is applied — verified against `information_schema.column_privileges` — but it
-    was run through the dashboard SQL editor, so `list_migrations` returns
-    001–019 and then 021. Re-running is a harmless no-op (only REVOKE and GRANT)
-    and would close the hole in the history.
