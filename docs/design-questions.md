@@ -219,24 +219,29 @@ setting rather than on a design decision.
   than the design already separates them. This is the one Part A entry where the
   build deliberately did **not** narrow.
 
-### A15. 34 Contact's form needs three things that do not exist (123:6424)
+### A15. 34 Contact's form needs two things that do not exist (123:6424)
 
 - **Design** — a reason select, an order-number field, a message box and a Send
   message button.
-- **System** — there is no `contact_messages` table or anything like one; none of
-  the 23 admin screens is an inbox; and Resend refuses an unverified sending
-  domain, which is not a guess — it is the one thing that actually failed on
-  MC-10006 and sits in `audit_logs` as `email_delivery_failed`, "The domain is
-  invalid".
+- **System** — there is no `contact_messages` table or anything like one, and
+  none of the 23 admin screens is an inbox. **A third reason used to sit here
+  and has been struck:** that Resend refuses an unverified sending domain. That
+  was true of the September failure on MC-10006 and is not true now —
+  `oluwadamilolaajayi.com` is verified, and every transactional send since
+  4 October has been delivered. Email can carry a contact message today.
 - **Shipped** — the form is omitted. This is the largest omission any screen in
   the project has. The page leads with the email address from
   `store_settings.contact_email`, and the reason select and order-number field
   become "what to put in it". A Send button today would show someone "thanks, we
   will be in touch" and drop what they wrote — a real failure wearing the face of
   success.
-- **Needed** — building it properly is a migration with RLS, an admin inbox the
-  design does not draw, and the verified domain. That is a feature to ask for,
-  not a field to add.
+- **Needed** — building it properly is now two things rather than three: a
+  migration with RLS, and an admin inbox the design does not draw. Still a
+  feature to ask for rather than a field to add, but it no longer waits on
+  anything outside the codebase. Separately: `store_settings.contact_email`
+  (`hello@metheues.com`) is on a different domain from the one that sends, and
+  nothing here can prove a mailbox exists behind it. Send it a test message —
+  a verified SENDING domain says nothing about RECEIVING.
 
 ### A16. A18 departs from its frames once and adds one control
 
@@ -442,18 +447,28 @@ implementation beyond the design file rather than a frame nobody built.
 5. **Verified garment measurements** (§8.5). The size tables in the design are
    placeholders and must not ship. Screen 23 is unbuilt for this reason, and the
    homepage's "Open the size guide" points at the shop instead.
-6. **Legal review** of the returns and privacy copy. `/privacy`, `/terms` and
+6. **Legal review** — and note the *drafting* is not blocked, only the review.
+   Nothing has been drafted, which means the review cannot even start. This
+   codebase knows its own data practices precisely (what is collected, that it
+   goes to Supabase, Stripe, Resend and Vercel, what RLS and the column grants
+   allow, what is retained and what is append-only), so an accurate first draft
+   is producible here and a solicitor's sign-off is not.
+   The pages: `/privacy`, `/terms` and
    `/accessibility` (35) are the three remaining dead links in the site chrome,
    and all three are blocked on this rather than on build time.
-7. **A verified Resend sending domain.** This is the one thing that has actually
-   failed in production: E3 for MC-10006 was refused with "The domain is
-   invalid", and the row is in `audit_logs`. It also blocks the contact form
-   (A15 above) and E1/E2.
+7. ~~**A verified Resend sending domain.**~~ **RESOLVED, and it had been for
+   weeks.** `oluwadamilolaajayi.com` is verified with sending enabled, created
+   19 July — before the September failure. EMAIL_FROM is
+   `Metheues Clothings <orders@oluwadamilolaajayi.com>`, and all eight
+   transactional emails on the account are `delivered`: E3, E4, E5, E7 and E8
+   are proven in production. The MC-10006 failure was a FROM address on the
+   wrong domain, fixed within a day. Nothing is blocked on this.
 8. **E1/E2 need a Supabase Auth "send email" hook**, which is a dashboard
    setting rather than application code. Supabase sends its own default emails
    today; routing them through the Resend templates needs that hook configured.
-   The same is true of the 12-hour session expiry A01's small print used to
-   claim.
+   This is now the *only* thing standing between E1/E2 and working — the domain
+   half of that blocker is gone (item 7). The same dashboard-setting situation
+   applies to the 12-hour session expiry A01's small print used to claim.
 9. **Real delivery rates and the £150 threshold.** Migration 008 marks three
    seeded values PLACEHOLDER. The prices are now columns rather than literals
    (migration 018) so changing them is an A22 edit, not a deploy.
