@@ -930,13 +930,15 @@ browsable, which is exactly what the design's card promises. The bag
 surfaces the route's own error text, so the customer reads "the shop is
 paused for maintenance" rather than meeting a dead button.
 
-OF store_settings' NINE COLUMNS, SIX NOW HAVE READERS and three do not.
-Live: free_delivery_threshold_pence, the two new delivery prices,
-return_window_days, vat_rate_basis_points, contact_email, maintenance_mode.
-Unread: collection_fee_pence (nothing applies it to a refund) and
-from_email (emails send from the EMAIL_FROM environment variable, because
-Resend will only send from a verified domain, so the address and the
-deployment have to agree).
+OF store_settings' NINE SETTINGS COLUMNS, SEVEN HAVE READERS and two do
+not — this line said "six" and "three" while listing seven, which counting
+them against the live table settled. Live: free_delivery_threshold_pence,
+the two delivery prices, return_window_days, vat_rate_basis_points,
+contact_email, maintenance_mode. Unread: collection_fee_pence (nothing
+applies it to a refund) and from_email (emails send from the EMAIL_FROM
+environment variable, because Resend will only send from a verified
+domain, so the address and the deployment have to agree). The table has
+eleven columns in all; `id` and `updated_at` are bookkeeping.
 
 A22 OMITS MORE THAN ANY OTHER SCREEN, because the design describes a
 settings table this shop does not have. STORE DETAILS entirely — trading
@@ -1762,6 +1764,39 @@ writes, and it is not in the spec. Worth settling with the design owner
 rather than building: a row per sign-in is high volume, the storefront's
 sign-ins are customers rather than staff, and a staff-readable log of
 customer sign-ins is a different thing from an admin audit trail.
+
+THE MIGRATIONS README IS REWRITTEN, which this file had flagged twice as
+"stale as of 003". It opened with "Three migrations" and "These have not
+been applied to your Supabase project" — both true in September, neither
+true since — and its closing section listed four things as "what still
+needs writing" that have all been written. It now indexes all twenty-one
+with a line each, names where those four actually live (the webhook's
+`req.text()`, lib/rate-limit.ts over 006, the `.strict()` schemas,
+request_return's coalesce), and states what is genuinely still open at the
+database level rather than what was open a year ago.
+
+TWO THINGS THE REWRITE FOUND, both by counting against the live database
+rather than reading the file.
+
+020 IS APPLIED BUT IS NOT IN THE MIGRATION HISTORY. `list_migrations`
+returns 001-019 and then 021; 020 is missing, because the owner ran it
+through the dashboard SQL editor rather than the tooling. The GRANTs are
+real — verified here, not just by the owner's screenshot:
+`information_schema.column_privileges` gives `authenticated` UPDATE on
+exactly full_name, marketing_opt_in, marketing_opt_in_at and phone, and
+`anon` no UPDATE row at all. Re-running the file through the tooling is
+harmless (it is only REVOKE and GRANT) and would close the hole.
+
+store_settings HAS SEVEN READ COLUMNS AND TWO UNREAD, not six and three.
+That line had been carrying its own arithmetic error — it said six while
+listing seven. Corrected above.
+
+RULE 3 VERIFIED DIRECTLY rather than through the advisor, which only ever
+reports the two exceptions. Nineteen SECURITY DEFINER functions exist and
+`has_function_privilege` says seventeen are service_role only; the two
+that are not are is_staff and is_owner, for the documented reason. That is
+a stronger check than the advisor baseline and worth repeating the next
+time a function is added.
 
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
