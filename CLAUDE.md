@@ -1799,6 +1799,19 @@ that are not are is_staff and is_owner, for the documented reason. That is
 a stronger check than the advisor baseline and worth repeating the next
 time a function is added.
 
+EVERY QUESTION FOR THE DESIGN OWNER IS NOW IN ONE PLACE:
+`docs/design-questions.md`. They had accumulated across this file in the order
+they were found, which is the order nobody wants to read them in. It is in
+three parts — the open decisions that change what gets built, the departures
+already shipped that need confirming or reversing, and the things waiting on
+content or an account rather than on a design call — and each entry states what
+the design says, what the system does, what shipped and what is needed, with
+node ids so a frame can be opened without searching. ADD TO THAT FILE rather
+than to this one when the next disagreement turns up; this file keeps the
+reasoning at the point it was found, that one is the list someone can answer.
+It also carries the ledger's own `open_question_danger_button`, whose status is
+still "not raised with user yet".
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
