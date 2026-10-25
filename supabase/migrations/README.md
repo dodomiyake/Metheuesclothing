@@ -1,20 +1,54 @@
 # Metheues Clothings — database
 
-Three migrations implementing §10 of the MVP, written so the guarantees in §18
-are enforced by Postgres rather than by remembering to check.
+Twenty-one migrations implementing §10 of the MVP, written so the guarantees in
+§18 are enforced by Postgres rather than by remembering to check.
+
+**All twenty-one are applied to the live project** (`afzuhymegntqjwtdkmfb`,
+eu-west-2). This file used to say there were three and that none had been
+applied; both were true in September and neither has been since.
+
+## The migrations
 
 | File | What it does |
 |---|---|
 | `001_schema.sql` | Tables, constraints, indexes |
 | `002_rls.sql` | Row level security |
 | `003_functions.sql` | Stock, pricing and audit integrity |
+| `004_lock_down_functions.sql` | `REVOKE EXECUTE` on 001–003's functions — see below |
+| `005_reference_numbers.sql` | Order and return numbers from a sequence, not app code |
+| `006_rate_limits.sql` | Rate limiting counted in Postgres |
+| `007_request_return.sql` | `request_return()` — several inserts that must all happen |
+| `008_store_settings_seed.sql` | The singleton row `store_settings` never had |
+| `009_handle_new_user.sql` | The trigger that creates a `profiles` row on sign-up |
+| `010_adjust_stock.sql` | `adjust_stock()`, the only way manual stock changes happen |
+| `011_fulfilment.sql` | `advance_fulfilment()`, `ship_order()` |
+| `012_cancel_and_refund.sql` | `cancel_order()`, `record_refund()`, and the `refunds` table |
+| `013_return_links.sql` | `refunds.return_id`, `inventory_adjustments.return_item_id` |
+| `014_return_actions.sql` | `receive_return()`, `decide_return()`, `refund_return()` |
+| `015_audit_stock_adjustments.sql` | `adjust_stock()` writes an audit row |
+| `016_admin_customers.sql` | `admin_customers()`, `admin_customer_account()`, `addresses_staff_read` |
+| `017_admin_customer_stats.sql` | `admin_customer_stats()` |
+| `018_delivery_rates.sql` | Delivery prices become columns instead of literals |
+| `019_product_images_storage.sql` | The `shop-images` bucket, its policies, the position index |
+| `020_profile_column_grants.sql` | Stops a customer editing their own `role` |
+| `021_audit_return_requested.sql` | `request_return()` writes an audit row |
 
-**These have not been applied to your Supabase project.** Review them, then run
-them in order — or say the word and I'll apply them.
+### 020 is applied but is not in the migration history
 
-## The five guarantees, and where they actually live
+The owner ran it through the dashboard SQL editor on 19 October rather than
+through the migration tooling, so `supabase_migrations.schema_migrations` has a
+hole where 020 should be — the list runs 001–019, then 021.
 
-§18 lists things that must be true at launch. Four of them are easy to write in
+The GRANTs themselves are in place; verified against
+`information_schema.column_privileges`, where `authenticated` can UPDATE
+exactly `full_name`, `marketing_opt_in`, `marketing_opt_in_at` and `phone` on
+`profiles`, and `anon` has no UPDATE at all. Re-running the file is harmless —
+it is only REVOKE and GRANT — so the fix, if the history ever needs to be
+clean, is to apply it through the tooling and let it be a no-op.
+
+## The guarantees, and where they actually live
+
+§18 lists things that must be true at launch. Most of them are easy to write in
 application code and easy to lose in a refactor. They are in the database
 instead.
 
@@ -30,10 +64,18 @@ inserts the adjustment first; a replayed Stripe event conflicts, inserts
 nothing, and updates nothing. Calling it five times has the same effect as
 calling it once. That is the whole trick, and it needs no lock.
 
-**"One successful checkout creates exactly one durable order"** — 
+013 added a SECOND exactly-once index rather than widening that one:
+`inventory_adjustments (return_item_id, kind)`. Two partial returns on the same
+order can both legitimately restock the same variant, and under the order-level
+index the second would be silently swallowed. The order-level index must not be
+weakened — it is what stops the replayed webhook.
+
+**"One successful checkout creates exactly one durable order"** —
 `webhook_events.stripe_event_id` is the primary key. Record the event before
 doing the work. If the insert conflicts, you have already handled it: return
-200 and stop.
+200 and stop. The handler deletes its claim row if the work then throws,
+because a claim with no work behind it turns Stripe's retry into a silent
+no-op.
 
 **"The amount charged comes exclusively from server-authoritative data"** —
 `price_cart(jsonb)` takes only variant IDs and quantities, which is all §12
@@ -42,7 +84,33 @@ output to Stripe. Nothing in the request body can influence a price.
 
 **"Administrators can be held to what they did"** — `audit_logs` has triggers
 blocking UPDATE and DELETE. An audit trail the owner can edit is not an audit
-trail.
+trail. Note what that costs: an entry outlives its subject, and four rows
+naming a deleted test fixture are still there because they cannot be removed.
+That is the guarantee working, not a mess to tidy.
+
+## Rule 3: every SECURITY DEFINER function needs an explicit REVOKE
+
+004 exists because 001–003 shipped a real hole. Supabase exposes functions over
+`/rest/v1/rpc/` and Postgres grants EXECUTE to `PUBLIC` on new functions, so
+three integrity functions were callable by the public internet. The pattern,
+applied to every one since:
+
+```sql
+revoke execute on function f(args) from public, anon, authenticated;
+grant  execute on function f(args) to service_role;
+```
+
+There are nineteen SECURITY DEFINER functions. Seventeen are `service_role`
+only. The two that are not — `is_staff()` and `is_owner()` — are deliberate,
+and 004 says why: RLS policy expressions evaluate as the CALLING role, so
+revoking EXECUTE on them breaks every staff policy in the database. They report
+only on the caller's own role, which the caller already knows.
+
+Run `get_advisors(type: "security")` after any migration that adds one. The
+expected baseline is: `rate_limits` and `webhook_events` with RLS and no policy
+(both are server-only tables), `citext` in the public schema, `is_staff` and
+`is_owner` under both SECURITY DEFINER lints, and leaked-password protection
+off. Anything else is new.
 
 ## Decisions worth knowing
 
@@ -62,7 +130,9 @@ rather than quietly storing a number that does not match its parts.
 
 **`product_images.alt_text` is NOT NULL.** §13 requires text alternatives.
 A nullable column moves that rule into a code review, where it eventually gets
-skipped on a busy day.
+skipped on a busy day. Worth knowing what it cannot do: the one photograph in
+the live database has lorem ipsum in that column. NOT NULL enforces that a
+description exists, never that it describes.
 
 **`inventory_adjustments.reason` is NOT NULL.** §9.3 requires a reason for
 manual adjustments; the column makes "I'll add it later" impossible.
@@ -70,6 +140,14 @@ manual adjustments; the column makes "I'll add it later" impossible.
 **Inactive variants stay readable.** The RLS policy on `product_variants`
 deliberately does not hide inactive rows, because §8.4 wants a sold-out size
 shown as disabled rather than silently missing from the selector.
+
+**Row rules are not column rules.** `profiles_self_write` says
+`id = auth.uid()` on both sides, which is a perfectly good ROW rule and says
+nothing at all about columns — and `profiles` holds `role`. Since the
+publishable key is in the browser by design, that left any signed-in customer
+able to make themselves an owner through PostgREST. 020 fixes it with column
+privileges, which PostgREST honours. No route ever permitted it, but a route is
+not the lock.
 
 ## The one thing RLS cannot do for you
 
@@ -79,14 +157,51 @@ using the service role.
 
 Do not solve this with a policy matching on email. An email address is not a
 secret — that policy would expose every guest order to anyone who can guess an
-address.
+address. The route returns the same message for "no such order" and "wrong
+email" for the same reason: two different replies make it an order-number
+oracle.
 
-## What still needs writing
+## What the schema does not enforce
 
-The schema does not enforce these; they are application concerns:
+These are application concerns, and all four are now implemented — named here
+so the next person can find them rather than re-derive them:
 
-- Stripe webhook signature verification against the **raw** body (§12)
-- Rate limiting on auth and sensitive mutations (§12)
-- Zod schemas on every mutation (§12)
-- The return window check — `store_settings.return_window_days` counted from
-  delivery, not from the order date
+- **Stripe webhook signature verification against the raw body** (§12) —
+  `app/api/stripe/webhook/route.ts` reads `await req.text()` before anything
+  parses it, because `constructEvent` needs the bytes Stripe signed.
+- **Rate limiting on auth and sensitive mutations** (§12) — `lib/rate-limit.ts`
+  calling `rate_limit_hit()` from 006. In memory it would not work: serverless
+  has no single process, so a cold instance hands out a fresh allowance.
+- **Zod schemas on every mutation** (§12) — every one is `.strict()`, so a
+  client sending `unit_price_pence` gets a 400 rather than a discount.
+- **The return window counted from delivery, not the order date** —
+  `request_return()` coalesces `delivered_at`, then `shipped_at`, then
+  `placed_at`. Counting from the order date on a parcel that took two weeks to
+  arrive would quietly eat most of the customer's window.
+
+Still genuinely open at the database level:
+
+- **Nothing publishes a scheduled collection.** `status = 'scheduled'` with a
+  real date is honoured by RLS — the storefront cannot see it — but no cron or
+  scheduled function ever flips it to live. A10 says so on the screen rather
+  than implying a system that publishes for you.
+- **`store_settings.collection_fee_pence` and `.from_email` have no reader.**
+  Seven of the nine columns do.
+- **`orders.billing_address` and `returns.label_expires_at` are never
+  written.** Several screens narrow a claim because of it; see CLAUDE.md.
+- **No per-transition timestamps on fulfilment.** `fulfilment_status` is one
+  current value with no history, so A12's timeline can show real times only for
+  `placed_at`, `shipped_at` and `delivered_at`.
+
+## Working against the live project
+
+Migrations are numbered and never edited once applied. Fix forward.
+
+This environment's Supabase tooling gates DELETE and DROP behind an interactive
+confirmation that never arrives in a session, so both time out — including a
+DELETE matching no rows, which is what proved it was the gate rather than a
+lock or a bad predicate. Plain DDL goes through fine. Plan migrations to be
+additive; anything needing a DROP has to go to the owner. That is why 014's
+`refund_return()` wraps `record_refund()` instead of replacing it, and why
+`adjust_stock()` reads its actor label from `profiles` rather than taking a
+parameter — adding one changes a function's identity, which needs a DROP.

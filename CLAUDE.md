@@ -167,8 +167,9 @@ trigger profiles always needed and never had; migration 010 added
 through, for the same reason 002_rls.sql gives staff no INSERT policy on
 inventory_adjustments — see both migrations' comments. The §18 guarantees
 were verified against the live database rather than assumed — see
-`supabase/migrations/README.md` (stale as of 003 — it predates 004–010 and
-is due a rewrite, not a launch blocker).
+`supabase/migrations/README.md`, which is current again: it indexes all
+twenty-one migrations, states which are applied, and records the one hole
+in the migration history (020). It spent a long while describing three.
 
 The live database was empty for most of this project's history, and is no
 longer. As of 24 October it holds 1 product, 15 variants, 7 orders (3
@@ -930,13 +931,15 @@ browsable, which is exactly what the design's card promises. The bag
 surfaces the route's own error text, so the customer reads "the shop is
 paused for maintenance" rather than meeting a dead button.
 
-OF store_settings' NINE COLUMNS, SIX NOW HAVE READERS and three do not.
-Live: free_delivery_threshold_pence, the two new delivery prices,
-return_window_days, vat_rate_basis_points, contact_email, maintenance_mode.
-Unread: collection_fee_pence (nothing applies it to a refund) and
-from_email (emails send from the EMAIL_FROM environment variable, because
-Resend will only send from a verified domain, so the address and the
-deployment have to agree).
+OF store_settings' NINE SETTINGS COLUMNS, SEVEN HAVE READERS and two do
+not — this line said "six" and "three" while listing seven, which counting
+them against the live table settled. Live: free_delivery_threshold_pence,
+the two delivery prices, return_window_days, vat_rate_basis_points,
+contact_email, maintenance_mode. Unread: collection_fee_pence (nothing
+applies it to a refund) and from_email (emails send from the EMAIL_FROM
+environment variable, because Resend will only send from a verified
+domain, so the address and the deployment have to agree). The table has
+eleven columns in all; `id` and `updated_at` are bookkeeping.
 
 A22 OMITS MORE THAN ANY OTHER SCREEN, because the design describes a
 settings table this shop does not have. STORE DETAILS entirely — trading
@@ -1564,10 +1567,7 @@ A23 resolves the new entity types too. A `product` row read "product (no
 longer in the catalogue)" for a T-shirt still on the shop, because only
 orders and returns were ever looked up; products resolve to their name,
 variants to their SKU, and the homepage to a fixed id with no lookup at
-all. STILL NOT WRITTEN, and the footer says so: a customer RAISING a
-return (request_return() writes no audit row — a return's progress is
-logged, its start is not) and signing in. Both are drawn in the frame;
-neither is in the spec.
+all.
 
 `components/admin/dialog-styles.ts` moved up out of `orders/[id]/` with
 this. A18 already reached across for it with `../../orders/[id]/`, which
@@ -1721,6 +1721,83 @@ leading separator and nothing before it is worse than one without.
 The inline line of text the product page used to show is GONE. It was
 always the stand-in — add-to-bag.tsx's own comment said so — and two
 confirmations for one action is noise.
+
+MIGRATION 021 IS APPLIED and closes the last audit gap that was closeable
+in code: request_return() now writes a row. A23's footer had named this
+since the screen was built — a return's PROGRESS was logged (014's
+receive, decide and refund all write) but the customer RAISING one was
+not, so the log could show a return being approved with no record of it
+ever having been asked for. The frame draws the event (146:3756, tone
+Info) and nothing wrote it.
+
+`create or replace` with the signature unchanged, the same move 015 made
+for adjust_stock, so 004's REVOKE survives. ADVISOR RUN STRAIGHT AFTER
+per rule 3 and request_return is absent from both SECURITY DEFINER lints;
+the baseline is exactly what it was (rate_limits/webhook_events with RLS
+and no policy, citext in public, is_staff/is_owner on both lints,
+leaked-password protection off).
+
+TWO CHOICES WORTH KNOWING. actor_label is the customer's NAME where a
+profile has one and the word "Customer" where it does not — not the
+frame's "System", because a person asked for this and every other entry
+names one, and not their email, because audit_logs is append-only by the
+forbid_audit_mutation triggers and an address written here could never be
+erased. A20 already records that erasing a customer has to null the
+person out while the sales history stands; the return NUMBER in entity_id
+is what connects the entry to them, through A18, and that stays erasable.
+The summary carries the item count and the value, which is what the
+frame's own entry shows; the customer's note is deliberately not copied
+into it — it is their words, A18 already shows them on the return, and
+this is the one table where copying them would make them permanent.
+
+THE FUNCTION WAS EXERCISED, not just applied: calling it against
+MC-10009 (pending, so not returnable) raised the guard it was written to
+raise, and `returns` and `audit_logs` were both unchanged afterwards —
+0 and 8 rows. So the replace left the guards intact and the test created
+nothing. THE AUDIT INSERT ITSELF IS UNEXERCISED, deliberately: the only
+way to reach it is to raise a real return against a real paid order, and
+this environment's tooling gates DELETE, so a test return would be
+permanent on the owner's own MC-10010. Raising one from /account or
+/track-order is the test.
+
+That leaves SIGNING IN as the only event the A23 frame draws and nothing
+writes, and it is not in the spec. Worth settling with the design owner
+rather than building: a row per sign-in is high volume, the storefront's
+sign-ins are customers rather than staff, and a staff-readable log of
+customer sign-ins is a different thing from an admin audit trail.
+
+THE MIGRATIONS README IS REWRITTEN, which this file had flagged twice as
+"stale as of 003". It opened with "Three migrations" and "These have not
+been applied to your Supabase project" — both true in September, neither
+true since — and its closing section listed four things as "what still
+needs writing" that have all been written. It now indexes all twenty-one
+with a line each, names where those four actually live (the webhook's
+`req.text()`, lib/rate-limit.ts over 006, the `.strict()` schemas,
+request_return's coalesce), and states what is genuinely still open at the
+database level rather than what was open a year ago.
+
+TWO THINGS THE REWRITE FOUND, both by counting against the live database
+rather than reading the file.
+
+020 IS APPLIED BUT IS NOT IN THE MIGRATION HISTORY. `list_migrations`
+returns 001-019 and then 021; 020 is missing, because the owner ran it
+through the dashboard SQL editor rather than the tooling. The GRANTs are
+real — verified here, not just by the owner's screenshot:
+`information_schema.column_privileges` gives `authenticated` UPDATE on
+exactly full_name, marketing_opt_in, marketing_opt_in_at and phone, and
+`anon` no UPDATE row at all. Re-running the file through the tooling is
+harmless (it is only REVOKE and GRANT) and would close the hole.
+
+store_settings HAS SEVEN READ COLUMNS AND TWO UNREAD, not six and three.
+That line had been carrying its own arithmetic error — it said six while
+listing seven. Corrected above.
+
+RULE 3 VERIFIED DIRECTLY rather than through the advisor, which only ever
+reports the two exceptions. Nineteen SECURITY DEFINER functions exist and
+`has_function_privilege` says seventeen are service_role only; the two
+that are not are is_staff and is_owner, for the documented reason. That is
+a stronger check than the advisor baseline and worth repeating the next
+time a function is added.
 
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements

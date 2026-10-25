@@ -32,13 +32,12 @@ const DEFAULT_DAYS = 30;
  * Recorded today: refunds and cancellations (012), dispatch (011), return
  * decisions (014), stock adjustments (015, which exists because this
  * project twice shipped a claim that stock changes were audited and twice
- * had to retract it), product status changes, price changes and homepage
- * publishes. Still not written: a customer RAISING a return — a return's
- * progress is logged but request_return() writes no audit row — and
- * signing in. Both are drawn in this frame; neither is required by the
- * spec. The panel at the foot of the screen names them, because a log that
- * looks complete and is not is worse than a short one, and this is the
- * screen where that matters most.
+ * had to retract it), a customer RAISING a return (021), product status
+ * changes, price changes and homepage publishes. Still not written:
+ * signing in, which this frame draws and the spec does not require. The
+ * panel at the foot of the screen names it, because a log that looks
+ * complete and is not is worse than a short one, and this is the screen
+ * where that matters most.
  *
  * Omitted: "Export log" — no route, no format, the same call A11, A03, A07,
  * A17 and A02 all make. Here it carries extra weight, since an export of a
@@ -278,11 +277,11 @@ export default async function AdminAuditPage({
               screen can do: a log that looks complete and is not is worse
               than a short one. */}
           <p style={note}>
-            Recorded: refunds and cancellations, dispatch, return decisions, manual stock changes,
-            publishing, unpublishing and archiving a T-shirt, price changes, and homepage
-            publishes. NOT recorded: a customer raising a return, and signing in. Those two write
-            nothing here, so their absence from the list above means nothing happened to record —
-            not that nothing happened.
+            Recorded: refunds and cancellations, dispatch, returns from the moment a customer asks
+            for one through to the decision, manual stock changes, publishing, unpublishing and
+            archiving a T-shirt, price changes, and homepage publishes. NOT recorded: signing in.
+            That one writes nothing here, so its absence from the list above means nothing happened
+            to record — not that nothing happened.
           </p>
           <p style={note}>
             Nothing deletes entries, so the log only grows. Keeping them for six years is the
