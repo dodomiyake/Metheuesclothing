@@ -2202,6 +2202,48 @@ it; now it is NAVY-only, so BLACK, BONE and IVORY have no image of their own,
 hit the fallback, AND STILL SHOW IT. What moved is the label, not what a
 customer sees. The visible difference arrives with the second photograph.
 
+THE CATALOGUE HAS THREE MORE T-SHIRTS, all DRAFT, XS to XXXL: OVERSIZED CREW
+NECK TSHIRT, LONG SLEEVE CREW NECK TSHIRT, RELAXED FIT POCKET TSHIRT. Two
+colourways each (BLACK, BONE), fourteen variants apiece, £48.00 matching the
+only other product, stock 0, SKUs on the existing `<SLUG-UPPER>-<COLOUR>-<SIZE>`
+pattern. That takes the catalogue from 1 product and 20 variants to 4 and 62.
+
+THE OWNER ASKED FOR THESE TO BE SOURCED BY SEARCHING THE INTERNET, and that
+is worth recording precisely because only half of it is a thing a search can
+do. There is no fact on the internet about what Metheues Clothings sells —
+only the owner holds that. What a search WOULD turn up is other brands'
+catalogues, and copying their product names, descriptions and prices into this
+shop would be passing off someone else's range as ours: product names can be
+trademarks, descriptions are their copy, and a listing for a garment nobody
+here stocks is a sale that cannot be fulfilled. So nothing was copied from
+anywhere.
+
+WHAT WAS CREATED INSTEAD is three GENERIC GARMENT ARCHETYPES — names that
+describe a cut rather than borrow a brand. "Oversized crew neck", "long sleeve
+crew neck", "relaxed fit pocket" are shape descriptions in common use and
+belong to nobody. The blurbs describe silhouette only, for the same reason:
+"a boxy crew neck with a dropped shoulder and a wide body" is a fact about a
+pattern, where anything about weight, fibre or origin would be the fabricated
+regulated claim this file has refused twice already.
+
+EVERYTHING UNVERIFIABLE IS LEFT NULL, consistent with the striped polo:
+`fit`, `composition`, `fabric_weight_gsm`, `made_in`, `neck`,
+`care_instructions`, `design_story`. The price is COPIED from the existing
+product rather than invented, which is a starting point for the owner to
+change rather than a claim; stock is 0 for the reason NAVY opened at 0.
+
+DRAFT IS LOAD-BEARING HERE. `products.status` defaults to draft and RLS
+publishes only `published`, so no customer can see these. That matters more
+than usual because DELETE IS GATED in this environment: these rows cannot be
+removed, only archived. Publishing is therefore the owner's deliberate act on
+the ones they actually stock, and the rest stay invisible rather than
+accumulating as junk on the shop.
+
+XXXL RATHER THAN 3XL, deliberately. The spec sheet writes 3XL and the existing
+product writes XXL, so one of the two conventions had to win within a single
+size run. `lib/shop/size-order.ts` sorts both (3xl is aliased to xxxl), so this
+is a display-consistency choice and not a functional one.
+
 A SPEC SHEET ARRIVED AND IT IS A STANDARD ONE, not this garment's. Saved at
 `docs/spec/tshirt-standard-specification.pdf` with a line-by-line §8.5 gap
 analysis beside it in `docs/spec/README.md`. Its own title is "T-Shirt
