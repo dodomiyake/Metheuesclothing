@@ -2173,10 +2173,26 @@ photograph to, and chose the honest answer instead: add the colourway the
 picture actually shows. Five variants, SKUs matching the existing pattern
 (`...-NAVY-<SIZE>`), £48.00 like every other variant, low_stock_threshold 5.
 
-STOCK IS 0 ON ALL FIVE, DELIBERATELY. Inventing inventory is the same class
-of error as inventing a fabric composition — nothing here knows how many navy
-polos exist, so the shop reads Sold out for NAVY until somebody sets real
-numbers in A08. That is accurate rather than tidy.
+STOCK WAS 0 ON ALL FIVE AND IS NOW 20 EACH, set by the owner on 26 October.
+It opened at 0 deliberately — inventing inventory is the same class of error
+as inventing a fabric composition — and stayed that way until a real number
+arrived rather than being guessed.
+
+IT WENT THROUGH adjust_stock(), NOT AN UPDATE. A direct write to
+`product_variants.stock_quantity` would have moved the number and bypassed
+both the inventory_adjustments ledger and the audit row 015 added, which is
+the whole reason 002_rls.sql gives staff no INSERT policy on that table.
+Verified after: five variants at 20, one `manual` adjustment each recording
+0 -> 20, and five matching `stock_adjusted` audit rows. actor_label is
+`System` rather than a person, which is the honest label — nobody clicked
+A08; a session called the function on the owner's instruction, and the note
+on each row says exactly that.
+
+READ AS 20 PER SIZE rather than 20 shared across them, which is the natural
+reading of "20 across all sizes" but is worth flagging because it makes NAVY
+100 units against BLACK 21, BONE 25 and IVORY 21. If 20 TOTAL was meant, it
+is one more adjust_stock call per size to correct and the ledger will show
+both movements, which is what the ledger is for.
 
 IT CHANGED LESS THAN IT SOUNDS, which is worth knowing before reading a bug
 into it. product-media.tsx picks `this colour's images, plus any assigned to
@@ -2185,6 +2201,37 @@ images`). The photograph used to be NULL-coloured, so every colourway showed
 it; now it is NAVY-only, so BLACK, BONE and IVORY have no image of their own,
 hit the fallback, AND STILL SHOW IT. What moved is the label, not what a
 customer sees. The visible difference arrives with the second photograph.
+
+A SPEC SHEET ARRIVED AND IT IS A STANDARD ONE, not this garment's. Saved at
+`docs/spec/tshirt-standard-specification.pdf` with a line-by-line §8.5 gap
+analysis beside it in `docs/spec/README.md`. Its own title is "T-Shirt
+Standard Specification", section 1 is headed "Regular Fit Unisex / Men's" and
+it carries "Standard engineering tolerances: +/- 2.5 cm". So it is an industry
+reference for a generic blank, and §8.5 opens with "must be specific to the
+actual T-shirt blank or manufactured garment" and closes with "Example data
+must be replaced by verified production measurements before launch".
+Publishing it as screen 23 would be publishing example data, which is the one
+thing that sentence forbids — the same failure this file has flagged for
+months arriving through a different door.
+
+IT MEETS FOUR OF §8.5's TEN POINTS. Chest width and body length (both units),
+the explanation that the values are garment measurements, and a genuinely good
+how-to-measure section worth reusing verbatim. MISSING: shoulder width, sleeve
+length, the regular/relaxed/oversized explanation, model height and worn size,
+and any basis for a "choose your usual size" line. Two of those are a tape
+measure away; two are facts about our garment and our photography.
+
+IT CONTAINS NONE OF THE FOUR NULL COLUMNS. No fibre content, no GSM, no
+country of origin anywhere in it — which is expected, since a production
+reference cannot carry them. They come from the care label or the supplier.
+
+AND IT CONTRADICTS THE PHOTOGRAPH. The sheet specifies REGULAR FIT; the live
+product photograph is an OVERSIZED, boxy polo with a dropped shoulder. Both
+cannot describe one garment, so `products.fit` stays null rather than being
+set from the document. That column is not cosmetic: the shop listing builds
+its Fit filter from it, Our Story derives a sentence from it, and 05G/H/I's
+cross-sell subline reads it, so a wrong value propagates to four places at
+once.
 
 THE GARMENT SPECIFICATION IS STILL NULL AND WAS NOT FILLED IN. The owner
 asked for fit, made_in, composition and fabric_weight_gsm to be looked up on
