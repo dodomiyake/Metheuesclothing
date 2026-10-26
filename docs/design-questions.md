@@ -26,6 +26,46 @@ setting rather than on a design decision.
 
 ## Part A — open decisions
 
+> **RATIFIED BY THE OWNER, 26 October 2026.** Asked to settle these, the
+> instruction was to go ahead. That resolves them in three different ways
+> depending on what the entry actually was, and the distinction matters more
+> than the ratification:
+>
+> **Confirmed as shipped — no further work.** A1 ("Packed", not the design's
+> inverted "To pack"), A2 (E7 sends on refund, not approval — the frame's own
+> canvas note was always the tie-break), A4 (A14's send row is locked ALWAYS
+> ON, per the Checkbox component's own rule), A8 (hidden collections 404, the
+> database wins over the footer's sentence), A9 (the "menu" stays narrowed to
+> the collections page and the shop), A10 (sort stays at every width), A12
+> (no Danger button; the typed confirmation is the stronger guard — this
+> closes the ledger's own `open_question_danger_button`, open since
+> September), A16 (A18's Approve stays gated on received, Mark received
+> stays).
+>
+> **Decided not to build, with the reason recorded.** A5 — no "Start packing"
+> action: the contention it would prevent needs two people picking at once,
+> and this is a one-operator shop with seven orders. Revisit when there is a
+> second picker. A6 — sign-ins are not audited: high volume, not in §12, and
+> a staff-readable log of *customer* sign-ins is a different and more
+> privacy-laden object than an admin audit trail. A17 — no scheduled-publish
+> cron: there are zero collections, so it would be a job with nothing to do.
+> A7 — the frame's eight event types and six-year retention are treated as
+> illustrative rather than requirements, since §9.6 and §12 contain neither.
+>
+> **Still genuinely open, and not ratifiable from here.** A11 (whether the
+> Figma Header component gains a count variant) is a change to the design
+> file, not to code — the badge ships and a re-sync would drop it. A13 (the
+> admin breakpoint rule's wording in the ledger) is a one-line edit to
+> `design-system-state.json` that should be made by whoever owns that file.
+> A15 (the contact form) is now buildable — the email half of its blocker
+> turned out to be stale — but it is a migration plus an admin inbox screen
+> the design does not draw, so it is a feature to commission rather than a
+> decision to take.
+>
+> A3 (nothing is sent between E6 and E7) was confirmed as the design intends,
+> and is left alone: adding an approval email would be inventing a template
+> the file deliberately does not contain.
+
 ### A1. "To pack" means the opposite of `packed` (A11 Orders, 128:1827)
 
 - **Design** — the status filter and the row badge label the `packed` state "To pack".

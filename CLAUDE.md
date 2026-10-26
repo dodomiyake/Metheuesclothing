@@ -2106,6 +2106,101 @@ fancy punctuation before concluding anything. The rule stated last time is
 what caught this one: a timeout means the write did NOT happen, and the way to
 tell is to read the row back.
 
+THE UNSUBSCRIBE GAP IS CLOSED, and migration 022 is applied. This was the
+last "column read by something and written by nothing" this project had on its
+list: `newsletter_subscribers.unsubscribed_at` has existed since 001, is READ
+by A20 and the A20 export, and nothing ever wrote it. 022 adds
+`unsubscribe_token uuid not null default gen_random_uuid()` with a unique
+index, so every row that already existed gets one and no address is stranded
+without a way out. Rule 3 needs no advisor run here — 022 adds no SECURITY
+DEFINER function — and the table was empty, so there was nothing to backfill.
+
+A TOKEN, NOT THE EMAIL ADDRESS, for the reason rules 5 and 6 give about guest
+orders: a link carrying `?email=` lets anyone unsubscribe anyone AND answers
+"is this person on your list" to whoever asks. A uuid names a subscription and
+proves nothing about an address somebody guessed.
+
+AND THE LINK MUST NOT ACT ON GET, which is the part worth remembering. Mail
+clients and security products fetch the links in a message before a human sees
+them — Safe Links, corporate scanners, prefetchers. An unsubscribe on GET is
+an unsubscribe nobody asked for, and the first you know is the list quietly
+emptying. So `/unsubscribe` renders a page that says what is about to happen
+and POSTs from a button; RFC 8058's One-Click header is a POST for the same
+reason. `unsubscribed_at` is set only the first time (`.is('unsubscribed_at',
+null)`), because it records when consent was withdrawn rather than when
+somebody last clicked.
+
+35 LEGAL IS BUILT — /privacy, /terms and /accessibility — which closes the
+LAST THREE dead links in the site chrome. All eight are now live. Built on
+`content_page_shell` like /delivery and /our-story, content from the
+`docs/legal/` drafts.
+
+THE DEMO IDENTITY VALUES ARE THE OWNER'S CALL, taken 26 October ("use a demo
+for now"), and they are never silent. `components/site/draft-notice.tsx` holds
+one `DEMO_IDENTITY` block used by all three pages — so replacing it with the
+real thing is a single edit and cannot be done to two pages out of three — and
+a `DraftNotice` banner that every page opens with, saying the document is not
+in force and the registration details are placeholders. The values are
+deliberately and visibly unreal ("00000000 (placeholder)"), because a
+plausible-looking fake company number is worse than an obvious one: somebody
+might believe it. REMOVING THE BANNER IS THE LAST STEP OF GOING LIVE, after
+the real facts are in and a solicitor has signed the text off.
+
+NO FIGURE IS TYPED INTO /terms. Delivery charges, the threshold and the
+returns window live in store_settings and /delivery reads them; restating them
+would create a second place for the number to disagree with the basket, which
+is the failure /delivery's own comment exists to prevent. It links there
+instead. The 14-day cancellation right is statutory and fixed, so that one is
+written out.
+
+PART A IS RATIFIED, 26 October, and the ratification is recorded in
+docs/design-questions.md rather than here because that is where someone will
+look. It resolved three different ways: eight entries CONFIRMED AS SHIPPED
+(including the ledger's own `open_question_danger_button`, open since
+September); four DECIDED NOT TO BUILD with the reason kept (no "Start
+packing" — the contention needs two pickers and there is one; no sign-in
+auditing — volume, not in §12, and a staff-readable log of customer sign-ins
+is a different object; no scheduled-publish cron — zero collections to
+publish; and A23's eight event types treated as illustrative since neither
+§9.6 nor §12 contains them); and three STILL GENUINELY OPEN because they are
+not ratifiable from a session — the Header count variant is a Figma change,
+the breakpoint wording belongs to whoever owns the ledger, and the contact
+form is a feature to commission rather than a decision to take.
+
+NAVY IS A REAL COLOURWAY NOW, and the photograph is assigned to it. The
+owner was asked which of BLACK/BONE/IVORY to assign a navy-and-cream
+photograph to, and chose the honest answer instead: add the colourway the
+picture actually shows. Five variants, SKUs matching the existing pattern
+(`...-NAVY-<SIZE>`), £48.00 like every other variant, low_stock_threshold 5.
+
+STOCK IS 0 ON ALL FIVE, DELIBERATELY. Inventing inventory is the same class
+of error as inventing a fabric composition — nothing here knows how many navy
+polos exist, so the shop reads Sold out for NAVY until somebody sets real
+numbers in A08. That is accurate rather than tidy.
+
+IT CHANGED LESS THAN IT SOUNDS, which is worth knowing before reading a bug
+into it. product-media.tsx picks `this colour's images, plus any assigned to
+no colour, falling back to the whole set` (`forColour.length > 0 ? forColour :
+images`). The photograph used to be NULL-coloured, so every colourway showed
+it; now it is NAVY-only, so BLACK, BONE and IVORY have no image of their own,
+hit the fallback, AND STILL SHOW IT. What moved is the label, not what a
+customer sees. The visible difference arrives with the second photograph.
+
+THE GARMENT SPECIFICATION IS STILL NULL AND WAS NOT FILLED IN. The owner
+asked for fit, made_in, composition and fabric_weight_gsm to be looked up on
+the internet, and that was declined rather than done. Fibre composition and
+country of origin are regulated claims in the UK (textile labelling; the
+origin rules under consumer protection law), and a size guide drives returns.
+Copying them from whatever similar garment a search turns up would be writing
+another company's product facts into this shop's catalogue as if they were
+measured here — the same fabrication every other page in this project refuses,
+with legal consequences attached and a customer on the other end. They have to
+come from the supplier's spec sheet, the garment's own care label, or a tape
+measure. The same applies to §8.5: the design's size tables are placeholders
+and the only honest source is measuring real stock. Offered instead: hand over
+the spec sheet or label photographs and they go in immediately; measure three
+garments per size and the size guide gets built.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
