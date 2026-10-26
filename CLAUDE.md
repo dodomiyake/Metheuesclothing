@@ -2186,6 +2186,37 @@ it; now it is NAVY-only, so BLACK, BONE and IVORY have no image of their own,
 hit the fallback, AND STILL SHOW IT. What moved is the label, not what a
 customer sees. The visible difference arrives with the second photograph.
 
+A SPEC SHEET ARRIVED AND IT IS A STANDARD ONE, not this garment's. Saved at
+`docs/spec/tshirt-standard-specification.pdf` with a line-by-line §8.5 gap
+analysis beside it in `docs/spec/README.md`. Its own title is "T-Shirt
+Standard Specification", section 1 is headed "Regular Fit Unisex / Men's" and
+it carries "Standard engineering tolerances: +/- 2.5 cm". So it is an industry
+reference for a generic blank, and §8.5 opens with "must be specific to the
+actual T-shirt blank or manufactured garment" and closes with "Example data
+must be replaced by verified production measurements before launch".
+Publishing it as screen 23 would be publishing example data, which is the one
+thing that sentence forbids — the same failure this file has flagged for
+months arriving through a different door.
+
+IT MEETS FOUR OF §8.5's TEN POINTS. Chest width and body length (both units),
+the explanation that the values are garment measurements, and a genuinely good
+how-to-measure section worth reusing verbatim. MISSING: shoulder width, sleeve
+length, the regular/relaxed/oversized explanation, model height and worn size,
+and any basis for a "choose your usual size" line. Two of those are a tape
+measure away; two are facts about our garment and our photography.
+
+IT CONTAINS NONE OF THE FOUR NULL COLUMNS. No fibre content, no GSM, no
+country of origin anywhere in it — which is expected, since a production
+reference cannot carry them. They come from the care label or the supplier.
+
+AND IT CONTRADICTS THE PHOTOGRAPH. The sheet specifies REGULAR FIT; the live
+product photograph is an OVERSIZED, boxy polo with a dropped shoulder. Both
+cannot describe one garment, so `products.fit` stays null rather than being
+set from the document. That column is not cosmetic: the shop listing builds
+its Fit filter from it, Our Story derives a sentence from it, and 05G/H/I's
+cross-sell subline reads it, so a wrong value propagates to four places at
+once.
+
 THE GARMENT SPECIFICATION IS STILL NULL AND WAS NOT FILLED IN. The owner
 asked for fit, made_in, composition and fabric_weight_gsm to be looked up on
 the internet, and that was declined rather than done. Fibre composition and
