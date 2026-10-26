@@ -2173,10 +2173,26 @@ photograph to, and chose the honest answer instead: add the colourway the
 picture actually shows. Five variants, SKUs matching the existing pattern
 (`...-NAVY-<SIZE>`), £48.00 like every other variant, low_stock_threshold 5.
 
-STOCK IS 0 ON ALL FIVE, DELIBERATELY. Inventing inventory is the same class
-of error as inventing a fabric composition — nothing here knows how many navy
-polos exist, so the shop reads Sold out for NAVY until somebody sets real
-numbers in A08. That is accurate rather than tidy.
+STOCK WAS 0 ON ALL FIVE AND IS NOW 20 EACH, set by the owner on 26 October.
+It opened at 0 deliberately — inventing inventory is the same class of error
+as inventing a fabric composition — and stayed that way until a real number
+arrived rather than being guessed.
+
+IT WENT THROUGH adjust_stock(), NOT AN UPDATE. A direct write to
+`product_variants.stock_quantity` would have moved the number and bypassed
+both the inventory_adjustments ledger and the audit row 015 added, which is
+the whole reason 002_rls.sql gives staff no INSERT policy on that table.
+Verified after: five variants at 20, one `manual` adjustment each recording
+0 -> 20, and five matching `stock_adjusted` audit rows. actor_label is
+`System` rather than a person, which is the honest label — nobody clicked
+A08; a session called the function on the owner's instruction, and the note
+on each row says exactly that.
+
+READ AS 20 PER SIZE rather than 20 shared across them, which is the natural
+reading of "20 across all sizes" but is worth flagging because it makes NAVY
+100 units against BLACK 21, BONE 25 and IVORY 21. If 20 TOTAL was meant, it
+is one more adjust_stock call per size to correct and the ledger will show
+both movements, which is what the ledger is for.
 
 IT CHANGED LESS THAN IT SOUNDS, which is worth knowing before reading a bug
 into it. product-media.tsx picks `this colour's images, plus any assigned to
