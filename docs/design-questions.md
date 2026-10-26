@@ -425,7 +425,18 @@ implementation beyond the design file rather than a frame nobody built.
    A05.
 2. **More photography.** The pipeline is done and proven: A05 uploads, the storage
    policies hold, the path guard admits exactly the shape it builds, and every
-   reader falls back to a well. What is missing is the pictures.
+   reader falls back to a well. **A05 can now also search Pixabay** and import
+   straight into the bucket, so "we have nowhere to get a picture" is no longer
+   the blocker — real garment photography still is, for the reason item 1 gives.
+
+   **Decision recorded, 26 October:** asked whether stock photographs should be
+   editorial-only, marked placeholders, or ordinary product images, the owner
+   chose **everything, unmarked**. The concern put at the time, and still
+   standing: a stock photo of *a* T-shirt on a listing tells a customer that is
+   what arrives — actionable under the Consumer Protection from Unfair Trading
+   Regulations, and a refund right under CRA 2015. Test mode is the only thing
+   keeping it theoretical. Noted here so it reads as a choice rather than an
+   oversight.
 3. **The alt text on that photograph is lorem ipsum.** The form requires a
    non-empty description and got one; nothing can check that a description
    describes. §13 wants a real text alternative. A real one has been written from
