@@ -19,14 +19,20 @@ export const metadata = {
  * THE FORM IS OMITTED, which is the largest omission any screen in this
  * project has had, so here is the whole reason.
  *
- * A contact form needs three things and this system has none of them.
- * There is no table to put a message in — no `contact_messages`, nothing
- * resembling one. There is no screen to read it on: the design file has
- * 23 admin screens, all built, and not one is an inbox. And email cannot
- * carry it, because Resend will not send from an unverified domain —
- * which is not a guess, it is the one thing that actually failed on order
- * MC-10006, logged as `email_delivery_failed` with "The domain is
- * invalid".
+ * A contact form needs three things and this system has TWO of them
+ * missing. There is no table to put a message in — no `contact_messages`,
+ * nothing resembling one. And there is no screen to read it on: the
+ * design file has 23 admin screens, all built, and not one is an inbox.
+ *
+ * THE THIRD REASON IS GONE and this comment used to give it: that Resend
+ * would not send from an unverified domain, citing the
+ * `email_delivery_failed` row from order MC-10006. That failure was real
+ * in September and has since been fixed — `oluwadamilolaajayi.com` is
+ * verified with sending enabled, EMAIL_FROM is
+ * `Metheues Clothings <orders@oluwadamilolaajayi.com>`, and every
+ * transactional send since 4 October has been DELIVERED (E3, E4, E5, E7,
+ * E8 all confirmed against Resend's own log). Email can carry a contact
+ * message today. The storage and the inbox are what is missing.
  *
  * So a Send message button today would show someone "thanks, we will be
  * in touch" and drop what they wrote. That is the exact shape this
@@ -35,10 +41,17 @@ export const metadata = {
  * wearing the face of success. The design's own side column already
  * gives the channel that does work, so the page leads with it.
  *
- * BUILDING THE FORM PROPERLY is a migration for `contact_messages` with
- * its RLS, an admin inbox screen the design does not draw, and the
- * verified sending domain that is already on the owner-blocked list. It
- * is a feature, not a field, and it is the owner's to ask for.
+ * BUILDING THE FORM PROPERLY is now two things rather than three: a
+ * migration for `contact_messages` with its RLS, and an admin inbox
+ * screen the design does not draw. It is still a feature rather than a
+ * field, and still the owner's to ask for — but it is no longer waiting
+ * on anything outside this codebase.
+ *
+ * ONE THING TO CHECK BEFORE RELYING ON THE ADDRESS THIS PAGE LEADS WITH.
+ * `store_settings.contact_email` is on a different domain from the one
+ * that sends, and nothing here can prove a mailbox exists behind it. The
+ * page tells customers to write there, so someone should send it a test
+ * message. A verified SENDING domain says nothing about RECEIVING.
  *
  * THE REGISTERED ADDRESS IS OMITTED for the reason A22 omitted STORE
  * DETAILS: "Metheues Clothings Ltd, Unit 7, Pollard Yard" is not a

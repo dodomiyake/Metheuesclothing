@@ -1494,7 +1494,8 @@ screen to read a message on, since all 23 admin screens are built and
 not one is an inbox; and no email to carry it, because Resend refuses an
 unverified sending domain — not a guess, the one thing that actually
 failed on MC-10006 and sits in audit_logs as `email_delivery_failed`,
-"The domain is invalid". A Send message button today would show someone
+"The domain is invalid". THE THIRD OF THOSE IS NO LONGER TRUE — see the
+email correction below; the form is now blocked on two things, not three. A Send message button today would show someone
 "thanks, we will be in touch" and drop what they wrote: a real failure
 wearing the face of success, the same shape as store_settings having no
 row and the catalogue reading a failed query as an empty shop. The
@@ -1502,8 +1503,8 @@ design's own side column already names the channel that works, so the
 page leads with it and the reason select and order-number field become
 "what to put in it" rather than controls going nowhere. BUILDING IT
 PROPERLY is a migration with RLS, an admin inbox the design does not
-draw, and the verified domain already on the owner-blocked list — a
-feature, not a field, and the owner's to ask for.
+draw — a feature, not a field, and the owner's to ask for. The domain
+half of that sentence has been struck; see below.
 
 THE REGISTERED ADDRESS IS OMITTED for the reason A22 omitted STORE
 DETAILS: "Metheues Clothings Ltd, Unit 7, Pollard Yard" is a column
@@ -1905,11 +1906,99 @@ than the statement type, and the honest version of the note is: any write can
 hit the gate, a timeout means the write did NOT happen, and the way to tell is
 to read the row back rather than to assume from the verb.
 
+THE RESEND DOMAIN BLOCKER IS STALE AND HAS BEEN SINCE SEPTEMBER. This file
+has carried "a verified sending domain for Resend" on the owner-blocked list
+since the beginning, and used it as the third reason 34 Contact omits its
+form, as a reason E1/E2 are blocked, and as the explanation for MC-10006's
+`email_delivery_failed`. CHECKED AGAINST RESEND RATHER THAN AGAINST THIS
+FILE: `oluwadamilolaajayi.com` is VERIFIED, sending enabled, eu-west-1,
+created 19 July 2026 — before the September failure. EMAIL_FROM is
+`Metheues Clothings <orders@oluwadamilolaajayi.com>` and its Vercel entry was
+last edited about nineteen hours after the project was created, which is the
+owner fixing it right after MC-10006 failed. So the September failure was a
+FROM address on the wrong domain, corrected within a day, and this file never
+caught up.
+
+EIGHT TRANSACTIONAL EMAILS HAVE BEEN SENT AND ALL EIGHT ARE `delivered`.
+E3 order confirmation (MC-10008, MC-10010), E4 dispatch (MC-10008, MC-10006),
+E5 cancellation (MC-10004, MC-10005), E7 return refunded (RET-4404) and E8
+order refund (MC-10008). So the §15 send path, the shared `lib/email/layout.ts`
+chrome and five of the nine templates are PROVEN IN PRODUCTION against a real
+mailbox, not just built. E7's body also names "Visa ending 4242", which is the
+webhook's card write arriving in a customer-facing email — the end of the
+six-screen narrowing this file tracked for weeks.
+
+WHAT THAT CHANGES: the contact form is blocked on TWO things (no
+`contact_messages` table, no admin inbox), not three, and nothing outside this
+codebase. E1/E2 remain blocked, but ONLY on the Supabase Auth "send email"
+hook, which is a dashboard setting — not on the domain. Any future note that
+says email cannot send here is wrong until Resend says so.
+
+ONE THING NOT PROVEN, and worth a test message before anyone relies on it:
+`store_settings.contact_email` is `hello@metheues.com`, a DIFFERENT domain
+from the one that sends, and it is the address 34 Contact tells customers to
+write to. A verified SENDING domain says nothing about whether a mailbox
+exists to RECEIVE. Nothing in this system can check that.
+
+RET-4404 WAS APPROVED AND REFUNDED WITHIN THE HOUR, by the owner through the
+admin, while this session was still writing up having raised it. E7 went out
+at 09:56 naming £48.00 back to the Visa ending 4242. So decide_return and
+refund_return have now run on it too, and the test return this file recorded
+as "permanent at `requested`" is permanent at refunded instead. The owner also
+cancelled MC-10004 and MC-10005 and dispatched MC-10006 in the same stretch,
+each with its email delivered. COUNT THE ORDERS RATHER THAN QUOTING ANY LINE
+IN THIS FILE — the owner works the admin while these sessions run, and several
+numbers above went stale inside thirty minutes.
+
+THE THREE LEGAL PAGES ARE DRAFTED — `docs/legal/`, with a README saying what
+they are. "Blocked on legal review" was half right for months: the REVIEW is
+blocked, the DRAFTING never was, and because nothing was drafted the review
+could not start. Every factual claim in them was checked against the schema,
+the routes and the processors rather than taken from a template — the
+retention periods, the processor list and locations (Supabase eu-west-2,
+Resend eu-west-1, Stripe, Vercel), the rights that are actually implemented,
+and the ones that are not. Identity facts are `[OWNER: ...]` markers rather
+than guesses, the same call A22 and 34 Contact already made about store
+details. They are NOT wired up: once reviewed each becomes a
+content-page-shell page like /delivery, and the figures that exist in
+store_settings must be READ rather than typed, for the reason /delivery gives.
+
+DRAFTING THEM FOUND TWO THINGS NOTHING HAD RECORDED.
+
+THE RATE LIMITER STORES IP ADDRESSES. `rate_limits.key` is
+`"<scope>:<ip>"` — lib/rate-limit.ts builds it from x-real-ip or
+x-forwarded-for — so every sign-in, registration, password reset, order
+lookup, return request and newsletter sign-up writes an IP to the database.
+That is personal data under UK GDPR and had never appeared in any note here.
+The saving grace is real: 006_rate_limits.sql:58 sweeps anything older than
+one day, so the retention is short AND enforced rather than promised. It
+belongs in the privacy policy and now is in it.
+
+THERE IS NO UNSUBSCRIBE. `newsletter_subscribers.unsubscribed_at` is READ in
+two places — A20 renders "Unsubscribed <date>" and the A20 export includes
+it — and NOTHING WRITES IT. No route, no link, no token. This is the same
+shape as every other finding in this file (a column read by something and
+written by nothing), and it is latent rather than live only because nothing
+sends marketing email yet. PECR requires a working opt-out in every marketing
+message, so it has to exist before the first newsletter goes out, not after.
+POST /api/newsletter has existed since the chrome was built; its opposite
+does not.
+
+ONE THING THE PRIVACY DRAFT CANNOT HONESTLY PROMISE YET, flagged in the file
+itself rather than papered over: erasure. The policy describes disconnecting
+a person from their orders while the sales record stands, which is what the
+law and the tax rules together require. The code does not do that — deleting
+a profile cascades to addresses and nulls orders.profile_id, which turns the
+order into a GUEST order rather than anonymising anyone. A20 already recorded
+that gap as a migration nobody has written; the draft marks it for the
+reviewer rather than claiming a capability that does not exist.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
-delivery rates, the £150 threshold, a verified sending domain for Resend, and
-legal review of the returns and privacy copy. Three seeded values in migration
+delivery rates, the £150 threshold, and legal REVIEW of the three pages now
+drafted in `docs/legal/` (the drafting is done; the review and the
+`[OWNER: ...]` identity facts are not). Three seeded values in migration
 008 are marked PLACEHOLDER for the same reason.
 
 ## Conventions
