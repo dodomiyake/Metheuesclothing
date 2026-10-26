@@ -411,18 +411,27 @@ implementation beyond the design file rather than a frame nobody built.
 
 ## Part C — waiting on content or an account, not on a design decision
 
-1. **The one live photograph is not the product it is attached to.** This is the
-   most visible thing on the list and it is live now. The image was fetched and
-   looked at: a model front and back in an **oversized crew-neck** T-shirt with a
-   large red and black scripture graphic across the back ("IT TAKES FAITH TO
-   BELIEVE THE PROMISES GOD HAS FOR YOU", 2 Corinthians 5:7) and a small matching
-   chest print. The product is **"STRIPED SHORT SLEEVE POLO TSHIRT"**. It is not
-   striped, it is not a polo, and it carries a print the product has no record of.
-   Only the IVORY colour assignment matches. So the shop's single published
-   T-shirt is illustrated by a different garment, on the listing, the product page
-   and the homepage's featured row. The system cannot know which of the two is
-   wrong — the photograph or the product it sits on — so it is yours to settle in
-   A05.
+1. ~~**The one live photograph is not the product it is attached to.**~~
+   **FIXED — the photograph was replaced on 26 October**, and the new one was
+   fetched and looked at rather than assumed. It is genuinely a striped
+   short-sleeve polo: broad navy and cream horizontal stripes, plain cream
+   collar, two-button placket, boxy cut. The garment-type mismatch is gone.
+
+   **Two narrower things about it are still yours to settle:**
+
+   - **The colourway matches no variant on sale.** `product_variants` offers
+     BLACK, BONE and IVORY (five sizes each, 21/25/21 in stock). The photograph
+     is **navy** and cream. Its `colour` is NULL, which in A05's design means
+     "a detail shot — show it for every colour", so someone choosing BLACK sees
+     a navy polo and so does someone choosing BONE. Either the navy colourway
+     exists and is missing from the variants, or the photograph is of a
+     different colourway and wants assigning to the nearest real one.
+   - **The garment carries a mark that is not Metheues** — a script chest
+     embroidery reading "Young Leaders", a globe motif and a line of smaller
+     lettering. Nothing here can tell whether that is your own photography of
+     stock you bought or an image from elsewhere, but a product sold under one
+     name and pictured in another brand's garment is worth being deliberate
+     about, on both the misrepresentation and the rights side.
 2. **More photography.** The pipeline is done and proven: A05 uploads, the storage
    policies hold, the path guard admits exactly the shape it builds, and every
    reader falls back to a well. **A05 can now also search Pixabay** and import
@@ -437,20 +446,21 @@ implementation beyond the design file rather than a frame nobody built.
    Regulations, and a refund right under CRA 2015. Test mode is the only thing
    keeping it theoretical. Noted here so it reads as a choice rather than an
    oversight.
-3. **The alt text on that photograph is lorem ipsum.** The form requires a
-   non-empty description and got one; nothing can check that a description
-   describes. §13 wants a real text alternative. A real one has been written from
-   the image and is ready to paste into A05 —
+3. ~~**The alt text on that photograph is lorem ipsum.**~~ **FIXED — written
+   and verified live on 26 October.** The replacement photograph arrived
+   carrying the product *name* as its description, which passes the NOT NULL
+   check and tells a screen reader nothing the page title has not already
+   said — the same failure as the lorem ipsum, one step less obvious. It now
+   reads:
 
-   > Front and back views of a model in an oversized off-white short-sleeve
-   > T-shirt worn with black shorts. The back carries a large red and black
-   > graphic reading "IT TAKES FAITH TO BELIEVE THE PROMISES GOD HAS FOR YOU",
-   > with "For we walk by faith not by sight, 2 Corinthians 5:7" beneath it; the
-   > front has a smaller matching chest print.
+   > A model wearing an oversized short-sleeve rugby-style polo shirt in broad
+   > navy and cream horizontal stripes, with a plain cream collar and a
+   > two-button placket. Young Leaders is embroidered in script across the
+   > chest, with a small globe motif on one side and smaller lettering on the
+   > other. Worn with grey jeans.
 
-   — but writing it to the database was refused by this environment's
-   confirmation gate, and it describes a photograph that probably wants replacing
-   rather than describing. Fix item 1 first and this one may not arise.
+   The embroidered text is named rather than omitted, which is what §13 wants:
+   text inside an image belongs in its text alternative.
 4. **The garment specification is empty.** The one published product has `fit`,
    `made_in`, `composition` and `fabric_weight_gsm` all null. A04 is where they
    get filled in. Until then Our Story's fits clause drops out entirely and the

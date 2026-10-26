@@ -2062,6 +2062,50 @@ policy refusal are all unexercised. Searching for something in A05 on the
 deployed app is the test, and the first thing to watch is whether Pixabay's
 `largeImageURL` comes back as a content type `extensionFor()` admits.
 
+THE PHOTOGRAPH WAS REPLACED AND THE ALT TEXT IS REAL NOW. Both findings this
+file carried about the shop's only picture are closed, and the new one was
+LOOKED AT rather than assumed: row `0dae3104`, path
+`products/<id>/912f2a62....jpg`, 736x944. It is genuinely a striped
+short-sleeve polo — broad navy and cream horizontal stripes, plain cream
+collar, two-button placket, boxy cut — so the garment-type mismatch is gone.
+The alt text was the product NAME repeated, which passes the NOT NULL check
+and tells a screen reader nothing the page title has not already said. It is
+now a real 312-character description, written from the image and verified by
+reading the row back.
+
+TWO THINGS ABOUT THAT PHOTOGRAPH STILL WANT THE OWNER'S EYE, neither of them
+the system's to decide.
+
+THE COLOURWAY MATCHES NO VARIANT ON SALE. `product_variants` offers BLACK,
+BONE and IVORY (five sizes each, 21/25/21 in stock). The photograph is NAVY
+and cream. Its `colour` is NULL, which in A05's design means "a fabric or
+print detail — show it for every colour", so a customer choosing BLACK sees a
+navy polo and so does a customer choosing BONE. A narrower version of the
+mismatch recorded before, not the same severity, but the same shape: the
+picture makes a claim the catalogue does not keep. Either the navy colourway
+exists and is missing from the variants, or the photograph is of a different
+colourway and wants assigning to the nearest real one.
+
+THE GARMENT CARRIES A MARK THAT IS NOT METHEUES — a script chest embroidery
+reading Young Leaders, a small globe motif and a line of smaller lettering.
+Nothing here can tell whether this is the owner's own photography of stock
+they bought or an image from elsewhere, but a product sold under one name and
+pictured in another brand's garment is worth being deliberate about, on both
+the misrepresentation and the rights side. The alt text names the embroidery
+rather than omitting it, which is what §13 wants anyway: text inside an image
+belongs in its text alternative.
+
+WHAT PROBABLY MADE THE EARLIER WRITES HANG. Three attempts at this one update
+timed out on the confirmation gate across two days; the fourth went straight
+through. The statement that worked differed in exactly two ways from the ones
+that did not: no `returning` clause, and no double-quote characters inside the
+string literal. Which of the two mattered is untested — but it is the first
+lead this project has had on a gate it has been treating as arbitrary, and the
+cheap move next time a write hangs is to drop the RETURNING and strip the
+fancy punctuation before concluding anything. The rule stated last time is
+what caught this one: a timeout means the write did NOT happen, and the way to
+tell is to read the row back.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
