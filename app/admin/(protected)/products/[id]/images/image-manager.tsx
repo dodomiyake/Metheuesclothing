@@ -6,6 +6,16 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/public';
 import { StatusBadge } from '@/components/admin/status-badge';
 import { SHOP_BUCKET, imageUrl, ALLOWED_TYPES, MAX_BYTES } from '@/lib/images';
+import { PixabaySearch } from './pixabay-search';
+import {
+  labelStyle,
+  inputStyle,
+  mutedSmall,
+  buttonBase,
+  primaryButton,
+  secondaryButton,
+  ghostButton,
+} from './image-styles';
 
 export type ManagedImage = {
   id: string;
@@ -439,6 +449,16 @@ export function ImageManager({
           </Panel>
         )}
 
+        {!pending && (
+          <Panel heading="Find a stock photograph" tint>
+            <PixabaySearch
+              productId={productId}
+              colours={colours}
+              onImported={() => setNotice('Imported.')}
+            />
+          </Panel>
+        )}
+
         <div className="mc-admin-order-layout mc-admin-customer-layout">
           <div className="mc-admin-order-main">
             <Panel heading="Order and assignment">
@@ -798,65 +818,3 @@ function Move({
     </button>
   );
 }
-
-const labelStyle: React.CSSProperties = {
-  fontSize: 11,
-  fontWeight: 600,
-  letterSpacing: '1.2px',
-  textTransform: 'uppercase',
-  color: 'var(--mc-text-muted)',
-};
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  minHeight: 46,
-  padding: '12px 14px',
-  border: '1px solid var(--mc-border-control)',
-  borderRadius: 'var(--mc-radius-sm)',
-  background: 'var(--mc-bg-surface)',
-  fontFamily: 'var(--mc-font-body)',
-  fontSize: 15,
-  color: 'var(--mc-text-primary)',
-  boxSizing: 'border-box',
-};
-
-const mutedSmall: React.CSSProperties = {
-  fontSize: 13,
-  lineHeight: '19px',
-  color: 'var(--mc-text-muted)',
-  margin: 0,
-};
-
-const buttonBase: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  minHeight: 44,
-  padding: '14px 24px',
-  borderRadius: 'var(--mc-radius-sm)',
-  fontFamily: 'var(--mc-font-body)',
-  fontSize: 16,
-  fontWeight: 600,
-  letterSpacing: '0.32px',
-  textDecoration: 'none',
-  boxSizing: 'border-box',
-};
-
-const primaryButton = (busy: boolean): React.CSSProperties => ({
-  ...buttonBase,
-  background: 'var(--mc-action-primary-bg)',
-  color: 'var(--mc-action-primary-text)',
-  border: 'none',
-  cursor: busy ? 'default' : 'pointer',
-  whiteSpace: 'nowrap',
-});
-
-const secondaryButton: React.CSSProperties = {
-  ...buttonBase,
-  border: '1px solid var(--mc-border-strong)',
-  background: 'none',
-  color: 'var(--mc-text-primary)',
-  cursor: 'pointer',
-};
-
-const ghostButton: React.CSSProperties = { ...buttonBase, color: 'var(--mc-text-primary)' };

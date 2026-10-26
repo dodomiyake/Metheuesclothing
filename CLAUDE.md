@@ -1993,6 +1993,75 @@ order into a GUEST order rather than anonymising anyone. A20 already recorded
 that gap as a migration nobody has written; the draft marks it for the
 reviewer rather than claiming a capability that does not exist.
 
+A05 CAN SEARCH PIXABAY NOW, which is the first way a photograph gets into
+this shop without somebody already having one. `GET /api/admin/images/pixabay`
+searches, `POST` imports. THE OWNER DECIDED THE SCOPE on 26 October, asked
+directly and answered "everything, unmarked": stock photographs may be used as
+ordinary product images with no placeholder flag. That is recorded here as a
+DECISION rather than a default, because the alternative offered was a marked
+placeholder that could not silently ship, and the risk of the chosen option is
+exactly that it can. A reader finding stock photography on products later
+should know it was chosen, not slipped in.
+
+THE CONCERN WAS PUT BEFORE IT WAS BUILT and is worth keeping: a stock photo of
+*a* T-shirt on a listing tells a customer that is what arrives. Under the
+Consumer Protection from Unfair Trading Regulations a misleading product image
+is actionable, and under CRA 2015 goods-not-as-described is a refund right.
+Stripe test mode is the only thing keeping that theoretical today.
+
+THREE OF PIXABAY'S OWN RULES SHAPED THE CODE rather than ending up in a
+comment nobody reads. (a) PERMANENT HOTLINKING IS FORBIDDEN — "download them
+to your server first" — so an import downloads the file into `shop-images`
+exactly like an upload, and the only Pixabay URLs in the app are the search
+grid's thumbnails, which the terms explicitly permit "for temporarily
+displaying search results". `product_images.storage_path` could not have held
+a URL anyway; lib/images.ts says a row holds a path and never a URL. (b)
+REQUESTS MUST BE CACHED FOR 24 HOURS, which is `revalidate: 86400` on the
+fetch, so two staff searching the same word in a day cost one upstream call.
+(c) 100 REQUESTS PER MINUTE PER KEY, and a 429 is surfaced rather than
+swallowed — a rate limit and a search with no matches look identical in an
+empty grid, which is the catalogue-query-as-empty-shop failure in a new place.
+
+THE IMPORT IS THE OPPOSITE SHAPE FROM /sign AND THAT IS NOT A REGRESSION. The
+sign route refuses to touch the bytes because the browser already holds the
+file. Here nobody's browser holds it — it is on Pixabay, which sends no CORS
+headers — so the bytes come through the function once. Vercel's 4.5 MB cap is
+on the REQUEST BODY a function receives; this body is a small JSON object and
+the image arrives by outbound fetch, which is uncapped. The cost is function
+time and egress, which is right for an admin picking one photograph and would
+be wrong for a bulk importer. THE UPLOAD STILL USES A SIGNED URL CREATED WITH
+THE CALLER'S OWN SESSION, so 019's `is_staff()` storage policy refuses exactly
+as it does for a browser upload — the route is a courier, not a privilege
+escalation.
+
+IMPORT TAKES AN ID, NEVER A URL. A client-supplied URL to fetch is the same
+mistake as a client-supplied path to write: it turns an admin screen into a
+request-forgery tool that can reach whatever the function can reach, cloud
+metadata included. The id is resolved through Pixabay and the returned URL is
+checked against an allowed-host set anyway.
+
+THE DESCRIPTION IS NOT PREFILLED FROM `tags`, deliberately, and this is the
+one design decision in the panel worth arguing about. Pixabay returns
+"tshirt, fashion, model" — keywords for FINDING a picture, not a description
+of one. Writing them to `alt_text` would satisfy the NOT NULL check and tell a
+screen reader nothing, which is precisely how this shop ended up with lorem
+ipsum live on its only photograph. The tags are shown beside the field as
+context and a human writes the sentence; Import stays disabled until they do,
+with text saying what would enable it.
+
+`image-styles.ts` came out of image-manager.tsx with this, because
+pixabay-search.tsx was its second consumer — the same move dialog-styles.ts
+and form-styles.ts record, and the thing status-badge.tsx exists to stop.
+
+THE KEY IS SERVER-SIDE AND THE SESSION CANNOT READ IT. The owner put
+PIXABAY_API_KEY on Vercel (production, preview and development) as a SENSITIVE
+variable, so the API returns an empty value for it and no session can decrypt
+it — which is correct, and also means NONE OF THIS HAS BEEN RUN. It typechecks
+and builds; the search, the import, the rate-limit branch and the storage
+policy refusal are all unexercised. Searching for something in A05 on the
+deployed app is the test, and the first thing to watch is whether Pixabay's
+`largeImageURL` comes back as a content type `extensionFor()` admits.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
