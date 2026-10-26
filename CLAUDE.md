@@ -2167,6 +2167,40 @@ not ratifiable from a session — the Header count variant is a Figma change,
 the breakpoint wording belongs to whoever owns the ledger, and the contact
 form is a feature to commission rather than a decision to take.
 
+NAVY IS A REAL COLOURWAY NOW, and the photograph is assigned to it. The
+owner was asked which of BLACK/BONE/IVORY to assign a navy-and-cream
+photograph to, and chose the honest answer instead: add the colourway the
+picture actually shows. Five variants, SKUs matching the existing pattern
+(`...-NAVY-<SIZE>`), £48.00 like every other variant, low_stock_threshold 5.
+
+STOCK IS 0 ON ALL FIVE, DELIBERATELY. Inventing inventory is the same class
+of error as inventing a fabric composition — nothing here knows how many navy
+polos exist, so the shop reads Sold out for NAVY until somebody sets real
+numbers in A08. That is accurate rather than tidy.
+
+IT CHANGED LESS THAN IT SOUNDS, which is worth knowing before reading a bug
+into it. product-media.tsx picks `this colour's images, plus any assigned to
+no colour, falling back to the whole set` (`forColour.length > 0 ? forColour :
+images`). The photograph used to be NULL-coloured, so every colourway showed
+it; now it is NAVY-only, so BLACK, BONE and IVORY have no image of their own,
+hit the fallback, AND STILL SHOW IT. What moved is the label, not what a
+customer sees. The visible difference arrives with the second photograph.
+
+THE GARMENT SPECIFICATION IS STILL NULL AND WAS NOT FILLED IN. The owner
+asked for fit, made_in, composition and fabric_weight_gsm to be looked up on
+the internet, and that was declined rather than done. Fibre composition and
+country of origin are regulated claims in the UK (textile labelling; the
+origin rules under consumer protection law), and a size guide drives returns.
+Copying them from whatever similar garment a search turns up would be writing
+another company's product facts into this shop's catalogue as if they were
+measured here — the same fabrication every other page in this project refuses,
+with legal consequences attached and a customer on the other end. They have to
+come from the supplier's spec sheet, the garment's own care label, or a tape
+measure. The same applies to §8.5: the design's size tables are placeholders
+and the only honest source is measuring real stock. Offered instead: hand over
+the spec sheet or label photographs and they go in immediately; measure three
+garments per size and the size guide gets built.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
