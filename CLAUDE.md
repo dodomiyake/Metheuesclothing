@@ -2244,6 +2244,50 @@ product writes XXL, so one of the two conventions had to win within a single
 size run. `lib/shop/size-order.ts` sorts both (3xl is aliased to xxxl), so this
 is a display-consistency choice and not a functional one.
 
+THE PIXABAY KEY WAS SUPPLIED AND THE SEARCH HALF IS PROVEN. The owner pasted
+it into the session on 26 October; it answers HTTP 200 with the documented
+rate-limit headers (100 a minute, 99 remaining), and the response shape is
+exactly what `lib/pixabay.ts` was written against. So the integration's API
+contract is confirmed, which it was not before. The key is NOT in this
+repository and must not be — it lives as a sensitive Vercel variable, which
+is why no session can read it back.
+
+AND THE SEARCH FOUND THAT PIXABAY CANNOT HONESTLY FURNISH THIS CATALOGUE.
+Ten candidates were pulled and LOOKED AT rather than judged from their tags,
+which is the whole lesson of the mismatched photograph. What exists:
+
+ - `1852114` is a flat, plain LONG-SLEEVE CREW NECK on white — a genuine cut
+   match for that product, and the only one found. It is heather GREEN; its
+   two siblings in the same series (`1852113`, `1852115`) are mauve and
+   burgundy. No BLACK, no BONE.
+ - `1886013` is a plain white short-sleeve crew blank, `1886008` the same in
+   red. Regular fit, so a match for a plain tee and not for an oversized one.
+ - NOTHING OVERSIZED exists as a product shot. `7428290` is the closest and
+   is an editorial portrait — a man crouching in a hat beside records, the
+   garment half obscured.
+ - NOTHING WITH A CHEST POCKET exists at all. The query "tshirt pocket"
+   returns pocket watches, jeans pockets and a wallet.
+
+SO THE SPLIT THIS FILE RECORDED AT THE START TURNS OUT TO BE THE REAL ONE,
+with evidence rather than as a prediction: Pixabay furnishes EDITORIAL
+surfaces well (7428290 is a good streetwear mood shot for a homepage hero or
+Our Story's well) and PRODUCT surfaces badly, because it is consumer stock
+photography rather than product photography.
+
+THE OWNER'S "EVERYTHING, UNMARKED" DECISION DOES NOT COVER THIS, and the
+distinction matters. That decision answered whether stock photographs may be
+used as product images. It did not answer whether a WRONG GARMENT may be
+shown — and putting a white regular-fit blank on OVERSIZED CREW NECK TSHIRT
+or RELAXED FIT POCKET TSHIRT shows a garment that is neither oversized nor
+pocketed, which is the exact mismatch just closed on the striped polo. So
+nothing was attached.
+
+NOTHING COULD HAVE BEEN ATTACHED FROM HERE ANYWAY, which is worth keeping
+separate from the judgement above so neither is mistaken for the other: the
+session has no Supabase write credentials — no service-role key, no admin
+password — and the storage policy requires `is_staff()`, which the
+publishable key does not satisfy. Importing is A05's job in a browser.
+
 "METHEUES SELLS ALL KINDS OF T-SHIRT" — the owner, 26 October, and it settles
 something this file had recorded as a compromise. The three generic archetypes
 were created with a note that they were shape descriptions chosen because no
