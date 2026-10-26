@@ -447,12 +447,16 @@ implementation beyond the design file rather than a frame nobody built.
 5. **Verified garment measurements** (§8.5). The size tables in the design are
    placeholders and must not ship. Screen 23 is unbuilt for this reason, and the
    homepage's "Open the size guide" points at the shop instead.
-6. **Legal review** — and note the *drafting* is not blocked, only the review.
-   Nothing has been drafted, which means the review cannot even start. This
-   codebase knows its own data practices precisely (what is collected, that it
-   goes to Supabase, Stripe, Resend and Vercel, what RLS and the column grants
-   allow, what is retained and what is append-only), so an accurate first draft
-   is producible here and a solicitor's sign-off is not.
+6. **Legal review — the drafts now exist**, in `docs/legal/`, so the review
+   can start. Every factual claim was checked against the schema and the
+   routes rather than taken from a template. Two things are needed from you
+   before they ship: the `[OWNER: ...]` identity facts (trading name,
+   registered address, company number, VAT number — the same ones A22 and 34
+   Contact omit), and a solicitor on the Terms especially. **Two gaps the
+   drafting surfaced:** the rate limiter stores IP addresses (swept after one
+   day — now disclosed), and `newsletter_subscribers.unsubscribed_at` is read
+   but never written, so there is no unsubscribe and PECR needs one before the
+   first marketing email.
    The pages: `/privacy`, `/terms` and
    `/accessibility` (35) are the three remaining dead links in the site chrome,
    and all three are blocked on this rather than on build time.

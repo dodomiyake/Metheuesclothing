@@ -1950,12 +1950,55 @@ each with its email delivered. COUNT THE ORDERS RATHER THAN QUOTING ANY LINE
 IN THIS FILE — the owner works the admin while these sessions run, and several
 numbers above went stale inside thirty minutes.
 
+THE THREE LEGAL PAGES ARE DRAFTED — `docs/legal/`, with a README saying what
+they are. "Blocked on legal review" was half right for months: the REVIEW is
+blocked, the DRAFTING never was, and because nothing was drafted the review
+could not start. Every factual claim in them was checked against the schema,
+the routes and the processors rather than taken from a template — the
+retention periods, the processor list and locations (Supabase eu-west-2,
+Resend eu-west-1, Stripe, Vercel), the rights that are actually implemented,
+and the ones that are not. Identity facts are `[OWNER: ...]` markers rather
+than guesses, the same call A22 and 34 Contact already made about store
+details. They are NOT wired up: once reviewed each becomes a
+content-page-shell page like /delivery, and the figures that exist in
+store_settings must be READ rather than typed, for the reason /delivery gives.
+
+DRAFTING THEM FOUND TWO THINGS NOTHING HAD RECORDED.
+
+THE RATE LIMITER STORES IP ADDRESSES. `rate_limits.key` is
+`"<scope>:<ip>"` — lib/rate-limit.ts builds it from x-real-ip or
+x-forwarded-for — so every sign-in, registration, password reset, order
+lookup, return request and newsletter sign-up writes an IP to the database.
+That is personal data under UK GDPR and had never appeared in any note here.
+The saving grace is real: 006_rate_limits.sql:58 sweeps anything older than
+one day, so the retention is short AND enforced rather than promised. It
+belongs in the privacy policy and now is in it.
+
+THERE IS NO UNSUBSCRIBE. `newsletter_subscribers.unsubscribed_at` is READ in
+two places — A20 renders "Unsubscribed <date>" and the A20 export includes
+it — and NOTHING WRITES IT. No route, no link, no token. This is the same
+shape as every other finding in this file (a column read by something and
+written by nothing), and it is latent rather than live only because nothing
+sends marketing email yet. PECR requires a working opt-out in every marketing
+message, so it has to exist before the first newsletter goes out, not after.
+POST /api/newsletter has existed since the chrome was built; its opposite
+does not.
+
+ONE THING THE PRIVACY DRAFT CANNOT HONESTLY PROMISE YET, flagged in the file
+itself rather than papered over: erasure. The policy describes disconnecting
+a person from their orders while the sales record stands, which is what the
+law and the tax rules together require. The code does not do that — deleting
+a profile cascades to addresses and nulls orders.profile_id, which turns the
+order into a GUEST order rather than anonymising anyone. A20 already recorded
+that gap as a migration nobody has written; the draft marks it for the
+reviewer rather than claiming a capability that does not exist.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
-delivery rates, the £150 threshold, and legal review of the returns and
-privacy copy (a DRAFT of the three legal pages is something this project can
-produce and has not; what cannot be produced here is the review). Three seeded values in migration
+delivery rates, the £150 threshold, and legal REVIEW of the three pages now
+drafted in `docs/legal/` (the drafting is done; the review and the
+`[OWNER: ...]` identity facts are not). Three seeded values in migration
 008 are marked PLACEHOLDER for the same reason.
 
 ## Conventions
