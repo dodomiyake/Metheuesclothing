@@ -2244,6 +2244,34 @@ product writes XXL, so one of the two conventions had to win within a single
 size run. `lib/shop/size-order.ts` sorts both (3xl is aliased to xxxl), so this
 is a display-consistency choice and not a functional one.
 
+"METHEUES SELLS ALL KINDS OF T-SHIRT" — the owner, 26 October, and it settles
+something this file had recorded as a compromise. The three generic archetypes
+were created with a note that they were shape descriptions chosen because no
+brand's catalogue could be copied. They are not a stand-in for real names: the
+range genuinely is all kinds of T-shirt, so "oversized crew neck" and
+"relaxed fit pocket" describe the business rather than stand in for it. Worth
+knowing before somebody later "fixes" them into something more specific.
+
+TWO OF THE THREE NOW CARRY A `fit`, and this is normalisation rather than
+invention. A product NAMED "OVERSIZED CREW NECK TSHIRT" with `fit` null is one
+row disagreeing with itself — the name already asserts the fit, so the column
+is made to say the same thing. `oversized` and `relaxed`, lowercase, because
+Our Story embeds the value mid-sentence ("in two fits — oversized and relaxed
+—") and that is the one place it appears as prose rather than as a chip.
+LONG SLEEVE CREW NECK TSHIRT keeps `fit` null: its name declares a sleeve, not
+a fit, and there is nothing to normalise from.
+
+THE STRIPED POLO STILL HAS `fit` NULL and must, for the reason recorded below:
+its name declares no fit, its spec sheet says Regular and its photograph shows
+oversized. Normalising from a name works only where the name actually makes
+the claim.
+
+NO LIVE EFFECT YET. Our Story queries `.eq('status', 'published')` and the
+shop's Fit filter is built the same way, so a draft's fit reaches neither.
+The fits clause stays dropped until one of these is published — which is
+correct, and is also why setting it now costs nothing and removes a
+contradiction somebody would otherwise hit on publish day.
+
 A SPEC SHEET ARRIVED AND IT IS A STANDARD ONE, not this garment's. Saved at
 `docs/spec/tshirt-standard-specification.pdf` with a line-by-line §8.5 gap
 analysis beside it in `docs/spec/README.md`. Its own title is "T-Shirt
