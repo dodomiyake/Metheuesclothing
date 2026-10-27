@@ -314,6 +314,38 @@ setting rather than on a design decision.
 
 ---
 
+### A18. Nothing confirms delivery to the customer, and nothing drew the step at all
+
+**Design:** the email set runs E1–E9 and contains no delivery confirmation.
+A12's timeline draws a "Delivered" step; no screen draws a control that
+reaches it.
+
+**System (before this):** `fulfilments.delivered_at` was read in nine places
+and written by nothing. `advance_fulfilment` refuses any transition but the
+packing steps ("`% is not a packing step; use ship_order`") and `ship_order`
+stops at `shipped` — so `delivered` was a value in the `fulfilment_status`
+enum that no code path could produce. Three fulfilments on the live database,
+`delivered_at` null on all three.
+
+**Why it mattered more than a missing tick:** `request_return()` counts the
+returns window from `coalesce(max(delivered_at), max(shipped_at), placed_at)`.
+With `delivered_at` permanently null it always fell through to `shipped_at`,
+so the window began when the parcel LEFT rather than when it arrived and the
+customer silently lost however many days it spent with the carrier. 007's
+coalesce was written for this and had nothing to prefer.
+
+**Shipped:** migration 024's `deliver_order()`, a route, and an inline "Mark
+delivered" on A12's Tracking panel with an editable arrival date. Inline
+rather than a dialog on purpose — the consequence-list-and-typed-confirmation
+pattern is for actions nobody can undo, and borrowing it here would misstate
+which actions are dangerous.
+
+**Needed:** two decisions. Should a DELIVERY CONFIRMATION EMAIL exist? It is a
+common one and customers expect it, and E1–E9 has no slot for it, so nothing
+is sent today. And should delivery ever be marked automatically — which means
+a carrier integration, which means the carrier question that A14's free-text
+field and the homepage's dropped "DPD" are both already waiting on.
+
 ## Part B — departures already shipped
 
 Each of these is live. They are listed so you can reverse any of them; every one
@@ -342,6 +374,59 @@ different ask from a bulk CSV nobody has specified.
 A12 omits seven of its eight actions, because A13–A16 were unbuilt when it was
 made; all four now exist and are wired. "View customer" was a dead end in A12 and
 A18 until A19/A20 were built, and now resolves.
+
+**A20's "Erase this profile" (144:2882) is built, with two additions the frame
+does not draw**
+
+The frame draws one action. What shipped is that action plus two constraints,
+both of which exist because erasure cannot be undone by anybody.
+
+*It is OWNER ONLY.* Every other write in the admin is gated on `is_staff()`, and
+A22's own staff card draws the line as "Staff — orders, fulfilment and returns,
+no settings". Erasure is neither of those: it is irreversible and it reaches the
+sales ledger, so it sits on A22's side. A staff member sees the export and a line
+saying who can erase. Reverse this if erasure is meant to be an everyday reply to
+an everyday request.
+
+*It refuses while a paid order is still in flight.* A paid order that is not yet
+delivered or cancelled needs somewhere to go, so the dialog disables itself and
+names the order rather than letting someone erase the address off a parcel in the
+warehouse. UK GDPR permits holding the data while it is necessary to perform the
+contract. The frame draws no such state.
+
+**A05 searches two stock libraries now, and the choice of which was forced**
+
+A05 draws an upload well and nothing else; stock search is an addition the owner
+asked for, under the recorded decision that stock photographs may be used as
+ordinary product images, unmarked. Pexels is now the second provider and the
+default, because its apparel library is the better one.
+
+*Unsplash was the obvious third and is deliberately absent.* Its API terms §6
+**require** hotlinking — "you must directly use or embed the related image URLs
+returned by the API" — and call a breach material. That is the exact opposite of
+Pixabay's rule, and it cannot be squared with `lib/images.ts`, which holds that
+`product_images.storage_path` is a path inside our bucket and never a URL. And
+§9 requires crediting Unsplash *and* the photographer with a link to their
+profile **every time an image is displayed** — which here means a credit beside
+every garment on the shop listing, the product page and the homepage. A product
+photograph with a photographer credit next to it is not a product photograph. If
+the design owner wants Unsplash, one of those two things has to change and both
+are visible to customers.
+
+*Pexels' attribution is read as attaching to the app, not the display.* Its
+guidelines ask for a prominent link to Pexels when making API requests and for
+photographers to be credited where possible. Both live on A05's search panel —
+the surface that makes the requests. That reading is what makes Pexels workable
+where Unsplash is not, and it is stated here rather than buried so it can be
+challenged.
+
+One further thing the frame cannot show, because it is a fact about the database
+rather than about the design: **erasure anonymises and does not delete.**
+`audit_logs.actor_id` references `profiles` with no `ON DELETE`, and `audit_logs`
+cannot be updated either, so any customer who has ever raised a return is
+permanently referenced and their profile row can never be deleted — nor, because
+`profiles` cascades from `auth.users`, can their sign-in account. Migration 023's
+header has the whole finding.
 
 **Panels omitted for a missing column**
 

@@ -103,18 +103,33 @@ email address on an account is not something the site can do yet; write to us.
 
 **Deletion — read this part carefully.** We cannot delete the record of a
 completed order, because tax law requires us to keep it. What we can do is
-disconnect it from you: remove your profile, your saved addresses and your
-contact details, leaving the sale itself as an anonymous entry in the books.
-Entries already written to the append-only audit log cannot be removed at all;
-they identify a person by name and a return or order number rather than by
-email address.
+disconnect it from you, and that is what we do when you ask: your email
+address is replaced everywhere we hold it with a random address that can never
+receive mail, your name, phone number and marketing preference are removed,
+your saved addresses are deleted, the delivery address on each past order is
+cleared down to the country it went to, and you can no longer sign in. The
+sale itself stands as an anonymous entry in the books. We may ask you to wait
+until an order already paid for has arrived, because until then we need the
+address to send it.
 
-[OWNER: this paragraph describes erasure as it SHOULD work. The code does not
-do it yet — deleting a profile today cascades to addresses and sets the
-order's profile link to null, which turns the order into a guest order rather
-than anonymising the person. Closing that gap is a migration nobody has
-written. Either build it before publishing this, or ask your reviewer how to
-word a policy you cannot yet execute automatically.]
+Two things survive this. Our append-only audit log cannot have entries edited
+or removed by anyone, including us — those entries identify a person by name
+and an order or return number, never by email address, and the database itself
+refuses to delete an account the log refers to. That is why erasure here means
+making you anonymous rather than deleting a row. And Stripe keeps its own
+record of a payment as a controller in its own right; erasing that is a
+separate request to them.
+
+[OWNER: this paragraph used to carry a warning that the code did not do any of
+this. Migration 023 and A20's erase dialog closed that gap on 27 October, so
+the wording now describes one action a member of staff takes rather than a
+promise about careful handwork. Two points for your reviewer. First, the
+retained audit entries: we think naming a person in an append-only log is
+defensible as a fraud and accounting record under Article 17(3), and the
+policy discloses it, but that is a judgement worth confirming. Second, the
+deferral while an order is in flight — we hold the address until the parcel
+arrives, on the Article 17(1)(a)/6(1)(b) ground that we still need it to
+perform the contract. Both are stated to the customer rather than buried.]
 
 ## Marketing
 

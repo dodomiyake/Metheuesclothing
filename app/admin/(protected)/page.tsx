@@ -59,6 +59,7 @@ export default async function AdminDashboardPage() {
     variants,
     openReturns,
     refundsToday,
+    placeholderProducts,
   ] = await Promise.all([
     supabase
       .from('orders')
@@ -92,6 +93,14 @@ export default async function AdminDashboardPage() {
       .order('requested_at', { ascending: true })
       .limit(QUEUE_ROWS),
     supabase.from('refunds').select('amount_pence').gte('created_at', todayIso),
+    // The demo-data notice below. `made_in` is Portugal on every demo
+    // product, so this counts the placeholder specification rather than
+    // trusting a flag somebody has to remember to unset — same reason
+    // /admin/demo counts instead of hardcoding.
+    supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .eq('made_in', 'Portugal')
   ]);
 
   // Every one of these reads as an empty dashboard when it fails, which is
@@ -105,6 +114,9 @@ export default async function AdminDashboardPage() {
   if (variants.error) throw new Error(`Could not load inventory: ${variants.error.message}`);
   if (openReturns.error) throw new Error(`Could not load the returns queue: ${openReturns.error.message}`);
   if (refundsToday.error) throw new Error(`Could not load today's refunds: ${refundsToday.error.message}`);
+  if (placeholderProducts.error) {
+    throw new Error(`Could not count demo products: ${placeholderProducts.error.message}`);
+  }
 
   const { count: returnsToReview, error: returnsCountError } = await supabase
     .from('returns')
@@ -167,6 +179,38 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="mc-admin-content">
+        {/* Not in the design file, and it removes itself. This shop is
+            pre-supplier and carrying generated photography and a
+            placeholder garment specification; the single largest risk with
+            placeholder data is forgetting it is placeholder, so the count
+            is read from the database and the notice disappears when the
+            count does. */}
+        {(placeholderProducts.count ?? 0) > 0 && (
+          <div
+            style={{
+              background: 'var(--mc-bg-surface)',
+              border: '1px solid var(--mc-border-control)',
+              borderRadius: 'var(--mc-radius-md)',
+              padding: '14px 16px',
+              marginBottom: 18,
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: '8px 14px',
+            }}
+          >
+            <p style={{ flex: '1 1 320px', fontSize: 14, lineHeight: '21px', margin: 0 }}>
+              <strong>This shop is running on demo data.</strong>{' '}
+              {placeholderProducts.count} product
+              {placeholderProducts.count === 1 ? '' : 's'} carry a placeholder garment
+              specification, and the photography was generated rather than shot. Stripe is in test
+              mode.
+            </p>
+            <Link href="/admin/demo" style={{ fontSize: 14, fontWeight: 600 }}>
+              What is demo, and how to remove it
+            </Link>
+          </div>
+        )}
         <div className="mc-dash-metrics">
           <Metric
             label="Orders today"

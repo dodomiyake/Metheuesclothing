@@ -36,9 +36,15 @@ const DELIVERY_METHOD_LABELS: Record<string, string> = {
  *    what to do instead and links to a real address.
  *  - "Download invoice". Nothing generates one. The order summary below it
  *    carries every figure an invoice would.
- *  - The billing address under PAYMENT. orders.billing_address is a column
- *    nothing writes — unchanged by the webhook work, which only closed the
- *    card.
+ *  - The billing address under PAYMENT. The column is written now — the
+ *    webhook fills it from the charge's billing_details — but it is shown
+ *    in the ADMIN only, deliberately. Stripe collects a billing address
+ *    only where the card network requires one, so it is absent on many
+ *    orders and absent on every order placed before it was wired; a row
+ *    that is missing for most customers and present for some reads as a
+ *    fault rather than as a fact about their card. Staff have a reason to
+ *    see it (chargebacks, fraud) that a customer re-reading their own
+ *    order does not.
  *  - "Expected 10 September" on the two unreached timeline steps. The
  *    schema has no per-transition timestamps and nothing computes an
  *    estimate, so a step shows a date only where one is really recorded.

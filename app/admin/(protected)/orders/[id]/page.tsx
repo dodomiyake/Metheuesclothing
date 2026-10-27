@@ -8,6 +8,7 @@ import { StatusBadge, PAYMENT_BADGE, FULFILMENT_BADGE } from '@/components/admin
 import { countryName, customerName, orderCountryCode } from '../order-fields';
 import { buildFulfilmentSteps } from './fulfilment-steps';
 import { AddTracking } from './add-tracking';
+import { MarkDelivered } from './mark-delivered';
 import { CancelOrder } from './cancel-order';
 import { RefundOrder } from './refund-order';
 
@@ -70,7 +71,7 @@ export default async function AdminOrderDetailPage({
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .select(
-      'id, order_number, email, profile_id, subtotal_pence, delivery_pence, discount_pence, total_pence, payment_status, fulfilment_status, delivery_method, delivery_address, customer_note, placed_at, cancelled_at, cancel_reason',
+      'id, order_number, email, profile_id, subtotal_pence, delivery_pence, discount_pence, total_pence, payment_status, fulfilment_status, delivery_method, delivery_address, billing_address, customer_note, placed_at, cancelled_at, cancel_reason',
     )
     .eq('id', id)
     .maybeSingle();
@@ -105,7 +106,13 @@ export default async function AdminOrderDetailPage({
       .eq('entity_type', 'order')
       .eq('entity_id', id)
       .order('created_at', { ascending: false }),
-    supabase.from('store_settings').select('free_delivery_threshold_pence').single(),
+    supabase
+      .from('store_settings')
+      // return_window_days joined the read for Mark delivered: the window
+      // runs from delivered_at, so the helper text has to quote the real
+      // number rather than a figure typed into a component.
+      .select('free_delivery_threshold_pence, return_window_days')
+      .single(),
   ]);
 
   if (items.error) throw new Error(`Could not load the order's items: ${items.error.message}`);
@@ -155,6 +162,27 @@ export default async function AdminOrderDetailPage({
     line.postal_code,
     countryName(orderCountryCode(order.delivery_address)),
   ].filter((v): v is string => Boolean(v && v !== '—'));
+
+  // The billing address the webhook now writes from the charge. Built with
+  // the same reducer because it is stored in the same shape; sparse by
+  // nature, since the checkout session sets no billing_address_collection
+  // and Stripe then collects only what the card network asks for.
+  const billing = (order.billing_address ?? null) as {
+    name?: string;
+    address?: Record<string, string | null | undefined>;
+  } | null;
+  const billingLine = billing?.address ?? {};
+  const billingLines = billing
+    ? [
+        billing.name,
+        billingLine.line1,
+        billingLine.line2,
+        billingLine.city,
+        billingLine.state,
+        billingLine.postal_code,
+        billingLine.country ? countryName(billingLine.country) : null,
+      ].filter((v): v is string => Boolean(v && v !== '—'))
+    : [];
 
   return (
     <div className="mc-admin-page">
@@ -368,6 +396,30 @@ export default async function AdminOrderDetailPage({
                   'Not recorded for this payment'
                 }
               />
+              {/* The design's billing address row (139:1941), which this
+                  screen omitted because orders.billing_address was a column
+                  nothing wrote. The webhook now fills it from the charge's
+                  billing_details.
+
+                  It is DELIBERATELY SILENT when absent rather than showing
+                  an empty row. Stripe is asked for a billing address only
+                  where the card network requires one, so a customer who was
+                  never asked has nothing to show — and every order placed
+                  before this was wired has nothing either, the same way the
+                  card does. */}
+              {billingLines.length > 0 && (
+                <>
+                  <Rule />
+                  <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--mc-text-muted)', margin: '0 0 6px' }}>
+                    Billing address
+                  </p>
+                  {billingLines.map((l, i) => (
+                    <p key={i} style={{ fontSize: 14, lineHeight: '21px', margin: 0 }}>
+                      {l}
+                    </p>
+                  ))}
+                </>
+              )}
               {payment.data?.stripe_payment_intent_id ? (
                 <>
                   <Field label="Stripe payment intent" value={payment.data.stripe_payment_intent_id} />
@@ -478,6 +530,20 @@ export default async function AdminOrderDetailPage({
                         Track parcel
                       </a>
                     </p>
+                  )}
+                  {/* The end of fulfilment, which nothing could reach until
+                      migration 024 — see mark-delivered.tsx and the
+                      migration's own header. Shown only while the parcel is
+                      out: once delivered_at is set the timeline above says
+                      so and there is nothing left to do. */}
+                  {shipped.delivered_at ? (
+                    <Field label="Delivered" value={formatLong(shipped.delivered_at)} />
+                  ) : (
+                    <MarkDelivered
+                      orderId={order.id}
+                      orderNumber={order.order_number}
+                      returnWindowDays={(settings.data?.return_window_days as number) ?? 30}
+                    />
                   )}
                 </>
               ) : order.payment_status !== 'paid' ? (

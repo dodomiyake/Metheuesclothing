@@ -33,7 +33,8 @@ const DEFAULT_DAYS = 30;
  * decisions (014), stock adjustments (015, which exists because this
  * project twice shipped a claim that stock changes were audited and twice
  * had to retract it), a customer RAISING a return (021), product status
- * changes, price changes and homepage publishes. Still not written:
+ * changes, price changes, homepage publishes and customer erasure (023).
+ * Still not written:
  * signing in, which this frame draws and the spec does not require. The
  * panel at the foot of the screen names it, because a log that looks
  * complete and is not is worse than a short one, and this is the screen
@@ -159,6 +160,17 @@ export default async function AdminAuditPage({
   // The homepage is one row with a fixed id rather than a uuid, so it
   // resolves without a lookup.
   labelById.set('homepage', { label: 'Homepage', href: '/admin/content' });
+  // An ERASED CUSTOMER needs no lookup either, and for a sharper reason:
+  // erasure (023) writes the replacement address as the entity_id, because
+  // an append-only log must not be the one place that keeps the address
+  // erasure was asked to remove. So the handle IS the label, and it still
+  // points at the now-anonymous customer on A20.
+  for (const id of idsOfType('customer')) {
+    labelById.set(id, {
+      label: 'Erased customer',
+      href: `/admin/customers/${encodeURIComponent(id)}`,
+    });
+  }
 
   const total = count ?? 0;
   const filtered = Boolean(who || what || when);
@@ -279,7 +291,8 @@ export default async function AdminAuditPage({
           <p style={note}>
             Recorded: refunds and cancellations, dispatch, returns from the moment a customer asks
             for one through to the decision, manual stock changes, publishing, unpublishing and
-            archiving a T-shirt, price changes, and homepage publishes. NOT recorded: signing in.
+            archiving a T-shirt, price changes, homepage publishes, and erasing a customer. NOT
+            recorded: signing in.
             That one writes nothing here, so its absence from the list above means nothing happened
             to record — not that nothing happened.
           </p>

@@ -32,10 +32,33 @@ applied; both were true in September and neither has been since.
 | `019_product_images_storage.sql` | The `shop-images` bucket, its policies, the position index |
 | `020_profile_column_grants.sql` | Stops a customer editing their own `role` |
 | `021_audit_return_requested.sql` | `request_return()` writes an audit row |
+| `022_newsletter_unsubscribe_token.sql` | A token, so unsubscribe can work at all |
+| `023_erase_customer.sql` | `erase_customer()` — the UK GDPR erasure right |
+
+### 022 was applied and never committed, and 023 is the other way round
+
+Two of these have been out of step with the history, in opposite directions,
+and both are worth knowing about: the history table and this repository are
+two separate records of the same thing, and either can be the one that is
+short.
+
+**022 ran and left no file.** The live project holds
+`20261026093757 / 022_newsletter_unsubscribe_token`, the column, its NOT NULL,
+its default and the unique index — and there was no file here and nothing in
+the git history. It was reconstructed on 27 October by reading the statements
+back off the live database rather than from memory; the file says so at the
+top.
+
+**023 is written and NOT applied.** It timed out on this environment's
+interactive confirmation gate, which a read of `pg_proc` afterwards confirmed
+— `erase_customer` does not exist on the live project. The function body
+contains `delete` statements, which is the most likely trigger. It needs
+running through the dashboard SQL editor, the way 020 was, and A20's erase
+dialog will fail until it is.
 
 ### 020 sits last in the migration history, and that is not a mistake
 
-All twenty-one migrations are now recorded. 020 was first applied on 19 October
+All twenty-one migrations up to 021 are recorded. 020 was first applied on 19 October
 through the dashboard SQL editor rather than through the migration tooling, so
 `supabase_migrations.schema_migrations` had a hole where it should have been —
 the list ran 001–019, then 021. It was re-run through the tooling on 25 October
@@ -202,6 +225,13 @@ Still genuinely open at the database level:
 - **No per-transition timestamps on fulfilment.** `fulfilment_status` is one
   current value with no history, so A12's timeline can show real times only for
   `placed_at`, `shipped_at` and `delivered_at`.
+- **A customer named by an audit row can never have their profile deleted.**
+  `audit_logs.actor_id` is NO ACTION and audit_logs cannot be updated, so the
+  reference is permanent — which also means Supabase's own "Delete user" in
+  the dashboard fails for them, because `profiles` cascades from
+  `auth.users`. 023 works with that rather than against it: erasure is
+  anonymisation in place. Nothing here needs fixing, but anyone expecting a
+  delete to work should know why it does not.
 
 ## Working against the live project
 

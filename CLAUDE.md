@@ -2202,6 +2202,120 @@ it; now it is NAVY-only, so BLACK, BONE and IVORY have no image of their own,
 hit the fallback, AND STILL SHOW IT. What moved is the label, not what a
 customer sees. The visible difference arrives with the second photograph.
 
+THE CATALOGUE HAS THREE MORE T-SHIRTS, all DRAFT, XS to XXXL: OVERSIZED CREW
+NECK TSHIRT, LONG SLEEVE CREW NECK TSHIRT, RELAXED FIT POCKET TSHIRT. Two
+colourways each (BLACK, BONE), fourteen variants apiece, £48.00 matching the
+only other product, stock 0, SKUs on the existing `<SLUG-UPPER>-<COLOUR>-<SIZE>`
+pattern. That takes the catalogue from 1 product and 20 variants to 4 and 62.
+
+THE OWNER ASKED FOR THESE TO BE SOURCED BY SEARCHING THE INTERNET, and that
+is worth recording precisely because only half of it is a thing a search can
+do. There is no fact on the internet about what Metheues Clothings sells —
+only the owner holds that. What a search WOULD turn up is other brands'
+catalogues, and copying their product names, descriptions and prices into this
+shop would be passing off someone else's range as ours: product names can be
+trademarks, descriptions are their copy, and a listing for a garment nobody
+here stocks is a sale that cannot be fulfilled. So nothing was copied from
+anywhere.
+
+WHAT WAS CREATED INSTEAD is three GENERIC GARMENT ARCHETYPES — names that
+describe a cut rather than borrow a brand. "Oversized crew neck", "long sleeve
+crew neck", "relaxed fit pocket" are shape descriptions in common use and
+belong to nobody. The blurbs describe silhouette only, for the same reason:
+"a boxy crew neck with a dropped shoulder and a wide body" is a fact about a
+pattern, where anything about weight, fibre or origin would be the fabricated
+regulated claim this file has refused twice already.
+
+EVERYTHING UNVERIFIABLE IS LEFT NULL, consistent with the striped polo:
+`fit`, `composition`, `fabric_weight_gsm`, `made_in`, `neck`,
+`care_instructions`, `design_story`. The price is COPIED from the existing
+product rather than invented, which is a starting point for the owner to
+change rather than a claim; stock is 0 for the reason NAVY opened at 0.
+
+DRAFT IS LOAD-BEARING HERE. `products.status` defaults to draft and RLS
+publishes only `published`, so no customer can see these. That matters more
+than usual because DELETE IS GATED in this environment: these rows cannot be
+removed, only archived. Publishing is therefore the owner's deliberate act on
+the ones they actually stock, and the rest stay invisible rather than
+accumulating as junk on the shop.
+
+XXXL RATHER THAN 3XL, deliberately. The spec sheet writes 3XL and the existing
+product writes XXL, so one of the two conventions had to win within a single
+size run. `lib/shop/size-order.ts` sorts both (3xl is aliased to xxxl), so this
+is a display-consistency choice and not a functional one.
+
+THE PIXABAY KEY WAS SUPPLIED AND THE SEARCH HALF IS PROVEN. The owner pasted
+it into the session on 26 October; it answers HTTP 200 with the documented
+rate-limit headers (100 a minute, 99 remaining), and the response shape is
+exactly what `lib/pixabay.ts` was written against. So the integration's API
+contract is confirmed, which it was not before. The key is NOT in this
+repository and must not be — it lives as a sensitive Vercel variable, which
+is why no session can read it back.
+
+AND THE SEARCH FOUND THAT PIXABAY CANNOT HONESTLY FURNISH THIS CATALOGUE.
+Ten candidates were pulled and LOOKED AT rather than judged from their tags,
+which is the whole lesson of the mismatched photograph. What exists:
+
+ - `1852114` is a flat, plain LONG-SLEEVE CREW NECK on white — a genuine cut
+   match for that product, and the only one found. It is heather GREEN; its
+   two siblings in the same series (`1852113`, `1852115`) are mauve and
+   burgundy. No BLACK, no BONE.
+ - `1886013` is a plain white short-sleeve crew blank, `1886008` the same in
+   red. Regular fit, so a match for a plain tee and not for an oversized one.
+ - NOTHING OVERSIZED exists as a product shot. `7428290` is the closest and
+   is an editorial portrait — a man crouching in a hat beside records, the
+   garment half obscured.
+ - NOTHING WITH A CHEST POCKET exists at all. The query "tshirt pocket"
+   returns pocket watches, jeans pockets and a wallet.
+
+SO THE SPLIT THIS FILE RECORDED AT THE START TURNS OUT TO BE THE REAL ONE,
+with evidence rather than as a prediction: Pixabay furnishes EDITORIAL
+surfaces well (7428290 is a good streetwear mood shot for a homepage hero or
+Our Story's well) and PRODUCT surfaces badly, because it is consumer stock
+photography rather than product photography.
+
+THE OWNER'S "EVERYTHING, UNMARKED" DECISION DOES NOT COVER THIS, and the
+distinction matters. That decision answered whether stock photographs may be
+used as product images. It did not answer whether a WRONG GARMENT may be
+shown — and putting a white regular-fit blank on OVERSIZED CREW NECK TSHIRT
+or RELAXED FIT POCKET TSHIRT shows a garment that is neither oversized nor
+pocketed, which is the exact mismatch just closed on the striped polo. So
+nothing was attached.
+
+NOTHING COULD HAVE BEEN ATTACHED FROM HERE ANYWAY, which is worth keeping
+separate from the judgement above so neither is mistaken for the other: the
+session has no Supabase write credentials — no service-role key, no admin
+password — and the storage policy requires `is_staff()`, which the
+publishable key does not satisfy. Importing is A05's job in a browser.
+
+"METHEUES SELLS ALL KINDS OF T-SHIRT" — the owner, 26 October, and it settles
+something this file had recorded as a compromise. The three generic archetypes
+were created with a note that they were shape descriptions chosen because no
+brand's catalogue could be copied. They are not a stand-in for real names: the
+range genuinely is all kinds of T-shirt, so "oversized crew neck" and
+"relaxed fit pocket" describe the business rather than stand in for it. Worth
+knowing before somebody later "fixes" them into something more specific.
+
+TWO OF THE THREE NOW CARRY A `fit`, and this is normalisation rather than
+invention. A product NAMED "OVERSIZED CREW NECK TSHIRT" with `fit` null is one
+row disagreeing with itself — the name already asserts the fit, so the column
+is made to say the same thing. `oversized` and `relaxed`, lowercase, because
+Our Story embeds the value mid-sentence ("in two fits — oversized and relaxed
+—") and that is the one place it appears as prose rather than as a chip.
+LONG SLEEVE CREW NECK TSHIRT keeps `fit` null: its name declares a sleeve, not
+a fit, and there is nothing to normalise from.
+
+THE STRIPED POLO STILL HAS `fit` NULL and must, for the reason recorded below:
+its name declares no fit, its spec sheet says Regular and its photograph shows
+oversized. Normalising from a name works only where the name actually makes
+the claim.
+
+NO LIVE EFFECT YET. Our Story queries `.eq('status', 'published')` and the
+shop's Fit filter is built the same way, so a draft's fit reaches neither.
+The fits clause stays dropped until one of these is published — which is
+correct, and is also why setting it now costs nothing and removes a
+contradiction somebody would otherwise hit on publish day.
+
 A SPEC SHEET ARRIVED AND IT IS A STANDARD ONE, not this garment's. Saved at
 `docs/spec/tshirt-standard-specification.pdf` with a line-by-line §8.5 gap
 analysis beside it in `docs/spec/README.md`. Its own title is "T-Shirt
@@ -2248,12 +2362,273 @@ and the only honest source is measuring real stock. Offered instead: hand over
 the spec sheet or label photographs and they go in immediately; measure three
 garments per size and the size guide gets built.
 
+ERASURE IS BUILT — migration 023, `erase_customer()`, and A20's dialog — which
+closes the one thing `docs/legal/privacy.md` flagged as a promise the code could
+not keep. A20's own card had carried the gap since the screen was built ("a
+migration nobody has written").
+
+A20'S NOTE UNDERSTATED THE PROBLEM, and the real finding is worth more than the
+feature. It said a careless `delete from profiles` would cascade to addresses
+and null `orders.profile_id`, quietly turning a sales history into guest orders.
+True — and the delete WOULD NOT SUCCEED AT ALL for most customers.
+`audit_logs.actor_id references profiles(id)` has no `ON DELETE` clause, so it
+is NO ACTION (confirmed against pg_constraint: confdeltype 'a'), and migration
+021 made request_return() write a row naming the customer who raised the
+return. audit_logs is append-only by the forbid_audit_mutation triggers, so that
+reference can never be updated away either. TWO OF THE THREE PROFILES on the
+live database are already in that state.
+
+AND IT REACHES THE AUTH ACCOUNT. `profiles.id references auth.users(id) on
+delete cascade`, so deleting the auth user cascades into profiles and hits the
+same restriction — meaning SUPABASE'S OWN "Delete user" BUTTON would fail with a
+foreign key error for those customers. Nobody knew, and finding out during a
+one-month statutory deadline is the wrong time.
+
+SO ERASURE IS ANONYMISATION IN PLACE, which is not a workaround: it is what the
+policy already described and what UK GDPR plus six-year HMRC retention actually
+require. The person leaves; the row stays. One random tombstone per erasure,
+`erased-<uuid>@erased.invalid` (`.invalid` is RFC 2606, the same reasoning as
+the admin account's `.test`), shared by the profile and every one of their
+orders — ONE rather than one per row, because admin_customers() aggregates by
+email and a per-order tombstone would shatter one person into five one-order
+"customers" and stop A02 and A19 reconciling.
+
+THE ORDER OF OPERATIONS IS THE OPPOSITE OF /refund's, by the same reasoning. The
+auth identity goes first: if the database half then fails, the rows still carry
+the address, so A20 finds the person and the button works again. Database-first
+leaves the public data scrubbed, the customer still able to sign in, and NO
+SCREEN LEFT TO RETRY FROM, because A20 is keyed on an email no row holds. That
+is why the route mints the tombstone rather than the function — both halves must
+end up holding the same address, and 023 validates its shape rather than
+trusting it, the same call /sign makes about a storage path.
+
+THE AUTH HALF GOES THROUGH THE ADMIN API, NOT SQL. `postgres` can write
+auth.users directly (checked), and a migration doing so would be hand-editing
+identities, sessions and refresh tokens GoTrue owns. updateUserById anonymises
+the email and bans the account for a hundred years — GoTrue has no "forever",
+and a ban that lapses is an account that comes back. One thing it does not do:
+expire an access token already issued, so a customer signed in at that moment
+keeps a working token for up to its remaining hour. Revoking it needs their JWT.
+
+WHAT STAYS, each for its own reason: the sale itself (tax law), the delivery
+COUNTRY only (place of supply decides the VAT treatment, and A11's filter reads
+`delivery_address->address->>country`), payments.card_last4 (four digits cannot
+charge a card, and Stripe is a controller in its own right — erasure there is a
+separate request), and audit rows. THE AUDIT SUMMARY MUST NOT NAME THE ERASED
+ADDRESS, which is the sharpest detail in the whole migration: audit_logs cannot
+be edited or deleted by anyone, so an email written there would be the one copy
+erasure could never reach — the log would defeat the act it was recording. It
+names the tombstone, which is what A19 and A20 show for that person afterwards,
+and A23 resolves `customer` entries to "Erased customer" with no lookup because
+the handle IS the label.
+
+TWO REFUSALS AND TWO DEPARTURES, all recorded in docs/design-questions.md Part B
+rather than only here. Staff and owners are not erasable from this screen (their
+profile is named by audit rows as an ACTOR, and being an admin is one row's role
+column). A paid order not yet delivered or cancelled blocks erasure and the
+dialog disables itself naming the order, because until then we need the address
+to send it. And the action is OWNER ONLY — A22's line rather than the
+orders-and-returns one, the second route ever to need is_owner().
+
+023 IS WRITTEN AND NOT APPLIED. It timed out on this environment's confirmation
+gate and `pg_proc` confirms erase_customer does not exist — the rule held, a
+timeout means the write did not happen, and the way to tell is to read it back.
+The body contains `delete` statements, which is the likeliest trigger and fits
+the lead from the alt-text run. IT NEEDS RUNNING THROUGH THE DASHBOARD SQL
+EDITOR, the way 020 was, AND THE ADVISOR RUN AFTER IT per rule 3 — A20's dialog
+will fail until then. tsc and next build both pass.
+
+MIGRATION 022 WAS APPLIED AND NEVER COMMITTED, found while indexing the README.
+`supabase_migrations.schema_migrations` holds `20261026093757 /
+022_newsletter_unsubscribe_token`, the column, its NOT NULL, its default and the
+unique index are all live, the unsubscribe route and page are both in the
+repository — and there was no migration file here and nothing in the git
+history. RECONSTRUCTED on 27 October by reading the statements back off the live
+database rather than from memory, and the file says so at the top. That is the
+MIRROR IMAGE of 020's hole, which ran through the dashboard and was missing from
+the HISTORY while the file sat in the repo. Both directions are now recorded in
+the migrations README: the history table and this repository are two separate
+records of the same thing, and either can be the one that is short.
+
+PEXELS IS A SECOND STOCK PROVIDER, and the interesting half is which provider
+was REFUSED and why. The owner asked about Pinterest; the terms were checked
+rather than answered from memory, and the answer is not about Pinterest's API
+at all. PINTEREST DOES NOT OWN THE IMAGES — a pin is a copy of someone else's
+photograph, saved by a third party who generally had no right to grant
+anything, so there is no licence to acquire whatever the developer terms say.
+That is a sharper problem than the wrong-garment mismatch this file already
+records: wrong garment is consumer protection, an unlicensed photograph on a
+product page is a copyright claim from the photographer or the brand, and
+apparel brands enforce. Practically it also does not work — v5 has no general
+public pin search (your own boards and Pins, plus a beta top-ten by term), it
+needs app review, and the services that do offer pin search are scrapers.
+
+UNSPLASH WAS THE OBVIOUS ALTERNATIVE AND IS INCOMPATIBLE WITH THIS CODEBASE,
+which is worth recording because it looks like the better library and the
+reason is not quality. Its API terms §6 REQUIRE hotlinking — "you must
+directly use or embed the related image URLs returned by the API" — and call a
+breach material, which is the exact opposite of Pixabay's rule and cannot be
+squared with lib/images.ts holding that `product_images.storage_path` is a path
+and never a URL. And §9 requires crediting Unsplash AND the photographer with a
+link to their profile EVERY TIME AN IMAGE IS DISPLAYED, which here means a
+credit line beside every garment on the shop listing, the product page and the
+homepage. A product photograph with a photographer credit next to it is not a
+product photograph.
+
+PEXELS FITS THE SHAPE ALREADY BUILT. Nothing in its documentation requires
+hotlinking, so the import downloads into `shop-images` exactly as the Pixabay
+import and a browser upload do; commercial use is permitted broadly. What it
+asks for is a prominent link to Pexels WHEN MAKING API REQUESTS and that
+photographers be credited where possible — both of which live on A05's search
+panel, the surface that makes the requests. THAT READING IS THE WHOLE
+DISTINCTION and is recorded in design-questions.md so it can be challenged: the
+guideline attaches to the app calling the API, not to every later display of
+the file, which is what makes Pexels workable where Unsplash is not. The
+budget differs too and the code says so: 200 an hour and 20,000 a MONTH against
+Pixabay's 100 a minute with no monthly cap, so the 24-hour cache is carried
+over as thrift rather than as Pixabay's stated obligation.
+
+IT IS A PROVIDER LAYER, NOT A SECOND COPY. `lib/pixabay.ts` moved to
+`lib/stock-photos/pixabay.ts` beside `pexels.ts`, with `types.ts` holding the
+one `StockPhoto` shape and `index.ts` the registry — the same move
+form-styles.ts, dialog-styles.ts and quantity-control.tsx all record. The route
+went with it: `/api/admin/images/pixabay` is now `/api/admin/images/stock` with
+a `provider` parameter, because everything below the provider call is identical
+and it is the part carrying the reasoning — resolve an id rather than trust a
+URL, check the URL anyway, check the declared type, check the REAL byte length,
+upload through the caller's own session so 019's `is_staff()` policy applies,
+attach at the end, and say plainly when the file lands but the row does not. A
+second copy of that is a second copy of the SSRF guard to keep in step. Adding
+a third provider is one file and one line.
+
+TWO SMALL THINGS WORTH KNOWING. The download is Pexels' `large2x` (~1880px) and
+NOT `original`: originals there are routinely 25 megapixels and past the
+bucket's 10 MB ceiling, so importing one would fail the size check after paying
+for the whole download. And PEXELS' OWN `alt` IS THE MORE DANGEROUS OF THE TWO
+PROVIDERS' CONTEXT FIELDS, which is why the don't-prefill rule needed restating
+rather than just carrying over: Pixabay returns keywords nobody would mistake
+for prose, while Pexels returns "Man in White Crew Neck T-shirt" — a caption
+that reads like an alt text, would sail through the NOT NULL check, describes
+the STOCK PHOTOGRAPH rather than the garment being sold, and says nothing about
+the stripe, the placket or the cut. Shown as context; the field stays empty.
+
+UNEXERCISED, with one half verified further than Pixabay's was before its key
+arrived. `api.pexels.com` IS reachable from this sandbox and the auth semantics
+are confirmed by probing: the key goes in `Authorization` raw with no Bearer
+prefix, a missing key answers 401 "Missing API key" and a wrong one 401 "Invalid
+API key" — so the 401/403 branch reading "refused the key on this deployment" is
+accurate, since the missing-key case is caught earlier as a 503. THE RESPONSE
+SHAPE IS STILL UNVERIFIED and needs `PEXELS_API_KEY` on Vercel, the same
+sensitive-variable treatment PIXABAY_API_KEY has. tsc and next build both pass.
+
+AND IT DOES NOT SOLVE THE ACTUAL PROBLEM, which was said before it was built
+rather than after. Stock photography of *a* T-shirt is still not photography of
+*our* T-shirt. Pexels will furnish the editorial surfaces Pixabay furnished
+badly — the homepage hero, Our Story's well — and it will not honestly furnish
+OVERSIZED CREW NECK or RELAXED FIT POCKET, for the reason already recorded: the
+owner's "everything, unmarked" decision answered whether stock photographs may
+be product images, not whether a WRONG GARMENT may be shown. The thing that
+closes product photography is a phone, a plain wall and window light, which is
+why A05's no_mobile gate was lifted.
+
+THE SHOP RUNS ON DEMO DATA NOW, at the owner's instruction on 27 October:
+pre-supplier, built so the app could be SEEN working end to end rather than
+inferred from tsc. That changes the standing posture of this file — several
+notes above refuse to invent garment facts, and those refusals were about
+SHIPPING fabricated claims to paying customers. The owner has stated the
+intent, that real information replaces all of it, and asked for the gaps to be
+documented. `docs/real-data-needed.md` is that document and is the thing to
+hand anyone asking what is still missing; `docs/demo-data/` holds the seed, the
+teardown and a click-by-click end-to-end walkthrough.
+
+WHAT WAS SEEDED: all four products published with a full garment specification,
+36 adjust_stock() calls giving deliberate variety (most sizes 12, XXXL 3 so Low
+stock shows, XS 0 so Sold out shows), the FIRST TWO COLLECTIONS this project has
+ever had, and nine generated photographs. The collections also close a gap this
+file carried for weeks — A09/A10's write paths were built and unexercised
+because `collections` had no rows, and CLAUDE.md said "creating the first one is
+the test".
+
+THREE CHOICES IN THE DEMO VALUES WORTH KNOWING. `fabric_weight_gsm` and
+`composition` are 240 GSM and 100% combed cotton because A21's craft rows ALREADY
+SHIP those defaults — the homepage was making the claim while every product sat
+null, so matching them removes a disagreement rather than adding a claim.
+`made_in` is Portugal and deliberately NOT the United Kingdom: Our Story says
+printing and finishing happen here, which the design carefully separates from
+where the blank was woven, so Portugal demonstrates that distinction working
+instead of collapsing it — and a UK origin claim is the most enforcement-prone
+thing that could be typed. And the polo's `fit` is finally set, because the
+contradiction that kept it null (spec sheet says Regular, photograph showed
+oversized) goes away with the photograph.
+
+THE IMAGES ARE GENERATED AND WERE LOOKED AT. Nine, via Kling at 135 credits,
+flat-lay at 4:5 — the gallery's exact ratio — with no people, and an explicit
+no-logo instruction because the one real photograph this shop had turned out to
+carry another brand's embroidery. SIX OF THE NINE were opened and inspected
+rather than trusted from the prompt, and every alt text is written from the
+image. They are 1.2 MB total in `public/demo/`.
+
+THE UPLOAD PATH IS A ROUTE, NOT A SCRIPT, and that is the interesting part: 019's
+storage policies are gated on is_staff(), and these sessions have no staff
+credential, so a script would have needed a service key and would have routed
+around the lock. Instead `/admin/demo` uploads the bundled files through the
+CALLER'S OWN session, exactly as the stock import does. It only ever fills
+products that have NO photography, so a real photograph can never be pushed down
+the running order by it, and running it twice does nothing.
+
+`lib/admin/image-import.ts` came out of the stock route with it — the download,
+type check, real-byte-length check, signed upload and attach-at-the-end were
+about to exist twice. It deliberately does NOT judge whether a URL is safe,
+because only the caller knows: an allow-list of provider CDNs for the stock
+import, this deployment's own origin for the demo seed.
+
+THE DASHBOARD CARRIES A NOTICE AND IT REMOVES ITSELF. The single largest risk
+with placeholder data is forgetting it is placeholder, so A02 counts
+`made_in = 'Portugal'` from the live database and links to /admin/demo. It
+disappears when the real specification arrives rather than depending on anyone
+unsetting a flag. Stripe test mode is the other thing keeping the placeholders
+harmless, and both facts are on the notice.
+
+`orders.billing_address` IS WRITTEN NOW, which closes the last of the
+"column read by something and written by nothing" findings this file has been
+collecting. It had existed since 001 with no writer, and A12 and 13 Order
+Detail both omitted the row the design draws because of it. The charge the
+webhook already fetches for the card carries `billing_details` beside it, so
+this is a few lines on a call that was already being made — the same shape as
+the card write that closed six narrowings at once.
+
+EXPECT IT TO BE SPARSE, and the code is built around that rather than around
+the happy case. The checkout session sets no `billing_address_collection`, so
+Stripe defaults to 'auto' and collects only what the card network requires —
+often a country and a postcode and nothing else. The webhook therefore writes
+the column ONLY when a line1 or a postcode actually came back: a row holding
+`{ name: null, address: { all nulls } }` would render an empty panel in the
+admin and read as a bug rather than as a customer who was never asked. Setting
+`billing_address_collection: 'required'` would change that and is the owner's
+call, since it adds a step to checkout.
+
+IT IS A SECOND, SMALLER UPDATE rather than folded into the paid branch's
+first one, deliberately: marking the order paid must not wait on a Stripe
+call that can fail, and that update has already happened by then. Same
+best-effort posture as the card.
+
+A12 SHOWS IT AND THE CUSTOMER'S OWN ORDER PAGE DOES NOT, which is a decision
+rather than an omission and both comments now say so. Staff have a reason to
+see a billing address (chargebacks, fraud) that a customer re-reading their
+own order does not, and because Stripe collects it only sometimes, a row
+present for some customers and missing for most reads as a fault. Track-order
+is unchanged for the sharper version of the same reason, now recorded there:
+that page is reached by proving an order number plus an email, and a postal
+address attached to a card is the most sensitive thing on it.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
-delivery rates, the £150 threshold, and legal REVIEW of the three pages now
+delivery rates, the £150 threshold, legal REVIEW of the three pages now
 drafted in `docs/legal/` (the drafting is done; the review and the
-`[OWNER: ...]` identity facts are not). Three seeded values in migration
+`[OWNER: ...]` identity facts are not), APPLYING MIGRATION 023 through the
+dashboard SQL editor, and `PEXELS_API_KEY` on Vercel as a sensitive variable
+beside PIXABAY_API_KEY. Three seeded values in migration
 008 are marked PLACEHOLDER for the same reason.
 
 ## Conventions
