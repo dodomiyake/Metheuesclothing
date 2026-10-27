@@ -2847,6 +2847,48 @@ taking the bundle to 23. `held` is updated as the loop adds, so the second
 colourway of a product sees the first — the snapshot is taken before the loop
 runs, and without that a two-entry product would have filled only one.
 
+THE DESIGN STORY'S EMPTY BLACK HALF, reported as "whats supposed to be here"
+with a screenshot of the plain polo's story section: a 4:5 graphite well with
+nothing in it beside the copy. A photograph is supposed to be there and
+NOTHING WAS EVER WIRED TO FILL IT -- the A05 reader list in this file names
+the gallery, the cards, the heroes and the admin lines, and this well is the
+one surface it missed.
+
+PULLING ALL THREE FRAMES FOUND TWO MORE ERRORS IN THE SAME SECTION, which is
+the whole argument for pulling rather than inferring -- and this exact screen
+is the one this file already records getting wrong by inferring Tablet from a
+summary. 62:968 puts the COPY at x=48 w=768 and the image at x=912 w=480, so
+the columns were the wrong way round: an empty well led the section where the
+design leads with the words. And 59:869 (Tablet) and 55:779 (Mobile) draw the
+story as COPY ALONE -- no image frame at all -- where our build showed the
+well at every width, stacked above the text on a phone.
+
+SO THE PHOTOGRAPH IS DESKTOP ONLY, hidden below 1440 by a class with NO inline
+display, for the reason this file records about the header icon buttons whose
+inline display:flex silently beat every media query meant to hide them.
+
+THE LAST IMAGE, NOT THE FIRST, and none at all on a product with one. The
+design's frame is named "Print detail 4:5" -- a different view from the one at
+the top of the page -- so repeating the hero eight hundred pixels below it
+would miss the point of the section. A05's running order is the curation, so
+the last row is the honest "another view"; a product holding a single
+photograph renders the copy alone, which is a layout the Tablet and Mobile
+frames already define rather than a special case. The striped polo is that
+product today.
+
+MEASURED AT 390/768/1024/1440/1920 against the frame's own numbers rather than
+eyeballed: at 1440 the copy sits at x=48 w=768 and the figure at x=912 w=480,
+which is 62:968 exactly; below 1440 the figure computes to display:none and
+the copy runs full width; past 1440 the copy grows so the figure stays flush
+with the right gutter instead of leaving 480px of dead black beside it; no
+horizontal overflow at any width.
+
+The design's story block also carries a HEADLINE between the eyebrow and the
+body ("Frequency One", 48px). No column stores one -- `products.name` is
+already the page title and the frame's headline is a separate design name --
+so it stays omitted, the same call every other unbacked field on this screen
+gets.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real

@@ -523,16 +523,42 @@ button.mc-icon-button[aria-label='Search'] {
   }
 }
 
+/* 04A/B/C "Full design story". The photograph is DESKTOP ONLY — 04B
+   (59:869) and 04C (55:779) draw the copy with no image beside it at all,
+   so this is a column with nothing to its right below 1440 rather than a
+   two-column layout that collapses. At 1440 the frame puts the copy at
+   x=48 w=768 and the image at x=912 w=480, which is 768 + 96 + 480 across
+   a 1344 content width, and both start at the same y — so flex-start, not
+   centre. */
 .mc-pdp-story {
   display: flex;
   flex-direction: column;
   gap: 32px;
 }
-@media (min-width: 768px) {
+@media (min-width: 1440px) {
   .mc-pdp-story {
     flex-direction: row;
-    gap: 64px;
-    align-items: center;
+    gap: 96px;
+    align-items: flex-start;
+  }
+  /* Grows past 1440 so the figure stays flush with the right gutter
+     rather than leaving dead space beside it; at exactly 1440 the basis
+     and the figure's fixed 480 reproduce the frame's own 768. */
+  .mc-pdp-story-copy {
+    flex: 1 1 768px;
+    min-width: 0;
+  }
+}
+/* No inline `display` on this, deliberately: CLAUDE.md records the icon
+   buttons whose inline display:flex silently beat every media query meant
+   to hide them per breakpoint. */
+.mc-pdp-story-figure {
+  display: none;
+}
+@media (min-width: 1440px) {
+  .mc-pdp-story-figure {
+    display: block;
+    flex: 0 0 480px;
   }
 }
 

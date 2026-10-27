@@ -69,6 +69,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   if (variantsError) throw new Error(`Could not load variants: ${variantsError.message}`);
 
   const images = await loadProductImages(supabase, product.id);
+  // The design story's photograph: the LAST image rather than the first,
+  // so it is not the same picture the gallery is already showing. Null on
+  // a product with one photograph — see the section's own comment.
+  const storyImage = images.length > 1 ? images[images.length - 1] : null;
 
   const { data: settings, error: settingsError } = await supabase
     .from('store_settings')
@@ -272,20 +276,43 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       {product.design_story && (
         <section style={{ background: 'var(--mc-bg-inverse)', color: 'var(--mc-text-inverse)' }}>
           <div className="mc-page-gutter mc-pdp-story" style={{ paddingTop: 'var(--mc-space-2xl)', paddingBottom: 'var(--mc-space-2xl)' }}>
-            <div
-              style={{
-                flex: 1,
-                aspectRatio: '4 / 5',
-                background: 'var(--mc-graphite)',
-                borderRadius: 'var(--mc-radius-md)',
-              }}
-            />
-            <div style={{ flex: 1 }}>
+            {/*
+              COPY FIRST. The frames put the story copy on the LEFT and the
+              photograph on the right (62:968 — copy x=48, image x=912); this
+              had them the other way round, with an empty graphite well
+              leading the section at every width.
+
+              THE PHOTOGRAPH IS DESKTOP ONLY and only when there is a SECOND
+              one. 04B and 04C draw this section as copy alone, so below 1440
+              there is nothing to show and the CSS hides the figure rather
+              than stacking a well above the text. Above it, the design's own
+              frame is a "Print detail" — a different view from the one at the
+              top of the page — so the LAST photograph in A05's running order
+              is used, and a product with a single photograph shows none here
+              rather than repeating its own hero eight hundred pixels down.
+            */}
+            <div className="mc-pdp-story-copy">
               <h2 style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1.54px', textTransform: 'uppercase', color: 'var(--mc-text-muted-inverse)', margin: '0 0 16px' }}>
                 The design story
               </h2>
               <p style={{ whiteSpace: 'pre-line', fontSize: 17, lineHeight: 1.6, margin: 0 }}>{product.design_story}</p>
             </div>
+            {storyImage && (
+              <div className="mc-pdp-story-figure">
+                <img
+                  src={storyImage.url}
+                  alt={storyImage.alt}
+                  loading="lazy"
+                  style={{
+                    width: '100%',
+                    aspectRatio: '4 / 5',
+                    objectFit: 'cover',
+                    display: 'block',
+                    borderRadius: 'var(--mc-radius-md)',
+                  }}
+                />
+              </div>
+            )}
           </div>
         </section>
       )}
