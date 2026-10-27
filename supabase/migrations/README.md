@@ -35,6 +35,7 @@ applied; both were true in September and neither has been since.
 | `022_newsletter_unsubscribe_token.sql` | A token, so unsubscribe can work at all |
 | `023_erase_customer.sql` | `erase_customer()` — the UK GDPR erasure right |
 | `024_deliver_order.sql` | `deliver_order()` — the end of fulfilment |
+| `025_deliver_after_refund.sql` | A refund after dispatch must not block delivery |
 
 ### 022 was applied and never committed, and 023 is the other way round
 

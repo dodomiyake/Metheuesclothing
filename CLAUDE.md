@@ -2617,6 +2617,53 @@ disappears when the real specification arrives rather than depending on anyone
 unsetting a flag. Stripe test mode is the other thing keeping the placeholders
 harmless, and both facts are on the notice.
 
+MIGRATION 025 FIXES A BUG IN 024, found by PROBING THE GUARDS on the live
+database rather than by re-reading the code — which is the point of probing
+them at all. 024 shipped with `if v_paid <> 'paid' then raise`, copied from
+advance_fulfilment and ship_order. In those two it is right: both run BEFORE
+the parcel leaves, and nothing unpaid should be packed or dispatched.
+
+DELIVERY IS THE ONE FULFILMENT STEP THAT HAPPENS AFTER THE MONEY CAN MOVE
+AGAIN, and that is what the copied guard missed. Order paid -> shipped ->
+customer raises a return or a partial refund is issued -> THE PARCEL ARRIVES
+-> staff cannot record it. MC-10010 (partially_refunded) was refused with "is
+not paid", and MC-10008 — `refunded` and `shipped`, a real order that
+genuinely went out — could never have been marked delivered at all.
+
+THE CONSEQUENCE IS THE ONE 024 EXISTS TO PREVENT, which is why this is worth
+a migration rather than a note. request_return() counts from
+`coalesce(max(delivered_at), max(shipped_at), placed_at)`, so an order stuck
+without a delivered_at falls back to the dispatch date — meaning a partial
+refund on one item would have quietly shortened the returns window on the
+others. The exact failure 024 was written to close, reintroduced through a
+copied line.
+
+025 refuses only `pending` and `failed`. `paid`, `partially_refunded` and
+`refunded` all describe an order that WAS paid for, and the
+`fulfilment_status = 'shipped'` requirement already proves dispatch happened,
+which ship_order would not have allowed unless it was paid at the time. So
+the check is really asking "was this ever a real sale", and the message now
+says so. Cancelled keeps its own separate guard, which is the case that
+actually means the parcel should not be arriving.
+
+A SECOND, SMALLER WIN: the payment check was MASKING the real reason.
+MC-10010 is `processing`, not shipped, and now reports "has not been
+dispatched yet" instead of a payment complaint that was true but not the
+blocker. A guard that fires first and explains least is worse than no guard.
+
+PROBED BEFORE AND AFTER, five scenarios each, and the probe wrote nothing:
+fulfilments with a delivered_at stayed at 0 and audit_logs at 58 across both
+runs, because every guard raises before the first write. The helper function
+was dropped afterwards and the advisor baseline is unchanged — no `zz%`
+functions remain, unlike the 012 fixture which left two behind long enough to
+be flagged.
+
+ANOTHER DATA POINT ON THE WRITE GATE: this `drop function` went straight
+through, as did 025's apply. Two deletes on `product_images` timed out in the
+same stretch. So the gate is not keyed to DROP or DELETE as a class, which
+several earlier notes in this file assumed — it is intermittent, and the only
+reliable response is to retry and then read the state back.
+
 `orders.billing_address` IS WRITTEN NOW, which closes the last of the
 "column read by something and written by nothing" findings this file has been
 collecting. It had existed since 001 with no writer, and A12 and 13 Order
