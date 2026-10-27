@@ -2531,6 +2531,64 @@ be product images, not whether a WRONG GARMENT may be shown. The thing that
 closes product photography is a phone, a plain wall and window light, which is
 why A05's no_mobile gate was lifted.
 
+THE SHOP RUNS ON DEMO DATA NOW, at the owner's instruction on 27 October:
+pre-supplier, built so the app could be SEEN working end to end rather than
+inferred from tsc. That changes the standing posture of this file — several
+notes above refuse to invent garment facts, and those refusals were about
+SHIPPING fabricated claims to paying customers. The owner has stated the
+intent, that real information replaces all of it, and asked for the gaps to be
+documented. `docs/real-data-needed.md` is that document and is the thing to
+hand anyone asking what is still missing; `docs/demo-data/` holds the seed, the
+teardown and a click-by-click end-to-end walkthrough.
+
+WHAT WAS SEEDED: all four products published with a full garment specification,
+36 adjust_stock() calls giving deliberate variety (most sizes 12, XXXL 3 so Low
+stock shows, XS 0 so Sold out shows), the FIRST TWO COLLECTIONS this project has
+ever had, and nine generated photographs. The collections also close a gap this
+file carried for weeks — A09/A10's write paths were built and unexercised
+because `collections` had no rows, and CLAUDE.md said "creating the first one is
+the test".
+
+THREE CHOICES IN THE DEMO VALUES WORTH KNOWING. `fabric_weight_gsm` and
+`composition` are 240 GSM and 100% combed cotton because A21's craft rows ALREADY
+SHIP those defaults — the homepage was making the claim while every product sat
+null, so matching them removes a disagreement rather than adding a claim.
+`made_in` is Portugal and deliberately NOT the United Kingdom: Our Story says
+printing and finishing happen here, which the design carefully separates from
+where the blank was woven, so Portugal demonstrates that distinction working
+instead of collapsing it — and a UK origin claim is the most enforcement-prone
+thing that could be typed. And the polo's `fit` is finally set, because the
+contradiction that kept it null (spec sheet says Regular, photograph showed
+oversized) goes away with the photograph.
+
+THE IMAGES ARE GENERATED AND WERE LOOKED AT. Nine, via Kling at 135 credits,
+flat-lay at 4:5 — the gallery's exact ratio — with no people, and an explicit
+no-logo instruction because the one real photograph this shop had turned out to
+carry another brand's embroidery. SIX OF THE NINE were opened and inspected
+rather than trusted from the prompt, and every alt text is written from the
+image. They are 1.2 MB total in `public/demo/`.
+
+THE UPLOAD PATH IS A ROUTE, NOT A SCRIPT, and that is the interesting part: 019's
+storage policies are gated on is_staff(), and these sessions have no staff
+credential, so a script would have needed a service key and would have routed
+around the lock. Instead `/admin/demo` uploads the bundled files through the
+CALLER'S OWN session, exactly as the stock import does. It only ever fills
+products that have NO photography, so a real photograph can never be pushed down
+the running order by it, and running it twice does nothing.
+
+`lib/admin/image-import.ts` came out of the stock route with it — the download,
+type check, real-byte-length check, signed upload and attach-at-the-end were
+about to exist twice. It deliberately does NOT judge whether a URL is safe,
+because only the caller knows: an allow-list of provider CDNs for the stock
+import, this deployment's own origin for the demo seed.
+
+THE DASHBOARD CARRIES A NOTICE AND IT REMOVES ITSELF. The single largest risk
+with placeholder data is forgetting it is placeholder, so A02 counts
+`made_in = 'Portugal'` from the live database and links to /admin/demo. It
+disappears when the real specification arrives rather than depending on anyone
+unsetting a flag. Stripe test mode is the other thing keeping the placeholders
+harmless, and both facts are on the notice.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real

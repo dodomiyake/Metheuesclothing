@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { requireStaffSession } from '@/lib/admin/require-staff';
-import {
-  SHOP_BUCKET,
-  ALLOWED_TYPES,
-  MAX_BYTES,
-  extensionFor,
-  productImagePath,
-} from '@/lib/images';
+import { fetchImageToBucket, attachProductImage, imagePaths } from '@/lib/admin/image-import';
 import {
   STOCK_PROVIDER_IDS,
   StockPhotoError,
@@ -166,94 +159,37 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 
-  // 2. Download it. Pixabay's terms require storing it on our own server
-  //    rather than hotlinking; Pexels does not require it and gets the
-  //    same treatment, because every reader in this codebase expects a
-  //    bucket path and a shop whose pictures live on someone else's CDN
-  //    is a shop whose pictures can vanish.
-  const imageRes = await fetch(photo.downloadUrl, { cache: 'no-store' }).catch(() => null);
-  if (!imageRes || !imageRes.ok) {
-    return NextResponse.json({ error: 'Could not download that photograph.' }, { status: 502 });
+  // 2. Download it and put it in our own bucket. Pixabay's terms require
+  //    storing it on our own server rather than hotlinking; Pexels does not
+  //    require it and gets the same treatment, because every reader in this
+  //    codebase expects a bucket path and a shop whose pictures live on
+  //    someone else's CDN is a shop whose pictures can vanish.
+  //
+  //    The download, the type check, the real-byte-length check and the
+  //    signed upload all live in lib/admin/image-import.ts now, because the
+  //    demo image seed needs the identical sequence and a second copy of it
+  //    would be a second copy of the size check to keep in step.
+  const stored = await fetchImageToBucket({
+    supabase: session.supabase,
+    url: photo.downloadUrl,
+    pathFor: imagePaths.product(product_id),
+    sourceLabel: provider.label,
+  });
+  if (!stored.ok) {
+    return NextResponse.json({ error: stored.error }, { status: stored.status });
   }
 
-  const contentType = (imageRes.headers.get('content-type') ?? '').split(';')[0]!.trim();
-  const ext = extensionFor(contentType);
-  if (!ext || !ALLOWED_TYPES.includes(contentType)) {
-    return NextResponse.json(
-      {
-        error: `${provider.label} returned a ${contentType || 'unknown'} file, which this shop does not store.`,
-      },
-      { status: 415 },
-    );
+  // 3. Attach it, at the end of the running order.
+  const attached = await attachProductImage({
+    supabase: session.supabase,
+    productId: product_id,
+    storagePath: stored.path,
+    altText: alt_text,
+    colour: parsed.data.colour,
+  });
+  if (!attached.ok) {
+    return NextResponse.json({ error: attached.error }, { status: attached.status });
   }
 
-  const bytes = new Uint8Array(await imageRes.arrayBuffer());
-  // Checked against the real length rather than the Content-Length
-  // header, which is a claim. Storage enforces it a third time (019).
-  if (bytes.byteLength === 0 || bytes.byteLength > MAX_BYTES) {
-    return NextResponse.json(
-      { error: 'That photograph is over the 10 MB limit. Pick a different one.' },
-      { status: 413 },
-    );
-  }
-
-  // 3. Upload through a signed URL created with the caller's own session,
-  //    so the storage policy applies. The path is built here, never sent.
-  const path = productImagePath(product_id, randomUUID(), ext);
-  const { data: signed, error: signError } = await session.supabase.storage
-    .from(SHOP_BUCKET)
-    .createSignedUploadUrl(path);
-  if (signError || !signed) {
-    return NextResponse.json({ error: 'Could not start the upload.' }, { status: 500 });
-  }
-
-  const { error: uploadError } = await session.supabase.storage
-    .from(SHOP_BUCKET)
-    .uploadToSignedUrl(signed.path, signed.token, bytes, { contentType });
-  if (uploadError) {
-    return NextResponse.json(
-      { error: `The photograph did not upload: ${uploadError.message}` },
-      { status: 500 },
-    );
-  }
-
-  // 4. Attach it. New images go on the END, the same rule POST
-  //    /api/admin/images follows — an import quietly becoming the card
-  //    the whole shop listing shows is not what "add a photo" means.
-  const { data: last, error: lastError } = await session.supabase
-    .from('product_images')
-    .select('position')
-    .eq('product_id', product_id)
-    .order('position', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (lastError) {
-    return NextResponse.json(
-      { error: 'The photograph uploaded but the running order could not be read, so it was not attached.' },
-      { status: 500 },
-    );
-  }
-
-  const { data: row, error: insertError } = await session.supabase
-    .from('product_images')
-    .insert({
-      product_id,
-      storage_path: signed.path,
-      alt_text,
-      colour: parsed.data.colour?.trim() || null,
-      position: ((last?.position as number) ?? -1) + 1,
-    })
-    .select('id')
-    .single();
-
-  if (insertError) {
-    // Same honesty as the browser upload path: the file is in the bucket
-    // and nothing points at it. Said plainly rather than swallowed.
-    return NextResponse.json(
-      { error: 'The photograph uploaded but was not attached. It is an orphan in storage.' },
-      { status: 500 },
-    );
-  }
-
-  return NextResponse.json({ id: row.id, storage_path: signed.path }, { status: 201 });
+  return NextResponse.json({ id: attached.id, storage_path: stored.path }, { status: 201 });
 }
