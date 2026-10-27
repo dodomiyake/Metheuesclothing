@@ -25,11 +25,13 @@ export const runtime = 'nodejs';
  * from the request body reaches the fetch — `action` is the only thing read
  * off it and it is one of two literals.
  *
- * IT ONLY FILLS PRODUCTS THAT HAVE NO PHOTOGRAPHS. Running it twice does
- * nothing the second time, and more importantly it can never push a real
- * photograph down the running order or sit beside one. The moment the owner
- * uploads actual product photography, this route stops touching that
- * product.
+ * IT ONLY FILLS PRODUCTS WHOSE EVERY PHOTOGRAPH IT PUT THERE ITSELF, and a
+ * colourway it has already filled is never filled twice. So running it
+ * again does nothing, and it can never push a real photograph down the
+ * running order or sit beside one. The moment the owner uploads actual
+ * product photography — or re-describes one of these in A05 — this route
+ * stops touching that product. The per-colourway loop below carries the
+ * full reasoning.
  *
  * THE SECOND ACTION EXISTS BECAUSE THAT GUARD IS TOO BLUNT FOR ONE CASE.
  * The first demo batch was FLAT-LAY photography, deliberately with no people
@@ -95,6 +97,24 @@ const PRODUCT_IMAGES: DemoImage[] = [
     slug: 'long-sleeve-crew-neck-tshirt',
     colour: 'BLACK',
     alt: 'A woman stands facing the camera against a plain warm-grey studio wall, wearing a plain black long sleeve T-shirt with a ribbed crew neck and sleeves reaching the wrist, over cream trousers and white trainers.',
+  },
+  {
+    file: 'model-oversized-bone.jpg',
+    slug: 'oversized-crew-neck-tshirt',
+    colour: 'BONE',
+    alt: 'A woman stands facing the camera against a plain warm-grey studio wall, wearing a plain off-white oversized T-shirt with dropped shoulder seams, wide short sleeves and a body that hangs straight past the hip, over dark grey trousers and white trainers.',
+  },
+  {
+    file: 'model-longsleeve-bone.jpg',
+    slug: 'long-sleeve-crew-neck-tshirt',
+    colour: 'BONE',
+    alt: 'A man stands facing the camera against a plain warm-grey studio wall, wearing a plain off-white long sleeve T-shirt with a ribbed crew neck and ribbed cuffs gathered at each wrist, over grey trousers and white trainers.',
+  },
+  {
+    file: 'model-pocket-black.jpg',
+    slug: 'relaxed-fit-pocket-tshirt',
+    colour: 'BLACK',
+    alt: 'A man stands facing the camera against a plain warm-grey studio wall, wearing a loose black short sleeve T-shirt with a ribbed crew neck and a single square patch pocket on the left chest, over grey trousers and white trainers.',
   },
 
   // ------------------------------------------------------ the new eight
@@ -290,11 +310,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Which products already have photography. A product with even one image
-  // is left completely alone — see the note above.
+  // What each product already has. The alt text comes back too, because it
+  // is what tells a demo photograph from a real one — every description
+  // this route writes is a literal in PRODUCT_IMAGES above, and a person
+  // writing their own will not reproduce one by accident.
   const { data: existing, error: existingError } = await session.supabase
     .from('product_images')
-    .select('product_id')
+    .select('product_id, colour, alt_text')
     .in('product_id', [...idBySlug.values()]);
 
   if (existingError) {
@@ -304,16 +326,49 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const photographed = new Set((existing ?? []).map((r) => r.product_id as string));
+  const demoAlt = new Set(PRODUCT_IMAGES.map((i) => i.alt));
+  const held = new Map<string, { colour: string | null; alt: string }[]>();
+  for (const row of existing ?? []) {
+    const id = row.product_id as string;
+    if (!held.has(id)) held.set(id, []);
+    held.get(id)!.push({
+      colour: (row.colour as string | null) ?? null,
+      alt: (row.alt_text as string) ?? '',
+    });
+  }
 
+  /**
+   * THE GUARD IS PER COLOURWAY NOW, NOT PER PRODUCT, and the part it keeps
+   * is the part that matters: a demo photograph must never sit beside a
+   * real one.
+   *
+   * The original rule was "a product with even one image is left completely
+   * alone". That is right about real photography and wrong about this
+   * route's own output — it meant a product that had received ONE demo shot
+   * could never receive its second colourway, so three products ended up
+   * with a single photograph and a gallery that does not swap when the
+   * colour changes, while the other nine swap.
+   *
+   * So the test is no longer "has anything" but "has anything this route
+   * did not put there". If every photograph on a product is one of ours, a
+   * missing colourway can still be filled. The moment a human uploads
+   * something — or re-describes one of ours in A05, which is the same
+   * signal — the product goes back to being left alone for good.
+   */
   for (const image of PRODUCT_IMAGES) {
     const productId = idBySlug.get(image.slug);
     if (!productId) {
       skipped.push(`${image.file} (no product ${image.slug})`);
       continue;
     }
-    if (photographed.has(productId)) {
-      skipped.push(`${image.file} (${image.slug} already has photography)`);
+
+    const rows = held.get(productId) ?? [];
+    if (rows.some((r) => !demoAlt.has(r.alt))) {
+      skipped.push(`${image.file} (${image.slug} has its own photography)`);
+      continue;
+    }
+    if (rows.some((r) => r.colour === image.colour)) {
+      skipped.push(`${image.file} (${image.slug} / ${image.colour} is already there)`);
       continue;
     }
 
@@ -340,6 +395,9 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
+    // Recorded as we go, so the second colourway of the same product sees
+    // the first — the snapshot above was taken before this loop ran.
+    held.set(productId, [...(held.get(productId) ?? []), { colour: image.colour, alt: image.alt }]);
     added.push(`${image.slug} / ${image.colour}`);
   }
 

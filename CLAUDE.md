@@ -2824,6 +2824,29 @@ literals — two different predicates answering the same question, which is how
 a panel ends up promising a number the button does not deliver. Both now read
 the same two exported lists.
 
+THE FILL GUARD IS PER COLOURWAY NOW, NOT PER PRODUCT, and the swap is what
+exposed the flaw. "A product with even one image is left completely alone" is
+right about REAL photography and wrong about this route's own output: after
+the flat-lay swap, three products (oversized crew, long sleeve crew, relaxed
+pocket) held one model shot each and could never receive their second
+colourway, so their galleries did not swap on colour while the other nine did.
+The rule had made the route unable to finish its own job.
+
+THE PART WORTH KEEPING IS KEPT EXACTLY. The test is no longer "has anything"
+but "has anything this route did not put there" — every description the route
+writes is a literal in PRODUCT_IMAGES, and a person writing their own will not
+reproduce one by accident. So a demo photograph still never sits beside a real
+one, and re-describing one in A05 is itself the signal that takes the product
+out of scope for good. Verified against the live database before shipping: the
+three rows' alt text md5s match their manifest entries byte for byte, which is
+what makes the recognition sound rather than hopeful.
+
+Three images were generated for it (oversized BONE, long sleeve BONE, pocket
+BLACK), same studio, same no-logo instruction, all three opened and looked at,
+taking the bundle to 23. `held` is updated as the loop adds, so the second
+colourway of a product sees the first — the snapshot is taken before the loop
+runs, and without that a two-entry product would have filled only one.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
