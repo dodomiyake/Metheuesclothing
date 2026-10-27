@@ -536,14 +536,22 @@ button.mc-icon-button[aria-label='Search'] {
   gap: 32px;
 }
 @media (min-width: 1440px) {
+  /* CAPPED AND CENTRED past 1440 rather than stretched. The frame
+     composes this section at exactly 1344 of content (768 + 96 + 480), and
+     letting it stretch puts the copy at the far left and the photograph at
+     the far right of an ultrawide screen with a chasm of black between
+     them — reported as "this is a waste of space", and it was. 1440 here
+     is 1344 of content plus the 48px gutters the border-box padding adds.
+     Same call `content_page_shell` already makes, for the same stated
+     reason: the composition has a width, and past it the page centres. */
   .mc-pdp-story {
     flex-direction: row;
     gap: 96px;
     align-items: flex-start;
+    max-width: 1440px;
+    margin-left: auto;
+    margin-right: auto;
   }
-  /* Grows past 1440 so the figure stays flush with the right gutter
-     rather than leaving dead space beside it; at exactly 1440 the basis
-     and the figure's fixed 480 reproduce the frame's own 768. */
   .mc-pdp-story-copy {
     flex: 1 1 768px;
     min-width: 0;
