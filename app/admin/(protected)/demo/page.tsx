@@ -2,6 +2,10 @@ import Link from 'next/link';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
 import { requireStaffPage } from '@/lib/admin/require-staff';
 import { SeedDemoImages } from './demo-actions';
+import {
+  SUPERSEDED_FLAT_LAY_ALT,
+  SUPERSEDED_IMAGE_IDS,
+} from '@/app/api/admin/demo/images/superseded';
 
 export const metadata = { title: 'Demo data — Metheues admin' };
 
@@ -48,13 +52,12 @@ export default async function DemoDataPage() {
   // Every product carries Portugal as its origin today, which is the demo
   // value — a real catalogue would not all agree by accident.
   const withPlaceholderSpec = rows.filter((p) => p.made_in === 'Portugal');
-  // The first demo batch was flat-lay photography with nobody in it. The
-  // owner has since asked for the garments to be shown on a model, so these
-  // are counted rather than assumed gone — the fill guard leaves a
-  // photographed product alone for good, which is right for a real
-  // photograph and too blunt for a superseded demo one.
-  const flatLays = imageRows.filter((i) =>
-    typeof i.alt_text === 'string' && i.alt_text.includes('laid flat on a pale grey background'),
+  // Counted from the same two lists the swap acts on, so the number on
+  // the panel cannot drift from what pressing the button would do.
+  const superseded = imageRows.filter(
+    (i) =>
+      SUPERSEDED_IMAGE_IDS.includes(i.id as string) ||
+      (typeof i.alt_text === 'string' && SUPERSEDED_FLAT_LAY_ALT.includes(i.alt_text)),
   );
 
   return (
@@ -125,25 +128,29 @@ export default async function DemoDataPage() {
           <SeedDemoImages />
         </Panel>
 
-        <Panel heading="Flat-lays from the first demo batch">
+        <Panel heading="Photographs the range has outgrown">
           <p style={text}>
-            The first batch photographed the garments laid flat, with nobody in them. The rest of
-            the range is shown on a model, so these four sit oddly beside it. Replacing them
-            removes those rows and their files and puts a model shot in their place.
+            Two things end up here. The first demo batch photographed the garments laid flat with
+            nobody in them, and the rest of the range is shown on a model. And the striped polo&apos;s
+            original picture is an oversized rugby-style shirt carrying another label&apos;s chest
+            embroidery — a different garment from the one on sale, under somebody else&apos;s name.
           </p>
           <p style={text}>
-            It finds them by their exact description, so a photograph anyone has uploaded or
-            re-described is not one of them and cannot be caught by this.
+            The flat-lays are found by their exact description, so nothing you have uploaded or
+            re-described can be caught by that. The polo&apos;s picture is named by its own row
+            instead, because it <em>is</em> a real upload and a pattern that could reach one of
+            those would eventually reach the wrong one.
           </p>
-          {flatLays.length === 0 ? (
+          {superseded.length === 0 ? (
             <p style={text}>
-              No flat-lays are left, so there is nothing for this to do.
+              Nothing is left for this to replace.
             </p>
           ) : (
             <>
               <p style={text}>
-                <strong>{flatLays.length}</strong> flat-lay photograph
-                {flatLays.length === 1 ? '' : 's'} would be replaced.
+                <strong>{superseded.length}</strong> photograph
+                {superseded.length === 1 ? '' : 's'} would be removed, and a model shot put in
+                place of each.
               </p>
               <SeedDemoImages swapFlatLays />
             </>
