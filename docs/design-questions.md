@@ -314,6 +314,38 @@ setting rather than on a design decision.
 
 ---
 
+### A18. Nothing confirms delivery to the customer, and nothing drew the step at all
+
+**Design:** the email set runs E1–E9 and contains no delivery confirmation.
+A12's timeline draws a "Delivered" step; no screen draws a control that
+reaches it.
+
+**System (before this):** `fulfilments.delivered_at` was read in nine places
+and written by nothing. `advance_fulfilment` refuses any transition but the
+packing steps ("`% is not a packing step; use ship_order`") and `ship_order`
+stops at `shipped` — so `delivered` was a value in the `fulfilment_status`
+enum that no code path could produce. Three fulfilments on the live database,
+`delivered_at` null on all three.
+
+**Why it mattered more than a missing tick:** `request_return()` counts the
+returns window from `coalesce(max(delivered_at), max(shipped_at), placed_at)`.
+With `delivered_at` permanently null it always fell through to `shipped_at`,
+so the window began when the parcel LEFT rather than when it arrived and the
+customer silently lost however many days it spent with the carrier. 007's
+coalesce was written for this and had nothing to prefer.
+
+**Shipped:** migration 024's `deliver_order()`, a route, and an inline "Mark
+delivered" on A12's Tracking panel with an editable arrival date. Inline
+rather than a dialog on purpose — the consequence-list-and-typed-confirmation
+pattern is for actions nobody can undo, and borrowing it here would misstate
+which actions are dangerous.
+
+**Needed:** two decisions. Should a DELIVERY CONFIRMATION EMAIL exist? It is a
+common one and customers expect it, and E1–E9 has no slot for it, so nothing
+is sent today. And should delivery ever be marked automatically — which means
+a carrier integration, which means the carrier question that A14's free-text
+field and the homepage's dropped "DPD" are both already waiting on.
+
 ## Part B — departures already shipped
 
 Each of these is live. They are listed so you can reverse any of them; every one

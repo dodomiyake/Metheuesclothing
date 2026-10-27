@@ -8,6 +8,7 @@ import { StatusBadge, PAYMENT_BADGE, FULFILMENT_BADGE } from '@/components/admin
 import { countryName, customerName, orderCountryCode } from '../order-fields';
 import { buildFulfilmentSteps } from './fulfilment-steps';
 import { AddTracking } from './add-tracking';
+import { MarkDelivered } from './mark-delivered';
 import { CancelOrder } from './cancel-order';
 import { RefundOrder } from './refund-order';
 
@@ -105,7 +106,13 @@ export default async function AdminOrderDetailPage({
       .eq('entity_type', 'order')
       .eq('entity_id', id)
       .order('created_at', { ascending: false }),
-    supabase.from('store_settings').select('free_delivery_threshold_pence').single(),
+    supabase
+      .from('store_settings')
+      // return_window_days joined the read for Mark delivered: the window
+      // runs from delivered_at, so the helper text has to quote the real
+      // number rather than a figure typed into a component.
+      .select('free_delivery_threshold_pence, return_window_days')
+      .single(),
   ]);
 
   if (items.error) throw new Error(`Could not load the order's items: ${items.error.message}`);
@@ -478,6 +485,20 @@ export default async function AdminOrderDetailPage({
                         Track parcel
                       </a>
                     </p>
+                  )}
+                  {/* The end of fulfilment, which nothing could reach until
+                      migration 024 — see mark-delivered.tsx and the
+                      migration's own header. Shown only while the parcel is
+                      out: once delivered_at is set the timeline above says
+                      so and there is nothing left to do. */}
+                  {shipped.delivered_at ? (
+                    <Field label="Delivered" value={formatLong(shipped.delivered_at)} />
+                  ) : (
+                    <MarkDelivered
+                      orderId={order.id}
+                      orderNumber={order.order_number}
+                      returnWindowDays={(settings.data?.return_window_days as number) ?? 30}
+                    />
                   )}
                 </>
               ) : order.payment_status !== 'paid' ? (
