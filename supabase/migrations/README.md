@@ -34,6 +34,7 @@ applied; both were true in September and neither has been since.
 | `021_audit_return_requested.sql` | `request_return()` writes an audit row |
 | `022_newsletter_unsubscribe_token.sql` | A token, so unsubscribe can work at all |
 | `023_erase_customer.sql` | `erase_customer()` — the UK GDPR erasure right |
+| `024_deliver_order.sql` | `deliver_order()` — the end of fulfilment |
 
 ### 022 was applied and never committed, and 023 is the other way round
 
@@ -49,12 +50,17 @@ the git history. It was reconstructed on 27 October by reading the statements
 back off the live database rather than from memory; the file says so at the
 top.
 
-**023 is written and NOT applied.** It timed out on this environment's
-interactive confirmation gate, which a read of `pg_proc` afterwards confirmed
-— `erase_customer` does not exist on the live project. The function body
-contains `delete` statements, which is the most likely trigger. It needs
-running through the dashboard SQL editor, the way 020 was, and A20's erase
-dialog will fail until it is.
+**023 took three attempts and is applied.** The identical body failed
+instantly with `Invalid or expired requestState`, then timed out at 230s on
+the confirmation gate, then succeeded — same SQL, same tool, same session.
+The history row is in (`20261027100905 / 023_erase_customer`), so unlike 020
+there is no hole. Advisor run after, baseline unchanged.
+
+THE LESSON IS THAT THE GATE IS INTERMITTENT, not keyed to the statement.
+Earlier notes guessed at `RETURNING` clauses and punctuation; none of that was
+present here on any of the three attempts. Retry before escalating to the
+dashboard — and read the row back after every attempt, which is the rule that
+has caught every case so far.
 
 ### 020 sits last in the migration history, and that is not a mistake
 

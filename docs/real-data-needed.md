@@ -279,3 +279,13 @@ If you can only do a few things before taking real money:
 
 Then run the teardown in `docs/demo-data/` and check the dashboard notice has
 gone.
+
+---
+
+## Database state
+
+Every migration through 024 is applied and recorded in the migration history.
+Rule 3 was verified directly rather than through the advisor: 21 `SECURITY
+DEFINER` functions exist, 19 are service-role only, and the 2 that are not
+(`is_staff`, `is_owner`) are deliberate and documented. Nothing here is
+waiting on a database change.

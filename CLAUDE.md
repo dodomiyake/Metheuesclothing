@@ -2430,13 +2430,41 @@ dialog disables itself naming the order, because until then we need the address
 to send it. And the action is OWNER ONLY — A22's line rather than the
 orders-and-returns one, the second route ever to need is_owner().
 
-023 IS WRITTEN AND NOT APPLIED. It timed out on this environment's confirmation
-gate and `pg_proc` confirms erase_customer does not exist — the rule held, a
-timeout means the write did not happen, and the way to tell is to read it back.
-The body contains `delete` statements, which is the likeliest trigger and fits
-the lead from the alt-text run. IT NEEDS RUNNING THROUGH THE DASHBOARD SQL
-EDITOR, the way 020 was, AND THE ADVISOR RUN AFTER IT per rule 3 — A20's dialog
-will fail until then. tsc and next build both pass.
+023 IS APPLIED, on 27 October, and the ADVISOR RUN IS DONE per rule 3:
+erase_customer is absent from both SECURITY DEFINER lints and the baseline is
+exactly what it was (rate_limits/webhook_events with RLS and no policy, citext
+in public, is_staff/is_owner on both lints, leaked-password protection off).
+The REVOKE held — anon false, authenticated false, service_role true — and the
+history row is in, so there is no 020-shaped hole this time.
+
+RULE 3 VERIFIED DIRECTLY as well, which is the stronger check: 21 SECURITY
+DEFINER functions now exist in `public` and exactly 2 are reachable by `anon`
+or `authenticated` — is_staff and is_owner, for the documented reason at
+004_lock_down_functions.sql:20. Nineteen are service_role only. Worth repeating
+verbatim the next time a function is added, because the advisor only ever
+reports those same two exceptions and therefore cannot tell you a new REVOKE
+took.
+
+THE WRITE GATE IS NOT DETERMINISTIC, and this is the clearest evidence yet —
+better than the alt-text lead, which guessed at RETURNING and punctuation.
+THE IDENTICAL BODY was sent three times: it failed instantly with "Invalid or
+expired requestState", then timed out at 230s on the confirmation, then went
+through on the third attempt with `{"success": true}`. Same SQL, same tool,
+same session, three different outcomes. The comment block had been stripped,
+there was no RETURNING clause and no non-ASCII character anywhere in the
+payload on any attempt, so none of those is the trigger either.
+
+SO THE HONEST NOTE IS: the gate is intermittent rather than keyed to the
+statement, retrying is worth doing before escalating to the dashboard, and the
+rule that catches every case is unchanged — a timeout or an error means the
+write may not have happened, and the only way to know is to read it back. It
+was read back after all three attempts here, which is why there was never any
+doubt about the state.
+
+ONE COSMETIC INCONSISTENCY LEFT ALONE: 024's history row is named
+`deliver_order` rather than `024_deliver_order`, because that is the name the
+apply call passed. Renaming it would mean editing the history table, which is
+the thing the 020 note refuses for the same reason.
 
 MIGRATION 022 WAS APPLIED AND NEVER COMMITTED, found while indexing the README.
 `supabase_migrations.schema_migrations` holds `20261026093757 /
