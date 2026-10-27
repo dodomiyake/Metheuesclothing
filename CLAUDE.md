@@ -2909,6 +2909,44 @@ concluding anything, and never re-submit on the strength of a QUEUING poll —
 every job is charged, and a duplicate would have cost twenty credits for an
 image that already existed.
 
+THE DESIGN STORY IS CAPPED AND CENTRED PAST 1440, reported as "this is a waste
+of space" with a screenshot of an ultrawide viewport: the copy pinned to the
+far left as a single line, the photograph at the far right, and a chasm of
+black between them. That was MINE — the previous pass gave the copy
+`flex: 1 1 768px` so it grew to fill, on the reasoning that a fixed 768 would
+leave dead space beside the figure. It traded one void for a worse one.
+
+THE FRAME COMPOSES THIS SECTION AT 1344 (768 + 96 + 480) and that is a width,
+not a starting point. Capping the row there and centring it makes 1440 pixel
+identical to 62:968 and makes every width above it the same composed band —
+the call `content_page_shell` already makes for screens 23/32/33/34/35, for
+the same stated reason. Measured at 390/768/1440/1920/2560: copy 768 and
+figure 480 with a 96 gap at every width from 1440 up, the band centring rather
+than stretching, no overflow.
+
+WHAT CANNOT FILL THAT SPACE IS CUSTOMER REVIEWS, which is worth recording
+because it is the obvious suggestion and §2's "Explicitly excluded from
+launch" list names them outright, beside wish lists, loyalty points, gift
+cards and subscriptions. Two further reasons beyond the spec, either of which
+would stand alone. A reviews section on a shop that has taken no live orders
+renders EMPTY, which is more dead space rather than less. And seeding it is
+the one thing on this page that is specifically illegal rather than merely
+unwise: the DMCC Act 2024 made writing, commissioning or publishing fake
+consumer reviews a banned practice in its own right, enforceable by the CMA
+directly. Every other placeholder in this project is a claim somebody can
+correct; a fabricated review is a prohibited act the moment it is published.
+
+WHAT COULD HONESTLY FILL IT, for whenever the owner wants the vertical space
+used rather than the horizontal: the frame's own HEADLINE. 62:968 draws a 48px
+line between the eyebrow and the body ("Frequency One") and this build omits
+it because no column stores one — which is the same omission that makes our
+copy block shorter than the design's and the section emptier. One additive
+migration (`products.design_story_heading`) and one A04 field closes it with
+something the design already asked for and the owner writes. The other
+candidate with real data behind it is the COLLECTION a product belongs to:
+`product_collections` is a real join that this page reads nowhere, so a
+product currently has no path to the collection holding it.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
