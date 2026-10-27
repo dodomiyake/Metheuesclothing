@@ -2797,6 +2797,33 @@ credential (019's policies are gated on is_staff() and the publishable key
 does not satisfy it), so the images ship in public/demo/ and the route uploads
 them through the CALLER'S OWN session. Pressing the button is the test.
 
+THE STRIPED POLO'S ORIGINAL PHOTOGRAPH IS NOW ON THE SWAP LIST, by row id,
+which closes two findings this file has carried since the picture went up. The
+owner pressed both /admin/demo buttons on 27 October and twenty model shots
+landed — but the polo kept its old picture, because the fill guard skips any
+product that HAS photography and the swap matches only the seven demo flat-lay
+descriptions. Working exactly as designed, and the visible result was one
+product out of twelve still showing an oversized rugby-style shirt carrying
+another label's chest embroidery ("Young Leaders", a globe motif and a line of
+smaller lettering) where the product is a regular-fit short sleeve polo. The
+owner asked for it to be changed.
+
+AN ID, NOT A WIDENED PATTERN, and the distinction is the safety argument
+rather than a style preference. That row is a REAL UPLOAD with a real
+human-written description, so nothing matching on text could reach it without
+also being able to reach a photograph somebody actually wants — and a
+heuristic that can reach a real photograph will eventually reach the wrong
+one. `superseded.ts` now holds both lists side by side with the reasoning:
+seven alt-text literals for the demo batch, one row id for this. When that row
+is gone the constant does nothing, which is the correct end state for it.
+
+THAT FILE EXISTS BECAUSE THE PAGE AND THE ROUTE MUST AGREE. The demo page was
+counting flat-lays with its own `includes('laid flat on a pale grey
+background')` while the route matched on exact equality against seven
+literals — two different predicates answering the same question, which is how
+a panel ends up promising a number the button does not deliver. Both now read
+the same two exported lists.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real

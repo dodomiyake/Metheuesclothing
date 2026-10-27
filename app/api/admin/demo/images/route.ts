@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireStaffSession } from '@/lib/admin/require-staff';
 import { fetchImageToBucket, attachProductImage, imagePaths } from '@/lib/admin/image-import';
 import { SHOP_BUCKET } from '@/lib/images';
+import { SUPERSEDED_FLAT_LAY_ALT, SUPERSEDED_IMAGE_IDS } from './superseded';
 
 export const runtime = 'nodejs';
 
@@ -36,13 +37,13 @@ export const runtime = 'nodejs';
  * is a different call and theirs to make — but the four products that got
  * flat-lays are now photographed, so `fill` will never touch them again and
  * the shop would show four flat-lays beside eight model shots for good.
- * `swap-to-models` removes exactly the seven bundled flat-lay rows and then
- * fills. It identifies them by their EXACT alt text, which is the same
- * discriminator `docs/demo-data/99-teardown.sql` uses and has the same
- * narrow guarantee: a real photograph's description is not one of seven
- * string literals written here, so a real photograph can never be caught by
- * it. Edit those descriptions in A05 and the swap stops finding them, which
- * is the safe direction to fail in.
+ * `swap-to-models` removes the superseded rows and then fills. What counts
+ * as superseded is in `superseded.ts`, which carries the reasoning for both
+ * halves: seven bundled flat-lays matched on their exact alt text, and ONE
+ * real upload named by id because it pictures another brand's garment. The
+ * split is the safety argument — a pattern must never be able to reach a
+ * real photograph, so the one real photograph that has to go is named
+ * rather than matched.
  *
  * EVERY ALT TEXT BELOW WAS WRITTEN FROM THE IMAGE, not from the prompt that
  * made it. `product_images.alt_text` is NOT NULL with a non-empty check
@@ -68,21 +69,6 @@ type DemoImage = {
   colour: string;
   alt: string;
 };
-
-/**
- * The flat-lay batch from 27 October, superseded by the model photography
- * below. Matched on alt text, for the reason given above. Nothing adds
- * these any more; they are listed only so `swap-to-models` can find them.
- */
-const SUPERSEDED_FLAT_LAY_ALT = [
-  'A short sleeve polo shirt laid flat on a pale grey background, in even horizontal black and cream stripes, with a plain cream ribbed collar, matching cream cuffs and a two-button placket.',
-  'A black oversized cotton T-shirt laid flat on a pale grey background, with a ribbed crew neck, dropped shoulder seams, short wide sleeves and a boxy body.',
-  'An off-white oversized cotton T-shirt laid flat on a pale grey background, with a ribbed crew neck, dropped shoulder seams and a wide boxy body, the cotton showing a soft natural slub.',
-  'A black long sleeve cotton T-shirt laid flat on a pale grey background with both sleeves extended, showing a ribbed crew neck and ribbed cuffs at each wrist.',
-  'An off-white long sleeve cotton T-shirt laid flat on a pale grey background with both sleeves extended, showing a ribbed crew neck and ribbed cuffs at each wrist.',
-  'A black short sleeve cotton T-shirt laid flat on a pale grey background, with a ribbed crew neck and a single plain patch pocket stitched on the left chest.',
-  'An off-white short sleeve cotton T-shirt laid flat on a pale grey background, with a ribbed crew neck and a single plain patch pocket stitched on the left chest.',
-];
 
 const PRODUCT_IMAGES: DemoImage[] = [
   // ------------------------------------------------- the original four
@@ -250,11 +236,22 @@ export async function POST(req: NextRequest) {
   // A05's delete uses: an orphaned file costs storage, while a row pointing
   // at a deleted file is a broken image on the shop.
   if (swapToModels) {
-    const { data: stale, error: staleError } = await session.supabase
-      .from('product_images')
-      .select('id, storage_path')
-      .in('alt_text', SUPERSEDED_FLAT_LAY_ALT);
+    // Two queries rather than one `or`, because they are two different
+    // claims: "this is a demo flat-lay" and "this is the one named row".
+    // PostgREST can express the union, but a single filter string would
+    // hide which half matched when something goes wrong.
+    const [byAlt, byId] = await Promise.all([
+      session.supabase
+        .from('product_images')
+        .select('id, storage_path')
+        .in('alt_text', SUPERSEDED_FLAT_LAY_ALT),
+      session.supabase
+        .from('product_images')
+        .select('id, storage_path')
+        .in('id', SUPERSEDED_IMAGE_IDS),
+    ]);
 
+    const staleError = byAlt.error ?? byId.error;
     if (staleError) {
       return NextResponse.json(
         { error: `Could not read the existing photographs: ${staleError.message}` },
@@ -262,7 +259,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    for (const row of stale ?? []) {
+    const seen = new Set<string>();
+    const stale = [...(byAlt.data ?? []), ...(byId.data ?? [])].filter((r) => {
+      const id = r.id as string;
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    });
+
+    for (const row of stale) {
       const { error: deleteError } = await session.supabase
         .from('product_images')
         .delete()
@@ -277,11 +282,11 @@ export async function POST(req: NextRequest) {
       // costs a few kilobytes; saying nothing about a failed ROW delete
       // would have been the real problem, and that is handled above.
       await session.supabase.storage.from(SHOP_BUCKET).remove([row.storage_path as string]);
-      added.push('removed a flat-lay photograph');
+      added.push('removed a superseded photograph');
     }
 
-    if ((stale ?? []).length === 0) {
-      skipped.push('No bundled flat-lays are left to replace.');
+    if (stale.length === 0) {
+      skipped.push('No superseded photographs are left to replace.');
     }
   }
 
