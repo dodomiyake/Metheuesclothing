@@ -547,6 +547,7 @@ button.mc-icon-button[aria-label='Search'] {
   .mc-pdp-story {
     flex-direction: row;
     gap: 96px;
+<<<<<<< HEAD
     /* CENTRED, where the frame top-aligns, and this is the one departure
        in the section. 62:968's copy block is 182px against a 600px
        photograph, so top-aligning leaves four hundred pixels of black
@@ -555,6 +556,9 @@ button.mc-icon-button[aria-label='Search'] {
        the same gap becomes symmetrical breathing room either side of the
        block. One word to put back. */
     align-items: center;
+=======
+    align-items: flex-start;
+>>>>>>> origin/main
     max-width: 1440px;
     margin-left: auto;
     margin-right: auto;
