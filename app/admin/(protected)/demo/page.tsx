@@ -110,10 +110,15 @@ export default async function DemoDataPage() {
 
         <Panel heading="Demo photographs">
           <p style={text}>
-            Adds the bundled photographs to any product that has none, and a hero to any collection
-            without one. It never touches a product that already has photography, so real pictures
-            can never be pushed down the running order by it — and running it twice does nothing
-            the second time.
+            Adds the bundled photographs colourway by colourway, and a hero to any collection
+            without one. It never touches a product carrying a photograph it did not put there
+            itself, so real pictures can never be pushed down the running order or sat beside — and
+            a colourway it has already filled is never filled twice, so running it again does
+            nothing.
+          </p>
+          <p style={text}>
+            It tells demo photographs from real ones by their description. Re-describe one in A05
+            and this stops touching that product, which is the safe direction to fail in.
           </p>
           {unphotographed.length === 0 ? (
             <p style={text}>
