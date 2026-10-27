@@ -24,13 +24,18 @@ export const metadata = {
  * unsubscribe route exists at all because `unsubscribed_at` was read by
  * A20 and written by nothing until migration 022.
  *
- * THE ERASURE PARAGRAPH DESCRIBES WHAT WE WOULD DO BY HAND, not what the
- * code does automatically, and says so. Deleting a profile today
- * cascades to addresses and nulls `orders.profile_id`, which turns a sale
- * into a GUEST order rather than anonymising anybody. A20 recorded that
- * as a migration nobody has written. Claiming an automatic capability
- * that does not exist is exactly the failure every other page here
- * refuses.
+ * THE ERASURE PARAGRAPH IS NOW TRUE OF THE CODE. It used to describe what
+ * we would do by hand, and said so, because deleting a profile cascades to
+ * addresses and nulls `orders.profile_id` — turning a sale into a GUEST
+ * order rather than anonymising anybody. Migration 023 and A20's erase
+ * dialog are what closed it, so the paragraph describes one action a staff
+ * member takes rather than a promise about careful handwork.
+ *
+ * ONE SENTENCE IS NEW AND IS THERE BECAUSE 023 FOUND IT: the audit log
+ * holds a permanent reference to any customer who has raised a return, so
+ * the database refuses to delete their profile at all. That is the reason
+ * erasure is anonymisation and not deletion, which the policy now states
+ * rather than leaving to sound like a choice of convenience.
  */
 export default function PrivacyPage() {
   return (
@@ -151,11 +156,22 @@ export default function PrivacyPage() {
         </ContentText>
         <ContentText>
           <strong>Deletion.</strong> We cannot delete the record of a completed order, because tax
-          law requires us to keep it. What we can do is disconnect it from you: remove your
-          profile, your saved addresses and your contact details, leaving the sale itself as an
-          anonymous entry in the books. We do this by hand on request. Entries already written to
-          the append-only audit log cannot be removed at all; they identify a person by name and an
-          order or return number rather than by email address.
+          law requires us to keep it. What we can do is disconnect it from you, and that is what
+          we do when you ask: your email address is replaced everywhere we hold it with a random
+          address that can never receive mail, your name, phone number and marketing preference
+          are removed, your saved addresses are deleted, the delivery address on each past order
+          is cleared down to the country it went to, and you can no longer sign in. The sale
+          itself stands as an anonymous entry in the books. We may ask you to wait until an order
+          already paid for has arrived, because until then we need the address to send it.
+        </ContentText>
+        <ContentText>
+          Two things survive this, and we would rather say so than let you discover it. Our{' '}
+          <strong>append-only audit log</strong> cannot have entries edited or removed by anyone,
+          including us — those entries identify a person by name and an order or return number,
+          never by email address, and the database itself refuses to delete an account the log
+          refers to. That is why erasure here means making you anonymous rather than deleting a
+          row. And <strong>Stripe</strong> keeps its own record of a payment as a controller in its
+          own right; erasing that is a separate request to them.
         </ContentText>
       </ContentSection>
 

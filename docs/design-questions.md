@@ -343,6 +343,33 @@ A12 omits seven of its eight actions, because A13–A16 were unbuilt when it was
 made; all four now exist and are wired. "View customer" was a dead end in A12 and
 A18 until A19/A20 were built, and now resolves.
 
+**A20's "Erase this profile" (144:2882) is built, with two additions the frame
+does not draw**
+
+The frame draws one action. What shipped is that action plus two constraints,
+both of which exist because erasure cannot be undone by anybody.
+
+*It is OWNER ONLY.* Every other write in the admin is gated on `is_staff()`, and
+A22's own staff card draws the line as "Staff — orders, fulfilment and returns,
+no settings". Erasure is neither of those: it is irreversible and it reaches the
+sales ledger, so it sits on A22's side. A staff member sees the export and a line
+saying who can erase. Reverse this if erasure is meant to be an everyday reply to
+an everyday request.
+
+*It refuses while a paid order is still in flight.* A paid order that is not yet
+delivered or cancelled needs somewhere to go, so the dialog disables itself and
+names the order rather than letting someone erase the address off a parcel in the
+warehouse. UK GDPR permits holding the data while it is necessary to perform the
+contract. The frame draws no such state.
+
+One further thing the frame cannot show, because it is a fact about the database
+rather than about the design: **erasure anonymises and does not delete.**
+`audit_logs.actor_id` references `profiles` with no `ON DELETE`, and `audit_logs`
+cannot be updated either, so any customer who has ever raised a return is
+permanently referenced and their profile row can never be deleted — nor, because
+`profiles` cascades from `auth.users`, can their sign-in account. Migration 023's
+header has the whole finding.
+
 **Panels omitted for a missing column**
 
 Internal notes (A12, A18 — no notes table anywhere, and `orders.customer_note` is

@@ -2362,12 +2362,101 @@ and the only honest source is measuring real stock. Offered instead: hand over
 the spec sheet or label photographs and they go in immediately; measure three
 garments per size and the size guide gets built.
 
+ERASURE IS BUILT — migration 023, `erase_customer()`, and A20's dialog — which
+closes the one thing `docs/legal/privacy.md` flagged as a promise the code could
+not keep. A20's own card had carried the gap since the screen was built ("a
+migration nobody has written").
+
+A20'S NOTE UNDERSTATED THE PROBLEM, and the real finding is worth more than the
+feature. It said a careless `delete from profiles` would cascade to addresses
+and null `orders.profile_id`, quietly turning a sales history into guest orders.
+True — and the delete WOULD NOT SUCCEED AT ALL for most customers.
+`audit_logs.actor_id references profiles(id)` has no `ON DELETE` clause, so it
+is NO ACTION (confirmed against pg_constraint: confdeltype 'a'), and migration
+021 made request_return() write a row naming the customer who raised the
+return. audit_logs is append-only by the forbid_audit_mutation triggers, so that
+reference can never be updated away either. TWO OF THE THREE PROFILES on the
+live database are already in that state.
+
+AND IT REACHES THE AUTH ACCOUNT. `profiles.id references auth.users(id) on
+delete cascade`, so deleting the auth user cascades into profiles and hits the
+same restriction — meaning SUPABASE'S OWN "Delete user" BUTTON would fail with a
+foreign key error for those customers. Nobody knew, and finding out during a
+one-month statutory deadline is the wrong time.
+
+SO ERASURE IS ANONYMISATION IN PLACE, which is not a workaround: it is what the
+policy already described and what UK GDPR plus six-year HMRC retention actually
+require. The person leaves; the row stays. One random tombstone per erasure,
+`erased-<uuid>@erased.invalid` (`.invalid` is RFC 2606, the same reasoning as
+the admin account's `.test`), shared by the profile and every one of their
+orders — ONE rather than one per row, because admin_customers() aggregates by
+email and a per-order tombstone would shatter one person into five one-order
+"customers" and stop A02 and A19 reconciling.
+
+THE ORDER OF OPERATIONS IS THE OPPOSITE OF /refund's, by the same reasoning. The
+auth identity goes first: if the database half then fails, the rows still carry
+the address, so A20 finds the person and the button works again. Database-first
+leaves the public data scrubbed, the customer still able to sign in, and NO
+SCREEN LEFT TO RETRY FROM, because A20 is keyed on an email no row holds. That
+is why the route mints the tombstone rather than the function — both halves must
+end up holding the same address, and 023 validates its shape rather than
+trusting it, the same call /sign makes about a storage path.
+
+THE AUTH HALF GOES THROUGH THE ADMIN API, NOT SQL. `postgres` can write
+auth.users directly (checked), and a migration doing so would be hand-editing
+identities, sessions and refresh tokens GoTrue owns. updateUserById anonymises
+the email and bans the account for a hundred years — GoTrue has no "forever",
+and a ban that lapses is an account that comes back. One thing it does not do:
+expire an access token already issued, so a customer signed in at that moment
+keeps a working token for up to its remaining hour. Revoking it needs their JWT.
+
+WHAT STAYS, each for its own reason: the sale itself (tax law), the delivery
+COUNTRY only (place of supply decides the VAT treatment, and A11's filter reads
+`delivery_address->address->>country`), payments.card_last4 (four digits cannot
+charge a card, and Stripe is a controller in its own right — erasure there is a
+separate request), and audit rows. THE AUDIT SUMMARY MUST NOT NAME THE ERASED
+ADDRESS, which is the sharpest detail in the whole migration: audit_logs cannot
+be edited or deleted by anyone, so an email written there would be the one copy
+erasure could never reach — the log would defeat the act it was recording. It
+names the tombstone, which is what A19 and A20 show for that person afterwards,
+and A23 resolves `customer` entries to "Erased customer" with no lookup because
+the handle IS the label.
+
+TWO REFUSALS AND TWO DEPARTURES, all recorded in docs/design-questions.md Part B
+rather than only here. Staff and owners are not erasable from this screen (their
+profile is named by audit rows as an ACTOR, and being an admin is one row's role
+column). A paid order not yet delivered or cancelled blocks erasure and the
+dialog disables itself naming the order, because until then we need the address
+to send it. And the action is OWNER ONLY — A22's line rather than the
+orders-and-returns one, the second route ever to need is_owner().
+
+023 IS WRITTEN AND NOT APPLIED. It timed out on this environment's confirmation
+gate and `pg_proc` confirms erase_customer does not exist — the rule held, a
+timeout means the write did not happen, and the way to tell is to read it back.
+The body contains `delete` statements, which is the likeliest trigger and fits
+the lead from the alt-text run. IT NEEDS RUNNING THROUGH THE DASHBOARD SQL
+EDITOR, the way 020 was, AND THE ADVISOR RUN AFTER IT per rule 3 — A20's dialog
+will fail until then. tsc and next build both pass.
+
+MIGRATION 022 WAS APPLIED AND NEVER COMMITTED, found while indexing the README.
+`supabase_migrations.schema_migrations` holds `20261026093757 /
+022_newsletter_unsubscribe_token`, the column, its NOT NULL, its default and the
+unique index are all live, the unsubscribe route and page are both in the
+repository — and there was no migration file here and nothing in the git
+history. RECONSTRUCTED on 27 October by reading the statements back off the live
+database rather than from memory, and the file says so at the top. That is the
+MIRROR IMAGE of 020's hole, which ran through the dashboard and was missing from
+the HISTORY while the file sat in the repo. Both directions are now recorded in
+the migrations README: the history table and this repository are two separate
+records of the same thing, and either can be the one that is short.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
-delivery rates, the £150 threshold, and legal REVIEW of the three pages now
+delivery rates, the £150 threshold, legal REVIEW of the three pages now
 drafted in `docs/legal/` (the drafting is done; the review and the
-`[OWNER: ...]` identity facts are not). Three seeded values in migration
+`[OWNER: ...]` identity facts are not), and APPLYING MIGRATION 023 through the
+dashboard SQL editor. Three seeded values in migration
 008 are marked PLACEHOLDER for the same reason.
 
 ## Conventions

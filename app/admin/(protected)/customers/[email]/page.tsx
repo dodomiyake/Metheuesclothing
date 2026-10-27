@@ -5,6 +5,7 @@ import { requireStaffPage } from '@/lib/admin/require-staff';
 import { formatPence } from '@/lib/money';
 import { StatusBadge, orderBadge, returnBadge } from '@/components/admin/status-badge';
 import { countryName } from '../../orders/order-fields';
+import { EraseCustomer } from './erase-customer';
 
 /**
  * A20 Customer details — Figma 144:2696 (Desktop) / 144:2514 (Tablet).
@@ -31,14 +32,16 @@ import { countryName } from '../../orders/order-fields';
  *    what the card's own footer says not to do. The card says instead
  *    which preferences exist.
  *
- *  - "Erase this profile" (144:2882). Erasure is a real obligation and a
- *    real action, and it is not a button until it is written: UK GDPR
- *    plus six-year tax retention means nulling the person out of
- *    `profiles` while the orders stand, not a delete — `profiles.id`
- *    cascades to addresses and sets orders.profile_id null, so a careless
- *    delete would quietly turn their order history into guest orders.
- *    The card states what erasure has to do; the action goes in with the
- *    migration that implements it.
+ *  - "Erase this profile" (144:2882) WAS omitted, and is now built —
+ *    migration 023 is the migration this note used to say nobody had
+ *    written. It is OWNER ONLY, on A22's line rather than the orders-and-
+ *    returns one, because nothing else in the admin is irreversible in
+ *    this way. The old note was right that a careless `delete from
+ *    profiles` would null orders.profile_id and quietly turn a sales
+ *    history into guest orders, and understated the problem: the delete
+ *    would be REFUSED outright for any customer who has raised a return,
+ *    because audit_logs.actor_id is NO ACTION and audit_logs cannot be
+ *    updated either. 023's header has the whole finding.
  *
  *  - The Returns card's "flag a customer" line is kept, because it is
  *    advice rather than a feature claim. Nothing flags anybody.
@@ -52,7 +55,7 @@ export default async function AdminCustomerPage({
 }: {
   params: Promise<{ email: string }>;
 }) {
-  await requireStaffPage();
+  const me = await requireStaffPage();
 
   const { email: raw } = await params;
   const email = decodeURIComponent(raw).trim().toLowerCase();
@@ -86,7 +89,7 @@ export default async function AdminCustomerPage({
       ? supabase
           .from('returns')
           .select(
-            'id, return_number, status, requested_at, order_id, orders!inner(order_number), return_items(quantity, order_items(unit_price_pence))',
+            'id, return_number, status, requested_at, order_id, customer_note, orders!inner(order_number), return_items(quantity, order_items(unit_price_pence))',
           )
           .in('order_id', orderIds)
           .order('requested_at', { ascending: false })
@@ -117,6 +120,17 @@ export default async function AdminCustomerPage({
   );
   const spent = paid.reduce((n, o) => n + o.total_pence, 0);
   const displayName = account.full_name || snapshotName(orders) || email;
+
+  // Erasure is refused while a paid parcel still needs somewhere to go —
+  // the same set migration 023 blocks on, computed here so the dialog can
+  // say so before anybody types an address rather than after.
+  const blockingOrders = orders
+    .filter(
+      (o) =>
+        ['paid', 'partially_refunded'].includes(o.payment_status) &&
+        ['not_started', 'processing', 'packed', 'shipped'].includes(o.fulfilment_status),
+    )
+    .map((o) => o.order_number);
 
   return (
     <div className="mc-admin-page">
@@ -313,13 +327,33 @@ export default async function AdminCustomerPage({
               <a href={exportHref(email)} style={{ ...secondaryButton, width: '100%' }}>
                 Export their data
               </a>
-              <p style={mutedSmall}>
-                Erasure is not a button yet, deliberately. Deleting the profile row cascades to
-                their saved addresses and sets every order&rsquo;s owner to null — the orders
-                survive, but silently become guest orders. Doing it properly means clearing the
-                person out of the profile while the sales history stands, which is a migration
-                nobody has written. Until then it is a database job, done once and recorded.
-              </p>
+              {me.role === 'owner' ? (
+                <>
+                  <EraseCustomer
+                    email={email}
+                    displayName={displayName}
+                    hasProfile={Boolean(account.profile_id)}
+                    orderCount={orders.length}
+                    addressCount={addresses.length}
+                    returnNoteCount={returns.filter((r) => Boolean(r.customer_note)).length}
+                    onNewsletter={Boolean(account.newsletter_consent_at)}
+                    blockingOrders={blockingOrders}
+                  />
+                  <p style={mutedSmall}>
+                    Erasure anonymises rather than deletes, and that is not a shortcut: the audit
+                    log holds a permanent reference to any customer who has raised a return, so
+                    the database refuses to delete their profile at all. What erasure does is
+                    replace the person with an address that can never receive mail, leaving the
+                    sale standing as an anonymous entry. It cannot be undone.
+                  </p>
+                </>
+              ) : (
+                <p style={mutedSmall}>
+                  Only an owner can erase a customer. It cannot be undone and it touches the sales
+                  ledger, so it sits on the same side of the line as store settings rather than
+                  with orders, fulfilment and returns. Ask an owner, or export their data above.
+                </p>
+              )}
             </Panel>
           </div>
         </div>
@@ -358,6 +392,7 @@ type ReturnRow = {
   return_number: string;
   status: string;
   requested_at: string;
+  customer_note: string | null;
   order_id: string;
   orders: { order_number: string } | null;
   return_items: { quantity: number; order_items: { unit_price_pence: number } | null }[];
