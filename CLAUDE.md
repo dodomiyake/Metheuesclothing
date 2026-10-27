@@ -2589,6 +2589,38 @@ disappears when the real specification arrives rather than depending on anyone
 unsetting a flag. Stripe test mode is the other thing keeping the placeholders
 harmless, and both facts are on the notice.
 
+`orders.billing_address` IS WRITTEN NOW, which closes the last of the
+"column read by something and written by nothing" findings this file has been
+collecting. It had existed since 001 with no writer, and A12 and 13 Order
+Detail both omitted the row the design draws because of it. The charge the
+webhook already fetches for the card carries `billing_details` beside it, so
+this is a few lines on a call that was already being made — the same shape as
+the card write that closed six narrowings at once.
+
+EXPECT IT TO BE SPARSE, and the code is built around that rather than around
+the happy case. The checkout session sets no `billing_address_collection`, so
+Stripe defaults to 'auto' and collects only what the card network requires —
+often a country and a postcode and nothing else. The webhook therefore writes
+the column ONLY when a line1 or a postcode actually came back: a row holding
+`{ name: null, address: { all nulls } }` would render an empty panel in the
+admin and read as a bug rather than as a customer who was never asked. Setting
+`billing_address_collection: 'required'` would change that and is the owner's
+call, since it adds a step to checkout.
+
+IT IS A SECOND, SMALLER UPDATE rather than folded into the paid branch's
+first one, deliberately: marking the order paid must not wait on a Stripe
+call that can fail, and that update has already happened by then. Same
+best-effort posture as the card.
+
+A12 SHOWS IT AND THE CUSTOMER'S OWN ORDER PAGE DOES NOT, which is a decision
+rather than an omission and both comments now say so. Staff have a reason to
+see a billing address (chargebacks, fraud) that a customer re-reading their
+own order does not, and because Stripe collects it only sometimes, a row
+present for some customers and missing for most reads as a fault. Track-order
+is unchanged for the sharper version of the same reason, now recorded there:
+that page is reached by proving an order number plus an email, and a postal
+address attached to a card is the most sensitive thing on it.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real

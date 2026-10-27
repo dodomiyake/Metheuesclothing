@@ -97,15 +97,16 @@ const DATE_FORMAT: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long',
  *   shipped_at, delivered_at) — the mockup's "Payment confirmed" and
  *   "Preparing" steps show a fabricated time this app doesn't track.
  * - The Payment section (card brand/last4, billing address) is still
- *   omitted, but only half for the original reason. `payments.card_brand`
- *   and `.card_last4` ARE written now (the Stripe webhook expands the paid
- *   intent's latest_charge), while `orders.billing_address` is still
- *   written by nothing. So a "Visa ending 4242" line COULD be shown here
- *   and a billing address could not. It is held back deliberately rather
- *   than omitted for lack of data: this page is reached by proving an
- *   order number and an email, and what a guest may read on that evidence
- *   is the owner's call, not a thing to widen in passing. Raise it with
- *   them — the admin (A12) and E5/E7/E8 already name the card.
+ *   omitted, and no longer for lack of data at all. BOTH are written now:
+ *   `payments.card_brand`/`.card_last4` and `orders.billing_address` all
+ *   come off the charge the webhook already fetches. So this is now a pure
+ *   DISCLOSURE decision rather than a gap — this page is reached by
+ *   proving an order number and an email, and what a guest may read on
+ *   that evidence is the owner's call, not a thing to widen in passing.
+ *   A billing address is the sharper half of that question: it is a
+ *   postal address attached to a card, and anyone holding an order number
+ *   and an address could read it. Raise it with them; the admin (A12) and
+ *   E5/E7/E8 already name the card.
  * - "Cancel this order" is omitted, not disabled-with-explanation: there
  *   is no cancel-order route to ever enable it, and the Button
  *   component's own rule is that a disabled control needs real text

@@ -254,7 +254,7 @@ and each would be a feature to commission.
 | Contact form (34) | No `contact_messages` table and no admin inbox. A "thanks, we will be in touch" that drops the message is a failure wearing the face of success |
 | Export orders / returns / customers / CSV | No route, no format, no decision about columns. A20's single-customer export **is** built, because it has an obvious format and a statutory deadline |
 | Internal notes on orders and returns | No notes table |
-| Billing address | `orders.billing_address` is written by nothing. A few lines in the webhook would close it |
+| Billing address on the customer's own order page | The column is written now, from the charge. Shown in the admin only — Stripe collects it only where the card network asks, so it is absent on many orders, and a row present for some customers and missing for most reads as a fault |
 | Per-transition fulfilment timestamps | `fulfilment_status` is one current value with no history, so A12's timeline can only show real times for placed, shipped and delivered |
 | Delivery confirmation email | E1–E9 has no such template. Delivery can now be marked; nothing tells the customer |
 | Scheduled collection publishing | `scheduled` is honoured by RLS but nothing flips it to live. Needs a cron |

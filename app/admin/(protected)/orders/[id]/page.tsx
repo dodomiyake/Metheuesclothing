@@ -71,7 +71,7 @@ export default async function AdminOrderDetailPage({
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .select(
-      'id, order_number, email, profile_id, subtotal_pence, delivery_pence, discount_pence, total_pence, payment_status, fulfilment_status, delivery_method, delivery_address, customer_note, placed_at, cancelled_at, cancel_reason',
+      'id, order_number, email, profile_id, subtotal_pence, delivery_pence, discount_pence, total_pence, payment_status, fulfilment_status, delivery_method, delivery_address, billing_address, customer_note, placed_at, cancelled_at, cancel_reason',
     )
     .eq('id', id)
     .maybeSingle();
@@ -162,6 +162,27 @@ export default async function AdminOrderDetailPage({
     line.postal_code,
     countryName(orderCountryCode(order.delivery_address)),
   ].filter((v): v is string => Boolean(v && v !== '—'));
+
+  // The billing address the webhook now writes from the charge. Built with
+  // the same reducer because it is stored in the same shape; sparse by
+  // nature, since the checkout session sets no billing_address_collection
+  // and Stripe then collects only what the card network asks for.
+  const billing = (order.billing_address ?? null) as {
+    name?: string;
+    address?: Record<string, string | null | undefined>;
+  } | null;
+  const billingLine = billing?.address ?? {};
+  const billingLines = billing
+    ? [
+        billing.name,
+        billingLine.line1,
+        billingLine.line2,
+        billingLine.city,
+        billingLine.state,
+        billingLine.postal_code,
+        billingLine.country ? countryName(billingLine.country) : null,
+      ].filter((v): v is string => Boolean(v && v !== '—'))
+    : [];
 
   return (
     <div className="mc-admin-page">
@@ -375,6 +396,30 @@ export default async function AdminOrderDetailPage({
                   'Not recorded for this payment'
                 }
               />
+              {/* The design's billing address row (139:1941), which this
+                  screen omitted because orders.billing_address was a column
+                  nothing wrote. The webhook now fills it from the charge's
+                  billing_details.
+
+                  It is DELIBERATELY SILENT when absent rather than showing
+                  an empty row. Stripe is asked for a billing address only
+                  where the card network requires one, so a customer who was
+                  never asked has nothing to show — and every order placed
+                  before this was wired has nothing either, the same way the
+                  card does. */}
+              {billingLines.length > 0 && (
+                <>
+                  <Rule />
+                  <p style={{ fontSize: 12, fontWeight: 600, letterSpacing: '1.2px', textTransform: 'uppercase', color: 'var(--mc-text-muted)', margin: '0 0 6px' }}>
+                    Billing address
+                  </p>
+                  {billingLines.map((l, i) => (
+                    <p key={i} style={{ fontSize: 14, lineHeight: '21px', margin: 0 }}>
+                      {l}
+                    </p>
+                  ))}
+                </>
+              )}
               {payment.data?.stripe_payment_intent_id ? (
                 <>
                   <Field label="Stripe payment intent" value={payment.data.stripe_payment_intent_id} />

@@ -97,6 +97,12 @@ export async function POST(req: NextRequest) {
         // customer their confirmation email or leave the webhook unclaimed,
         // so it is caught and the rest of the branch carries on.
         let card: { card_brand: string; card_last4: string } | null = null;
+        // THE BILLING ADDRESS, from the same charge and for the same
+        // reason. `orders.billing_address` has existed since 001 and
+        // nothing ever wrote it, so A12 and 13 Order Detail both omit the
+        // row the design draws. It is on the charge's billing_details
+        // beside the card, which this call already fetches.
+        let billing: Record<string, unknown> | null = null;
         if (paidIntentId) {
           try {
             const intent = await getStripeClient().paymentIntents.retrieve(paidIntentId, {
@@ -107,9 +113,46 @@ export async function POST(req: NextRequest) {
             if (details?.brand && details?.last4) {
               card = { card_brand: details.brand, card_last4: details.last4 };
             }
+
+            // STORED IN THE SAME SHAPE AS delivery_address ({ name,
+            // address }), so one helper renders either and A11's existing
+            // jsonb paths keep working if anything ever filters on it.
+            //
+            // EXPECT IT TO BE SPARSE. The checkout session sets no
+            // `billing_address_collection`, so Stripe defaults to 'auto'
+            // and collects only what the card network requires — often a
+            // country and postcode and nothing else. That is why this
+            // writes only when a line1 or a postcode actually came back:
+            // a row holding `{ name: null, address: { all nulls } }` would
+            // make the admin render an empty "Billing address" panel and
+            // look like a bug rather than like a customer who was never
+            // asked.
+            const b = charge?.billing_details;
+            const hasAddress = Boolean(b?.address?.line1 || b?.address?.postal_code);
+            if (b && hasAddress) {
+              billing = {
+                name: b.name ?? null,
+                address: {
+                  line1: b.address?.line1 ?? null,
+                  line2: b.address?.line2 ?? null,
+                  city: b.address?.city ?? null,
+                  state: b.address?.state ?? null,
+                  postal_code: b.address?.postal_code ?? null,
+                  country: b.address?.country ?? null,
+                },
+              };
+            }
           } catch {
-            // Left null. The order is paid either way.
+            // Both left null. The order is paid either way.
           }
+        }
+
+        // A SECOND, SMALLER UPDATE rather than folding this into the one
+        // above, deliberately: marking the order paid must not wait on a
+        // Stripe call that can fail. The first update is the one that
+        // matters and has already happened.
+        if (billing) {
+          await db.from('orders').update({ billing_address: billing }).eq('id', orderId);
         }
 
         await db
