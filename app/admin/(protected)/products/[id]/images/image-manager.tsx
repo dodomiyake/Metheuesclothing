@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/public';
 import { StatusBadge } from '@/components/admin/status-badge';
 import { SHOP_BUCKET, imageUrl, ALLOWED_TYPES, MAX_BYTES } from '@/lib/images';
-import { PixabaySearch } from './pixabay-search';
+import { StockSearch, type ProviderInfo } from './stock-search';
 import {
   labelStyle,
   inputStyle,
@@ -74,12 +74,17 @@ export function ImageManager({
   productName,
   initial,
   colours,
+  stockProviders,
 }: {
   productId: string;
   productName: string;
   initial: ManagedImage[];
   /** The product's real variant colours, for the assignment select. */
   colours: string[];
+  /** Which stock libraries A05 can search. Passed down from the page
+   *  rather than imported, because `lib/stock-photos` is `server-only`
+   *  (rule 7) — it is the only reader of the providers' API keys. */
+  stockProviders: ProviderInfo[];
 }) {
   const router = useRouter();
   const [images, setImages] = useState(initial);
@@ -451,9 +456,10 @@ export function ImageManager({
 
         {!pending && (
           <Panel heading="Find a stock photograph" tint>
-            <PixabaySearch
+            <StockSearch
               productId={productId}
               colours={colours}
+              providers={stockProviders}
               onImported={() => setNotice('Imported.')}
             />
           </Panel>

@@ -362,6 +362,32 @@ names the order rather than letting someone erase the address off a parcel in th
 warehouse. UK GDPR permits holding the data while it is necessary to perform the
 contract. The frame draws no such state.
 
+**A05 searches two stock libraries now, and the choice of which was forced**
+
+A05 draws an upload well and nothing else; stock search is an addition the owner
+asked for, under the recorded decision that stock photographs may be used as
+ordinary product images, unmarked. Pexels is now the second provider and the
+default, because its apparel library is the better one.
+
+*Unsplash was the obvious third and is deliberately absent.* Its API terms §6
+**require** hotlinking — "you must directly use or embed the related image URLs
+returned by the API" — and call a breach material. That is the exact opposite of
+Pixabay's rule, and it cannot be squared with `lib/images.ts`, which holds that
+`product_images.storage_path` is a path inside our bucket and never a URL. And
+§9 requires crediting Unsplash *and* the photographer with a link to their
+profile **every time an image is displayed** — which here means a credit beside
+every garment on the shop listing, the product page and the homepage. A product
+photograph with a photographer credit next to it is not a product photograph. If
+the design owner wants Unsplash, one of those two things has to change and both
+are visible to customers.
+
+*Pexels' attribution is read as attaching to the app, not the display.* Its
+guidelines ask for a prominent link to Pexels when making API requests and for
+photographers to be credited where possible. Both live on A05's search panel —
+the surface that makes the requests. That reading is what makes Pexels workable
+where Unsplash is not, and it is stated here rather than buried so it can be
+challenged.
+
 One further thing the frame cannot show, because it is a fact about the database
 rather than about the design: **erasure anonymises and does not delete.**
 `audit_logs.actor_id` references `profiles` with no `ON DELETE`, and `audit_logs`

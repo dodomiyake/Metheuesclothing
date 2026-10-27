@@ -10,27 +10,36 @@ import {
   productImagePath,
 } from '@/lib/images';
 import {
-  searchPhotos,
-  photoById,
-  isAllowedImageUrl,
-  tagList,
-  PixabayError,
-} from '@/lib/pixabay';
+  STOCK_PROVIDER_IDS,
+  StockPhotoError,
+  stockProvider,
+} from '@/lib/stock-photos';
 
 export const runtime = 'nodejs';
 
 /**
- * A05's stock photo search and import.
+ * A05's stock photo search and import, for every provider.
  *
  * GET searches. POST imports one photograph into this shop's own bucket
  * and attaches it to a product.
  *
+ * IT WAS `/api/admin/images/pixabay` AND IS NOW PROVIDER-BLIND. Pexels was
+ * the second provider, and the honest choice at that point was between two
+ * routes and one. Everything below the provider call is identical and it is
+ * the part carrying the reasoning: resolve an id rather than trust a URL,
+ * check the URL anyway, check the declared type, check the real byte
+ * length, upload through the caller's own session so the storage policy
+ * applies, attach at the end of the running order, and say plainly when the
+ * file lands but the row does not. A second copy of that is a second copy
+ * of the SSRF guard to keep in step — exactly what
+ * `components/admin/status-badge.tsx` exists to stop.
+ *
  * THE IMPORT IS THE OPPOSITE SHAPE FROM /sign, DELIBERATELY. The sign
  * route refuses to touch the bytes: the browser holds the file, so the
  * file goes browser -> Supabase and this app only says where. Here
- * nobody's browser has the file — it is on Pixabay — and fetching it
- * client-side would need Pixabay to send CORS headers it does not send.
- * So the bytes come THROUGH the function this once.
+ * nobody's browser has the file — it is on the provider — and fetching it
+ * client-side would need CORS headers neither provider sends. So the bytes
+ * come THROUGH the function this once.
  *
  * That does not reintroduce the limit /sign exists to avoid. Vercel's
  * 4.5 MB cap is on the REQUEST BODY a function receives; this request
@@ -48,24 +57,26 @@ export const runtime = 'nodejs';
 const Import = z
   .object({
     product_id: z.string().uuid(),
-    // An ID, never a URL. See the note on photoById(): a client-supplied
-    // URL to fetch is a server-side request forgery waiting to happen.
-    pixabay_id: z.number().int().positive(),
+    provider: z.enum(STOCK_PROVIDER_IDS),
+    // An ID, never a URL. See the note on each provider's byId(): a
+    // client-supplied URL to fetch is a server-side request forgery
+    // waiting to happen.
+    photo_id: z.string().trim().min(1).max(64),
     // Required and non-blank, exactly as POST /api/admin/images requires
     // it, because `product_images.alt_text` is NOT NULL with a non-empty
-    // check and §13 wants a real text alternative. Pixabay's keywords are
-    // deliberately NOT accepted as a substitute.
+    // check and §13 wants a real text alternative. A provider's keywords
+    // or its own caption are deliberately NOT accepted as a substitute.
     alt_text: z.string().trim().min(1).max(500),
     colour: z.string().trim().max(100).nullable().optional(),
   })
   .strict();
 
-function pixabayFailure(err: unknown) {
-  if (err instanceof PixabayError) {
+function providerFailure(err: unknown, label: string) {
+  if (err instanceof StockPhotoError) {
     return NextResponse.json({ error: err.message }, { status: err.status });
   }
   return NextResponse.json(
-    { error: 'Could not reach Pixabay. Nothing was imported.' },
+    { error: `Could not reach ${label}. Nothing was imported.` },
     { status: 502 },
   );
 }
@@ -74,6 +85,11 @@ export async function GET(req: NextRequest) {
   const session = await requireStaffSession();
   if ('error' in session) return session.error;
 
+  const provider = stockProvider(req.nextUrl.searchParams.get('provider') ?? '');
+  if (!provider) {
+    return NextResponse.json({ error: 'Unknown stock photo provider.' }, { status: 400 });
+  }
+
   const q = (req.nextUrl.searchParams.get('q') ?? '').trim();
   if (!q) return NextResponse.json({ error: 'Type something to search for.' }, { status: 400 });
 
@@ -81,29 +97,31 @@ export async function GET(req: NextRequest) {
   const page = Number.isFinite(pageParam) ? Math.min(50, Math.max(1, Math.trunc(pageParam))) : 1;
 
   try {
-    const result = await searchPhotos(q, { page, perPage: 24 });
+    const result = await provider.search(q, { page, perPage: 24 });
     // Narrowed on the way out. The browser gets the preview URL (which
-    // the terms permit for displaying results), the id it will import
-    // by, and the context a human needs to write a description — not the
-    // full hit, and not the large image URL, which has no business in a
-    // page that must never hotlink.
+    // both providers permit for displaying results), the id it will
+    // import by, and the context a human needs to write a description —
+    // NOT `downloadUrl`, which has no business in a page that must never
+    // hotlink, and which a page holding it is one copy-paste away from.
     return NextResponse.json({
-      total: result.totalHits,
+      provider: provider.id,
+      total: result.total,
       page,
-      hits: result.hits.map((hit) => ({
-        id: hit.id,
-        preview: hit.previewURL,
-        preview_width: hit.previewWidth,
-        preview_height: hit.previewHeight,
-        width: hit.imageWidth,
-        height: hit.imageHeight,
-        tags: tagList(hit.tags),
-        page_url: hit.pageURL,
-        user: hit.user,
+      hits: result.photos.map((photo) => ({
+        id: photo.id,
+        preview: photo.previewUrl,
+        preview_width: photo.previewWidth,
+        preview_height: photo.previewHeight,
+        width: photo.width,
+        height: photo.height,
+        context: photo.context,
+        page_url: photo.pageUrl,
+        credit: photo.credit,
+        credit_url: photo.creditUrl,
       })),
     });
   } catch (err) {
-    return pixabayFailure(err);
+    return providerFailure(err, provider.label);
   }
 }
 
@@ -123,26 +141,37 @@ export async function POST(req: NextRequest) {
       { status: 400 },
     );
   }
-  const { product_id, pixabay_id, alt_text } = parsed.data;
+  const { product_id, photo_id, alt_text } = parsed.data;
 
-  // 1. Resolve the id to a URL through Pixabay rather than trusting one.
-  let hit;
+  const provider = stockProvider(parsed.data.provider);
+  if (!provider) {
+    return NextResponse.json({ error: 'Unknown stock photo provider.' }, { status: 400 });
+  }
+
+  // 1. Resolve the id to a URL through the provider rather than trusting
+  //    one from the browser.
+  let photo;
   try {
-    hit = await photoById(pixabay_id);
+    photo = await provider.byId(photo_id);
   } catch (err) {
-    return pixabayFailure(err);
+    return providerFailure(err, provider.label);
   }
-  if (!hit) {
-    return NextResponse.json({ error: 'That photograph is no longer on Pixabay.' }, { status: 404 });
+  if (!photo) {
+    return NextResponse.json(
+      { error: `That photograph is no longer on ${provider.label}.` },
+      { status: 404 },
+    );
   }
-  if (!isAllowedImageUrl(hit.largeImageURL)) {
+  if (!provider.isAllowedImageUrl(photo.downloadUrl)) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
   }
 
   // 2. Download it. Pixabay's terms require storing it on our own server
-  //    rather than hotlinking, and every reader in this codebase expects
-  //    a bucket path anyway.
-  const imageRes = await fetch(hit.largeImageURL, { cache: 'no-store' }).catch(() => null);
+  //    rather than hotlinking; Pexels does not require it and gets the
+  //    same treatment, because every reader in this codebase expects a
+  //    bucket path and a shop whose pictures live on someone else's CDN
+  //    is a shop whose pictures can vanish.
+  const imageRes = await fetch(photo.downloadUrl, { cache: 'no-store' }).catch(() => null);
   if (!imageRes || !imageRes.ok) {
     return NextResponse.json({ error: 'Could not download that photograph.' }, { status: 502 });
   }
@@ -151,7 +180,9 @@ export async function POST(req: NextRequest) {
   const ext = extensionFor(contentType);
   if (!ext || !ALLOWED_TYPES.includes(contentType)) {
     return NextResponse.json(
-      { error: `Pixabay returned a ${contentType || 'unknown'} file, which this shop does not store.` },
+      {
+        error: `${provider.label} returned a ${contentType || 'unknown'} file, which this shop does not store.`,
+      },
       { status: 415 },
     );
   }

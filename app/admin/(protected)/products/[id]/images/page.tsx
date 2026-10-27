@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
+import { STOCK_PROVIDER_INFO } from '@/lib/stock-photos';
 import { ImageManager, type ManagedImage } from './image-manager';
 
 /**
@@ -53,6 +54,7 @@ export default async function ProductImagesPage({ params }: { params: Promise<{ 
       productName={productQuery.data.name as string}
       initial={(imagesQuery.data ?? []) as ManagedImage[]}
       colours={colours}
+      stockProviders={STOCK_PROVIDER_INFO}
     />
   );
 }

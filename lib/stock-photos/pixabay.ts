@@ -1,7 +1,13 @@
 import 'server-only';
+import {
+  StockPhotoError,
+  type StockPhoto,
+  type StockProvider,
+  type StockSearchResult,
+} from './types';
 
 /**
- * Pixabay search, for A05's "Find a stock photograph".
+ * Pixabay search, the first of A05's stock providers.
  *
  * WHY THIS IS SERVER-ONLY. `PIXABAY_API_KEY` is a sensitive environment
  * variable on Vercel (production, preview and development). It is not
@@ -33,6 +39,12 @@ import 'server-only';
  *     "no results" and "you have been rate limited" look identical to
  *     somebody staring at an empty grid — the same failure shape as a
  *     catalogue query error rendering as an empty shop.
+ *
+ * MOVED HERE FROM `lib/pixabay.ts` when Pexels became the second provider,
+ * which is the same move `form-styles.ts`, `dialog-styles.ts` and
+ * `quantity-control.tsx` all record: a file gains a sibling and the shared
+ * part goes up a level rather than being copied. `types.ts` has the
+ * reasoning about what was worth sharing — the import, not the HTTP call.
  */
 
 const ENDPOINT = 'https://pixabay.com/api/';
@@ -43,7 +55,7 @@ const ENDPOINT = 'https://pixabay.com/api/';
  * to let this fetch anything on the internet. */
 const ALLOWED_IMAGE_HOSTS = new Set(['pixabay.com', 'cdn.pixabay.com']);
 
-export type PixabayHit = {
+type PixabayHit = {
   id: number;
   pageURL: string;
   tags: string;
@@ -56,19 +68,11 @@ export type PixabayHit = {
   user: string;
 };
 
-export type PixabaySearch = {
+type PixabayResponse = {
   total: number;
   totalHits: number;
   hits: PixabayHit[];
 };
-
-export class PixabayError extends Error {
-  readonly status: number;
-  constructor(message: string, status: number) {
-    super(message);
-    this.status = status;
-  }
-}
 
 function apiKey(): string {
   const key = process.env.PIXABAY_API_KEY;
@@ -76,15 +80,15 @@ function apiKey(): string {
     // Raised rather than returning an empty result, for the reason every
     // catalogue page now throws on a query error: a missing key and a
     // search with no matches must not look the same.
-    throw new PixabayError(
-      'Stock photo search is not configured — PIXABAY_API_KEY is not set on this deployment.',
+    throw new StockPhotoError(
+      'Pixabay search is not configured — PIXABAY_API_KEY is not set on this deployment.',
       503,
     );
   }
   return key;
 }
 
-async function call(params: Record<string, string>): Promise<PixabaySearch> {
+async function call(params: Record<string, string>): Promise<PixabayResponse> {
   const url = new URL(ENDPOINT);
   url.searchParams.set('key', apiKey());
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
@@ -96,7 +100,7 @@ async function call(params: Record<string, string>): Promise<PixabaySearch> {
   });
 
   if (res.status === 429) {
-    throw new PixabayError(
+    throw new StockPhotoError(
       'Pixabay is rate limiting us — 100 searches a minute. Wait a moment and try again.',
       429,
     );
@@ -104,64 +108,93 @@ async function call(params: Record<string, string>): Promise<PixabaySearch> {
   if (!res.ok) {
     // The body is plain text on error, per the API docs.
     const detail = await res.text().catch(() => '');
-    throw new PixabayError(
+    throw new StockPhotoError(
       `Pixabay refused the search${detail ? `: ${detail.slice(0, 200)}` : '.'}`,
       502,
     );
   }
 
-  return (await res.json()) as PixabaySearch;
-}
-
-/** A page of photographs for a query. Photos only — an illustration or a
- * vector is not what anybody means by "a picture of a T-shirt". */
-export async function searchPhotos(
-  query: string,
-  opts: { page?: number; perPage?: number } = {},
-): Promise<PixabaySearch> {
-  return call({
-    q: query.slice(0, 100),
-    image_type: 'photo',
-    safesearch: 'true',
-    order: 'popular',
-    page: String(Math.max(1, opts.page ?? 1)),
-    per_page: String(Math.min(200, Math.max(3, opts.perPage ?? 24))),
-  });
-}
-
-/**
- * One photograph by its Pixabay id.
- *
- * THE IMPORT ROUTE RESOLVES THE URL THROUGH THIS rather than accepting
- * one from the browser. A client-supplied URL to fetch is the same
- * mistake as a client-supplied path to write (see the sign route): it
- * turns an admin screen into a request forgery tool that can reach
- * anything the function can reach, including the cloud metadata service.
- * An integer id can only ever name a Pixabay photograph.
- */
-export async function photoById(id: number): Promise<PixabayHit | null> {
-  const result = await call({ id: String(id) });
-  return result.hits[0] ?? null;
-}
-
-/** Guard for the URL Pixabay hands back, belt and braces over `photoById`. */
-export function isAllowedImageUrl(raw: string): boolean {
-  try {
-    const url = new URL(raw);
-    return url.protocol === 'https:' && ALLOWED_IMAGE_HOSTS.has(url.hostname);
-  } catch {
-    return false;
-  }
+  return (await res.json()) as PixabayResponse;
 }
 
 /** Pixabay's `tags` are comma-separated keywords. They are NOT a
  * description and must never be written to `alt_text` unedited — that is
  * how this shop ended up with lorem ipsum on its only photograph. The
  * search panel shows them as context for whoever writes the real one. */
-export function tagList(tags: string): string[] {
+function tagList(tags: string): string[] {
   return tags
     .split(',')
     .map((t) => t.trim())
     .filter(Boolean)
     .slice(0, 8);
 }
+
+function normalise(hit: PixabayHit): StockPhoto {
+  return {
+    provider: 'pixabay',
+    id: String(hit.id),
+    previewUrl: hit.previewURL,
+    previewWidth: hit.previewWidth,
+    previewHeight: hit.previewHeight,
+    width: hit.imageWidth,
+    height: hit.imageHeight,
+    downloadUrl: hit.largeImageURL,
+    context: tagList(hit.tags),
+    pageUrl: hit.pageURL,
+    credit: hit.user,
+    // Pixabay's response gives a user name and no profile URL, and its
+    // licence asks for no attribution, so there is nothing to link to.
+    creditUrl: null,
+  };
+}
+
+export const pixabay: StockProvider = {
+  id: 'pixabay',
+  label: 'Pixabay',
+  note: 'Free for commercial use, no attribution required. Its terms forbid permanent hotlinking, so the file is downloaded into this shop’s own storage.',
+  homeUrl: 'https://pixabay.com',
+
+  /** A page of photographs for a query. Photos only — an illustration or
+   *  a vector is not what anybody means by "a picture of a T-shirt". */
+  async search(query, opts = {}): Promise<StockSearchResult> {
+    const body = await call({
+      q: query.slice(0, 100),
+      image_type: 'photo',
+      safesearch: 'true',
+      order: 'popular',
+      page: String(Math.max(1, opts.page ?? 1)),
+      per_page: String(Math.min(200, Math.max(3, opts.perPage ?? 24))),
+    });
+    return {
+      total: body.totalHits ?? 0,
+      photos: (body.hits ?? []).map(normalise),
+    };
+  },
+
+  /**
+   * One photograph by its Pixabay id.
+   *
+   * THE IMPORT ROUTE RESOLVES THE URL THROUGH THIS rather than accepting
+   * one from the browser. A client-supplied URL to fetch is the same
+   * mistake as a client-supplied path to write (see the sign route): it
+   * turns an admin screen into a request forgery tool that can reach
+   * anything the function can reach, including the cloud metadata service.
+   * An integer id can only ever name a Pixabay photograph.
+   */
+  async byId(id): Promise<StockPhoto | null> {
+    const numeric = Number(id);
+    if (!Number.isInteger(numeric) || numeric <= 0) return null;
+    const body = await call({ id: String(numeric) });
+    const hit = body.hits[0];
+    return hit ? normalise(hit) : null;
+  },
+
+  isAllowedImageUrl(raw): boolean {
+    try {
+      const url = new URL(raw);
+      return url.protocol === 'https:' && ALLOWED_IMAGE_HOSTS.has(url.hostname);
+    } catch {
+      return false;
+    }
+  },
+};

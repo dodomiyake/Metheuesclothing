@@ -2450,13 +2450,95 @@ the HISTORY while the file sat in the repo. Both directions are now recorded in
 the migrations README: the history table and this repository are two separate
 records of the same thing, and either can be the one that is short.
 
+PEXELS IS A SECOND STOCK PROVIDER, and the interesting half is which provider
+was REFUSED and why. The owner asked about Pinterest; the terms were checked
+rather than answered from memory, and the answer is not about Pinterest's API
+at all. PINTEREST DOES NOT OWN THE IMAGES — a pin is a copy of someone else's
+photograph, saved by a third party who generally had no right to grant
+anything, so there is no licence to acquire whatever the developer terms say.
+That is a sharper problem than the wrong-garment mismatch this file already
+records: wrong garment is consumer protection, an unlicensed photograph on a
+product page is a copyright claim from the photographer or the brand, and
+apparel brands enforce. Practically it also does not work — v5 has no general
+public pin search (your own boards and Pins, plus a beta top-ten by term), it
+needs app review, and the services that do offer pin search are scrapers.
+
+UNSPLASH WAS THE OBVIOUS ALTERNATIVE AND IS INCOMPATIBLE WITH THIS CODEBASE,
+which is worth recording because it looks like the better library and the
+reason is not quality. Its API terms §6 REQUIRE hotlinking — "you must
+directly use or embed the related image URLs returned by the API" — and call a
+breach material, which is the exact opposite of Pixabay's rule and cannot be
+squared with lib/images.ts holding that `product_images.storage_path` is a path
+and never a URL. And §9 requires crediting Unsplash AND the photographer with a
+link to their profile EVERY TIME AN IMAGE IS DISPLAYED, which here means a
+credit line beside every garment on the shop listing, the product page and the
+homepage. A product photograph with a photographer credit next to it is not a
+product photograph.
+
+PEXELS FITS THE SHAPE ALREADY BUILT. Nothing in its documentation requires
+hotlinking, so the import downloads into `shop-images` exactly as the Pixabay
+import and a browser upload do; commercial use is permitted broadly. What it
+asks for is a prominent link to Pexels WHEN MAKING API REQUESTS and that
+photographers be credited where possible — both of which live on A05's search
+panel, the surface that makes the requests. THAT READING IS THE WHOLE
+DISTINCTION and is recorded in design-questions.md so it can be challenged: the
+guideline attaches to the app calling the API, not to every later display of
+the file, which is what makes Pexels workable where Unsplash is not. The
+budget differs too and the code says so: 200 an hour and 20,000 a MONTH against
+Pixabay's 100 a minute with no monthly cap, so the 24-hour cache is carried
+over as thrift rather than as Pixabay's stated obligation.
+
+IT IS A PROVIDER LAYER, NOT A SECOND COPY. `lib/pixabay.ts` moved to
+`lib/stock-photos/pixabay.ts` beside `pexels.ts`, with `types.ts` holding the
+one `StockPhoto` shape and `index.ts` the registry — the same move
+form-styles.ts, dialog-styles.ts and quantity-control.tsx all record. The route
+went with it: `/api/admin/images/pixabay` is now `/api/admin/images/stock` with
+a `provider` parameter, because everything below the provider call is identical
+and it is the part carrying the reasoning — resolve an id rather than trust a
+URL, check the URL anyway, check the declared type, check the REAL byte length,
+upload through the caller's own session so 019's `is_staff()` policy applies,
+attach at the end, and say plainly when the file lands but the row does not. A
+second copy of that is a second copy of the SSRF guard to keep in step. Adding
+a third provider is one file and one line.
+
+TWO SMALL THINGS WORTH KNOWING. The download is Pexels' `large2x` (~1880px) and
+NOT `original`: originals there are routinely 25 megapixels and past the
+bucket's 10 MB ceiling, so importing one would fail the size check after paying
+for the whole download. And PEXELS' OWN `alt` IS THE MORE DANGEROUS OF THE TWO
+PROVIDERS' CONTEXT FIELDS, which is why the don't-prefill rule needed restating
+rather than just carrying over: Pixabay returns keywords nobody would mistake
+for prose, while Pexels returns "Man in White Crew Neck T-shirt" — a caption
+that reads like an alt text, would sail through the NOT NULL check, describes
+the STOCK PHOTOGRAPH rather than the garment being sold, and says nothing about
+the stripe, the placket or the cut. Shown as context; the field stays empty.
+
+UNEXERCISED, with one half verified further than Pixabay's was before its key
+arrived. `api.pexels.com` IS reachable from this sandbox and the auth semantics
+are confirmed by probing: the key goes in `Authorization` raw with no Bearer
+prefix, a missing key answers 401 "Missing API key" and a wrong one 401 "Invalid
+API key" — so the 401/403 branch reading "refused the key on this deployment" is
+accurate, since the missing-key case is caught earlier as a 503. THE RESPONSE
+SHAPE IS STILL UNVERIFIED and needs `PEXELS_API_KEY` on Vercel, the same
+sensitive-variable treatment PIXABAY_API_KEY has. tsc and next build both pass.
+
+AND IT DOES NOT SOLVE THE ACTUAL PROBLEM, which was said before it was built
+rather than after. Stock photography of *a* T-shirt is still not photography of
+*our* T-shirt. Pexels will furnish the editorial surfaces Pixabay furnished
+badly — the homepage hero, Our Story's well — and it will not honestly furnish
+OVERSIZED CREW NECK or RELAXED FIT POCKET, for the reason already recorded: the
+owner's "everything, unmarked" decision answered whether stock photographs may
+be product images, not whether a WRONG GARMENT may be shown. The thing that
+closes product photography is a phone, a plain wall and window light, which is
+why A05's no_mobile gate was lifted.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
 delivery rates, the £150 threshold, legal REVIEW of the three pages now
 drafted in `docs/legal/` (the drafting is done; the review and the
-`[OWNER: ...]` identity facts are not), and APPLYING MIGRATION 023 through the
-dashboard SQL editor. Three seeded values in migration
+`[OWNER: ...]` identity facts are not), APPLYING MIGRATION 023 through the
+dashboard SQL editor, and `PEXELS_API_KEY` on Vercel as a sensitive variable
+beside PIXABAY_API_KEY. Three seeded values in migration
 008 are marked PLACEHOLDER for the same reason.
 
 ## Conventions
