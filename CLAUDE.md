@@ -2701,9 +2701,8 @@ it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
 delivery rates, the £150 threshold, legal REVIEW of the three pages now
 drafted in `docs/legal/` (the drafting is done; the review and the
-`[OWNER: ...]` identity facts are not), APPLYING MIGRATION 023 through the
-dashboard SQL editor, and `PEXELS_API_KEY` on Vercel as a sensitive variable
-beside PIXABAY_API_KEY. Three seeded values in migration
+`[OWNER: ...]` identity facts are not), and `PEXELS_API_KEY` on Vercel as a
+sensitive variable beside PIXABAY_API_KEY. Three seeded values in migration
 008 are marked PLACEHOLDER for the same reason.
 
 ## Conventions
