@@ -2889,6 +2889,26 @@ already the page title and the frame's headline is a separate design name --
 so it stays omitted, the same call every other unbacked field on this screen
 gets.
 
+THE STRIPED POLO HAS A SECOND COLOURWAY NOW, which was the last gap the design
+story's new image rule left open: it held one photograph, so its story section
+rendered copy alone where the other eleven products had an image. BLACK, a real
+variant colour on that product and the colourway its original flat-lay showed.
+Twenty-four bundled images. Its live NAVY row's alt md5 was checked against the
+manifest first (`c2fb1860...`, 246 characters, byte for byte), because that
+match is the whole reason the per-colourway guard will touch the product at all.
+
+WORTH CARRYING FORWARD ABOUT THE KLING TOOLING: `query_tasks` REPORTS STALE
+STATUS. This job read `QUEUING` on four polls across four minutes, where the
+twenty-three before it had completed in thirty to sixty seconds — so it looked
+exactly like a hang, and a stall report went to Kling's feedback channel. The
+next poll returned COMPLETED with `finishTime - createTime` of THIRTY-TWO
+SECONDS. The job had been finished the whole time and the status read was
+behind. So a long QUEUING is not evidence of a stalled job: check
+finishTime against createTime on the row that eventually lands before
+concluding anything, and never re-submit on the strength of a QUEUING poll —
+every job is charged, and a duplicate would have cost twenty credits for an
+image that already existed.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real
