@@ -81,6 +81,12 @@ const PRODUCT_IMAGES: DemoImage[] = [
     alt: 'A man stands facing the camera against a plain warm-grey studio wall, wearing a short sleeve polo shirt in broad even horizontal stripes of navy and cream, with a plain cream collar and a two-button placket, over grey trousers and white trainers.',
   },
   {
+    file: 'model-polo-black.jpg',
+    slug: 'striped-short-sleeve-polo-tshirt',
+    colour: 'BLACK',
+    alt: 'A woman stands facing the camera against a plain warm-grey studio wall, wearing a short sleeve polo shirt in broad even horizontal stripes of black and cream, with a plain cream collar, cream cuffs and a two-button placket, over grey trousers and white trainers.',
+  },
+  {
     file: 'model-oversized-black.jpg',
     slug: 'oversized-crew-neck-tshirt',
     colour: 'BLACK',
