@@ -22,7 +22,7 @@ type Report = { added: string[]; skipped: string[]; failed: string[] };
  * by the storage policy (not fine at all). An empty green tick covering both
  * is the catalogue-query-as-empty-shop failure in a new place.
  */
-export function SeedDemoImages() {
+export function SeedDemoImages({ swapFlatLays = false }: { swapFlatLays?: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [report, setReport] = useState<Report | null>(null);
@@ -33,7 +33,11 @@ export function SeedDemoImages() {
     setError(null);
     setReport(null);
     try {
-      const res = await fetch('/api/admin/demo/images', { method: 'POST' });
+      const res = await fetch('/api/admin/demo/images', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ action: swapFlatLays ? 'swap-to-models' : 'fill' }),
+      });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(body.error ?? 'Could not add the demo photographs.');
@@ -57,7 +61,13 @@ export function SeedDemoImages() {
           disabled={busy}
           style={{ ...primaryButtonStyle, ...(busy ? disabledButtonStyle : {}) }}
         >
-          {busy ? 'Adding photographs…' : 'Add the demo photographs'}
+          {busy
+            ? swapFlatLays
+              ? 'Replacing the flat-lays…'
+              : 'Adding photographs…'
+            : swapFlatLays
+              ? 'Replace the flat-lays with model photography'
+              : 'Add the demo photographs'}
         </button>
       </div>
 

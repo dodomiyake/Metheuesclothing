@@ -31,7 +31,7 @@ export default async function DemoDataPage() {
 
   const [products, images, collections] = await Promise.all([
     supabase.from('products').select('id, name, slug, status, made_in, composition'),
-    supabase.from('product_images').select('id, product_id'),
+    supabase.from('product_images').select('id, product_id, alt_text'),
     supabase.from('collections').select('id, slug, name, hero_path'),
   ]);
 
@@ -48,6 +48,14 @@ export default async function DemoDataPage() {
   // Every product carries Portugal as its origin today, which is the demo
   // value — a real catalogue would not all agree by accident.
   const withPlaceholderSpec = rows.filter((p) => p.made_in === 'Portugal');
+  // The first demo batch was flat-lay photography with nobody in it. The
+  // owner has since asked for the garments to be shown on a model, so these
+  // are counted rather than assumed gone — the fill guard leaves a
+  // photographed product alone for good, which is right for a real
+  // photograph and too blunt for a superseded demo one.
+  const flatLays = imageRows.filter((i) =>
+    typeof i.alt_text === 'string' && i.alt_text.includes('laid flat on a pale grey background'),
+  );
 
   return (
     <div className="mc-admin-page">
@@ -78,7 +86,7 @@ export default async function DemoDataPage() {
             <li>
               <strong>{imageRows.length}</strong> photographs are attached, and the demo ones were
               machine-generated. They show the right garment and no brand marks, but they are not
-              photographs of stock anybody owns.
+              photographs of stock anybody owns — and the people wearing them do not exist.
             </li>
             <li>
               <strong>{collectionRows.length}</strong> collections exist, both created as demo
@@ -115,6 +123,31 @@ export default async function DemoDataPage() {
             </p>
           )}
           <SeedDemoImages />
+        </Panel>
+
+        <Panel heading="Flat-lays from the first demo batch">
+          <p style={text}>
+            The first batch photographed the garments laid flat, with nobody in them. The rest of
+            the range is shown on a model, so these four sit oddly beside it. Replacing them
+            removes those rows and their files and puts a model shot in their place.
+          </p>
+          <p style={text}>
+            It finds them by their exact description, so a photograph anyone has uploaded or
+            re-described is not one of them and cannot be caught by this.
+          </p>
+          {flatLays.length === 0 ? (
+            <p style={text}>
+              No flat-lays are left, so there is nothing for this to do.
+            </p>
+          ) : (
+            <>
+              <p style={text}>
+                <strong>{flatLays.length}</strong> flat-lay photograph
+                {flatLays.length === 1 ? '' : 's'} would be replaced.
+              </p>
+              <SeedDemoImages swapFlatLays />
+            </>
+          )}
         </Panel>
 
         <Panel heading="When this shop goes live">

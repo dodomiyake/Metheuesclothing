@@ -34,6 +34,32 @@
 --    genuinely want them gone, archive them through A04 so the archive is
 --    audited.
 
+-- ------------------------------------------- 0. the extended demo range
+-- The eight products added on 27 October (part 3) are returned to draft
+-- rather than deleted, for the reason part 3 gives: DELETE is gated in the
+-- session tooling, and a draft is invisible to customers anyway. Their
+-- variants, SKUs and ledger history survive for whenever real information
+-- arrives.
+--
+-- Stock is NOT zeroed here, the same call part 5 makes about the original
+-- three: if the walkthrough sold any of it, zeroing silently rewrites what
+-- the ledger says was sold. The adjust_stock() call to run if you do want
+-- it back at zero is in part 5's comment; point it at these slugs.
+update products
+   set status = 'draft',
+       published_at = null,
+       updated_at = now()
+ where slug in (
+   'classic-crew-neck-tshirt',
+   'v-neck-tshirt',
+   'short-sleeve-henley-tshirt',
+   'plain-short-sleeve-polo-tshirt',
+   'long-sleeve-polo-tshirt',
+   'ribbed-sleeveless-vest-tshirt',
+   'tank-top-tshirt',
+   'striped-long-sleeve-tshirt'
+ );
+
 -- ------------------------------------------------- 1. product photographs
 -- The storage OBJECTS are not removed by this -- deleting a row leaves the
 -- file in the bucket, which is the safe direction (an orphaned file costs
@@ -43,6 +69,14 @@
 -- Matched on the alt text written by the demo seed, which is the only thing
 -- that distinguishes these rows from a real upload. If you have edited the
 -- descriptions, match on `created_at` instead and check the list first.
+--
+-- TWO BATCHES. The first seven are the FLAT-LAY photographs from the
+-- original seed; /admin/demo's "Replace the flat-lays" button may already
+-- have removed them, in which case this deletes nothing, which is correct.
+-- The model photographs that replaced them, and the sixteen for the
+-- extended range, all open with "A man stands" or "A woman stands" against
+-- the same studio wall, so the second statement catches every one of them
+-- without naming twenty literals.
 delete from product_images
 where alt_text in (
   'A short sleeve polo shirt laid flat on a pale grey background, in even horizontal black and cream stripes, with a plain cream ribbed collar, matching cream cuffs and a two-button placket.',
@@ -53,6 +87,14 @@ where alt_text in (
   'A black short sleeve cotton T-shirt laid flat on a pale grey background, with a ribbed crew neck and a single plain patch pocket stitched on the left chest.',
   'An off-white short sleeve cotton T-shirt laid flat on a pale grey background, with a ribbed crew neck and a single plain patch pocket stitched on the left chest.'
 );
+
+-- The model photographs. Every one of them was written from the image and
+-- every one opens this way; a real photograph described by a person will
+-- not, so this cannot catch one by accident. CHECK THE LIST FIRST with the
+-- same predicate as a SELECT if you have added your own.
+delete from product_images
+ where alt_text like 'A man stands facing the camera against a plain warm-grey studio wall%'
+    or alt_text like 'A woman stands facing the camera against a plain warm-grey studio wall%';
 
 -- ------------------------------------------------------- 2. collections
 -- Fixed uuids, so this removes exactly the two rows the seed created and
@@ -131,10 +173,11 @@ update products
 
 -- -------------------------------------------------------- verification
 -- Expect: 1 published product (the polo), 0 collections, 0 demo images,
--- and null specification on all four.
+-- and null specification on all twelve.
 select
   (select count(*) from products where status = 'published') as published_products,
   (select count(*) from collections) as collections,
   (select count(*) from product_images) as images,
   (select count(*) from products where made_in is not null) as with_origin,
-  (select count(*) from products where composition is not null) as with_composition;
+  (select count(*) from products where composition is not null) as with_composition,
+  (select count(*) from products where status = 'draft') as drafts;

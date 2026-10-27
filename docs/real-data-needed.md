@@ -36,7 +36,7 @@ measured. `/admin/demo` counts them.
 | Field | Column | Demo value | Where it shows |
 |---|---|---|---|
 | Composition | `products.composition` | `100% combed cotton` | Product page specification; the homepage craft rows already claimed this independently |
-| Fabric weight | `products.fabric_weight_gsm` | 220–260 | Product page specification; homepage craft rows |
+| Fabric weight | `products.fabric_weight_gsm` | 180–260 | Product page specification; homepage craft rows |
 | Country of origin | `products.made_in` | `Portugal` | Product page; collection page MADE field (only when every product agrees) |
 | Fit | `products.fit` | regular / oversized / relaxed | Shop listing **Fit filter**, Our Story's derived sentence, the add-to-bag panel's cross-sell line |
 | Neck | `products.neck` | Ribbed crew / polo collar | Product page specification |
@@ -57,6 +57,16 @@ listing builds its filter straight out of that column, Our Story derives a
 sentence from it, and the add-to-bag cross-sell reads it. One wrong value
 propagates to four places.
 
+**EVERY PRICE IS A PLACEHOLDER TOO**, and this one is easy to miss because a
+price looks like a decision rather than a gap. The original four products all
+carry £48.00, copied from the one product that existed first. The eight added
+on 27 October run £32.00 to £62.00 on a ladder shaped by how much garment
+there is — a vest under a long sleeve polo — which is a guess about relative
+cost, not a margin anybody has calculated. Nothing here knows what a blank
+costs, what printing costs or what the business needs to make. A06 sets a
+price at creation and `PATCH /api/admin/variants/[id]` is the only way one
+moves afterwards; every move is audited.
+
 **Not demo, but still empty and read by nothing:** `packed_weight_g`,
 `hs_code`, `country_of_origin`. They exist for delivery and customs and no
 screen reads them yet. Leave them until something needs them.
@@ -71,10 +81,19 @@ stock anybody owns.
 
 | What | Where |
 |---|---|
-| Product photographs | 7 images across 4 products, 2 colourways each where applicable |
+| Product photographs | 20 images across 12 products, two colourways each on all but the original four |
 | Collection heroes | CORE and THE OVERSIZED EDIT |
 | Homepage hero | Not set — the homepage shows its empty well |
 | Our Story image | Not settable; §9.7 limits the content system to seven homepage slots |
+
+**THE PEOPLE IN THEM DO NOT EXIST.** The owner asked on 27 October for the
+garments to be shown on a model, and the models are generated along with the
+photographs. That is ordinary enough in fashion retail that nobody will
+question it, which is exactly why it is written down here: a customer looking
+at the shop cannot tell, and the decision should be one somebody took rather
+than one that happened. Nothing turns on it legally — a synthetic model is not
+a misleading claim about the goods the way a wrong garment is — but it is the
+kind of thing a brand wants to have decided on purpose.
 
 **Replacing them:** upload in A05 (Product images). It works on a phone, which
 is where the photographs are. A05 only ever *adds*, so delete the demo image
@@ -92,6 +111,12 @@ unmarked") and then found unable to furnish this catalogue — nothing oversized
 and nothing with a chest pocket exists in either library. Generated images
 replaced that approach. If real photography is slow, the Pexels and Pixabay
 search in A05 still works for editorial surfaces like the homepage hero.
+
+**The colourways outrun the photographs, by design.** Nine colours exist and
+twenty photographs do, so most colourways fall back to another colour's
+picture — which is what `product-media.tsx` has always done and is better than
+an empty well, but it does mean someone choosing CHARCOAL sees a black vest.
+Closing that is one photograph per colourway, which is a shoot, not a task.
 
 ---
 
@@ -284,7 +309,7 @@ gone.
 
 ## Database state
 
-Every migration through 024 is applied and recorded in the migration history.
+Every migration through 025 is applied and recorded in the migration history.
 Rule 3 was verified directly rather than through the advisor: 21 `SECURITY
 DEFINER` functions exist, 19 are service-role only, and the 2 that are not
 (`is_staff`, `is_owner`) are deliberate and documented. Nothing here is
