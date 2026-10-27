@@ -17,6 +17,7 @@ type ProductFormValues = {
   name: string;
   status: 'draft' | 'scheduled' | 'published' | 'archived';
   description_short: string;
+  design_story_heading: string;
   design_story: string;
   fit: string;
   fabric_weight_gsm: string;
@@ -36,6 +37,7 @@ const EMPTY: ProductFormValues = {
   name: '',
   status: 'draft',
   description_short: '',
+  design_story_heading: '',
   design_story: '',
   fit: '',
   fabric_weight_gsm: '',
@@ -111,6 +113,7 @@ export function ProductForm({
       name: values.name,
       status: values.status,
       description_short: values.description_short || null,
+      design_story_heading: values.design_story_heading || null,
       design_story: values.design_story || null,
       fit: values.fit || null,
       fabric_weight_gsm: values.fabric_weight_gsm ? Number(values.fabric_weight_gsm) : null,
@@ -254,6 +257,19 @@ export function ProductForm({
             onChange={(e) => set('description_short', e.target.value)}
             style={{ ...inputStyle, minHeight: 80 }}
           />
+        </Field>
+        <Field label="Design story heading">
+          <input
+            value={values.design_story_heading}
+            onChange={(e) => set('design_story_heading', e.target.value)}
+            style={inputStyle}
+            maxLength={200}
+          />
+          <p style={{ fontSize: 'var(--mc-type-caption)', color: 'var(--mc-text-muted)', margin: '6px 0 0' }}>
+            The line above the story on the product page. A name for the design rather than
+            the product — the catalogue name is already the page title, so repeating it here
+            prints the same words twice. Leave it empty and the story runs without one.
+          </p>
         </Field>
         <Field label="Design story">
           <textarea

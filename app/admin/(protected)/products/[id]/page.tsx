@@ -11,7 +11,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
   const { data: product, error } = await supabase
     .from('products')
     .select(
-      'id, slug, name, status, description_short, design_story, fit, fabric_weight_gsm, composition, neck, made_in, care_instructions, packed_weight_g, hs_code, country_of_origin, seo_title, seo_description',
+      'id, slug, name, status, description_short, design_story_heading, design_story, fit, fabric_weight_gsm, composition, neck, made_in, care_instructions, packed_weight_g, hs_code, country_of_origin, seo_title, seo_description',
     )
     .eq('id', id)
     .maybeSingle();
@@ -57,6 +57,7 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
             name: product.name,
             status: product.status,
             description_short: product.description_short ?? '',
+            design_story_heading: product.design_story_heading ?? '',
             design_story: product.design_story ?? '',
             fit: product.fit ?? '',
             fabric_weight_gsm: product.fabric_weight_gsm ? String(product.fabric_weight_gsm) : '',

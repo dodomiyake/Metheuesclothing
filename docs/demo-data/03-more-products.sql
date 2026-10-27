@@ -229,3 +229,58 @@ select count(*) from (
             null)).new_stock
   from target t
 ) applied;
+
+-- -------------------------------------------- design story headings (026)
+-- 04A draws a 48px headline above the story body and migration 026 added the
+-- column for it. These are DEMO COPY like the design stories beside them:
+-- a name for the design rather than the product, because the catalogue name
+-- is already the page title forty pixels up and repeating it there prints
+-- the same words twice in one viewport.
+--
+-- They describe the garment's defining feature and claim nothing about
+-- fibre, weight or origin -- the line the rest of this file holds. A04 is
+-- where the owner rewrites them.
+--
+-- `is null` scoping means re-running this never overwrites one somebody has
+-- edited.
+update products set design_story_heading = v.heading, updated_at = now()
+from (values
+  ('striped-short-sleeve-polo-tshirt', 'The Stripe'),
+  ('oversized-crew-neck-tshirt',       'Room To Move'),
+  ('long-sleeve-crew-neck-tshirt',     'The Long Way'),
+  ('relaxed-fit-pocket-tshirt',        'One Pocket'),
+  ('classic-crew-neck-tshirt',         'The Baseline'),
+  ('v-neck-tshirt',                    'Open Collar'),
+  ('short-sleeve-henley-tshirt',       'Three Buttons'),
+  ('plain-short-sleeve-polo-tshirt',   'Plain Pique'),
+  ('long-sleeve-polo-tshirt',          'Collar And Cuff'),
+  ('ribbed-sleeveless-vest-tshirt',    'Narrow Rib'),
+  ('tank-top-tshirt',                  'Cut Low'),
+  ('striped-long-sleeve-tshirt',       'Breton')
+) as v(slug, heading)
+where products.slug = v.slug and products.design_story_heading is null;
+
+-- ------------------------------------------------- CORE gets the full range
+-- Eight of the twelve products were in no collection at all, so the product
+-- page's new "Part of ..." line had nothing to show on two thirds of the
+-- catalogue. CORE is the base collection -- "the shapes we keep making" --
+-- and every published product belongs in it by that definition.
+--
+-- ITS DESCRIPTION WAS ALSO STALE: it said "Four cuts", written when the
+-- catalogue had four. That was wrong the moment the range grew, independently
+-- of this, so the number is dropped rather than re-counted into something
+-- that goes stale again.
+--
+-- THE OVERSIZED EDIT is left exactly as it was. Which of the new garments
+-- belong in it is curation, which is A10's job and the owner's call -- the
+-- tank is relaxed and the vest is slim, so neither is an obvious member.
+update collections
+   set description = 'The shapes we keep making. The same cotton across every cut, restocked rather than retired.'
+ where slug = 'core';
+
+insert into product_collections (product_id, collection_id, position)
+select p.id, 'dd000000-0000-4000-8000-000000000001'::uuid,
+       row_number() over (order by p.created_at) - 1
+from products p
+where p.status = 'published'
+on conflict (product_id, collection_id) do nothing;

@@ -2947,6 +2947,65 @@ candidate with real data behind it is the COLLECTION a product belongs to:
 `product_collections` is a real join that this page reads nowhere, so a
 product currently has no path to the collection holding it.
 
+THE DESIGN STORY IS FILLED NOW, not just narrower — "Fix it", after the width
+cap. Three changes, and the first is the one the frame was always asking for.
+
+MIGRATION 026 ADDS `products.design_story_heading`. 62:968's copy column is
+THREE things — a small eyebrow, a 48px HEADLINE, the body — and this project
+shipped two of them, for the reason it omits every unbacked field: no column
+stored one. That omission is most of why the band read empty; the frame's
+copy block is 182px against a 600px photograph and ours was two lines. It is
+a DESIGN name and deliberately not `products.name`, which is already the page
+title forty pixels up — the frame's own is "Frequency One" where the product
+is "Frequency One Tee", and reusing the catalogue name would print the same
+words twice in one viewport. Additive and nullable: a product without one
+renders the section exactly as before, so it can only fill a page, never
+break one. A04 carries the field. 32/40/48 by breakpoint rather than a flat
+48, which is the one-word-per-line failure this file records against the
+product title.
+
+THE "PART OF" LINE NEEDED NO QUERY, which is worth knowing before somebody
+adds one. The page ALREADY fetches `product_collections` for its related
+cards and `involvedIds` already includes this product, so the line is derived
+from a join that was being made and thrown away. It needs no status filter
+either: `collections` is RLS'd to `status = 'live' or is_staff()`, so a hidden
+collection never comes back to a customer and no link is offered to a page
+that would 404 — the database doing the filtering rather than a `.filter()`
+here that could drift from the policy.
+
+EIGHT OF TWELVE PRODUCTS WERE IN NO COLLECTION, so that line would have been
+blank on two thirds of the catalogue. All twelve are in CORE now, which is
+what a base collection means by its own description. ITS DESCRIPTION WAS ALSO
+STALE — "Four cuts", written when the catalogue had four — so the number is
+dropped rather than re-counted into something that goes stale again. THE
+OVERSIZED EDIT is untouched: which new garments belong in it is curation, A10
+is the screen for it, and the tank is relaxed while the vest is slim, so
+neither is an obvious member.
+
+ONE DEPARTURE, and it is the part that actually answers the complaint:
+the row is CENTRED where the frame top-aligns. Even with the headline
+restored the copy block is 214px against a 600px photograph, so top-aligning
+leaves nearly four hundred pixels of black directly under the text — which is
+what was being pointed at. Centred, the same gap becomes symmetrical
+breathing room either side of the block. Looked at rather than measured into
+existence: both versions were rendered at 1440 and compared.
+
+MEASURED AT 390/768/1440/1920/2560: headline 32/40/48, copy block 250/204/214,
+figure 480x600 from 1440 up with a 96 gap, the band centring rather than
+stretching, no horizontal overflow.
+
+AND CUSTOMER REVIEWS ARE NOT THE ANSWER HERE, asked directly and worth
+recording because it is the obvious suggestion. §2's "Explicitly excluded
+from launch" list names them outright, beside wish lists, loyalty points,
+gift cards and subscriptions. Two further reasons either of which would stand
+alone: a reviews section on a shop that has taken no live orders renders
+EMPTY, which is more dead space rather than less; and seeding it is the one
+thing on this page that is specifically illegal rather than merely unwise,
+since the DMCC Act 2024 made writing, commissioning or publishing fake
+consumer reviews a banned practice in its own right, enforceable by the CMA
+directly. Every other placeholder in this project is a claim somebody can
+correct; a fabricated review is a prohibited act the moment it is published.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real

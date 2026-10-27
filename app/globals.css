@@ -547,7 +547,14 @@ button.mc-icon-button[aria-label='Search'] {
   .mc-pdp-story {
     flex-direction: row;
     gap: 96px;
-    align-items: flex-start;
+    /* CENTRED, where the frame top-aligns, and this is the one departure
+       in the section. 62:968's copy block is 182px against a 600px
+       photograph, so top-aligning leaves four hundred pixels of black
+       directly under the text — which is what "this is a waste of space"
+       was pointing at, and it survives the headline being restored. Centred,
+       the same gap becomes symmetrical breathing room either side of the
+       block. One word to put back. */
+    align-items: center;
     max-width: 1440px;
     margin-left: auto;
     margin-right: auto;
@@ -560,6 +567,27 @@ button.mc-icon-button[aria-label='Search'] {
 /* No inline `display` on this, deliberately: CLAUDE.md records the icon
    buttons whose inline display:flex silently beat every media query meant
    to hide them per breakpoint. */
+/* The frame's 48px headline (62:968, "Frequency One"). Stepped down at the
+   narrow widths the same way --mc-type-page-title does, because a flat 48
+   on a 390px phone is the one-word-per-line failure this project already
+   records against the product title. */
+.mc-pdp-story-heading {
+  font-family: var(--mc-font-display);
+  font-size: 32px;
+  line-height: 1.15;
+  margin: 24px 0 0;
+}
+@media (min-width: 768px) {
+  .mc-pdp-story-heading {
+    font-size: 40px;
+  }
+}
+@media (min-width: 1440px) {
+  .mc-pdp-story-heading {
+    font-size: 48px;
+  }
+}
+
 .mc-pdp-story-figure {
   display: none;
 }
