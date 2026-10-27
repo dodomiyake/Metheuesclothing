@@ -2696,6 +2696,107 @@ is unchanged for the sharper version of the same reason, now recorded there:
 that page is reached by proving an order number plus an email, and a postal
 address attached to a card is the most sensitive thing on it.
 
+THE RANGE IS TWELVE PRODUCTS NOW, not four, at the owner's instruction on 27
+October: "Add more products, tshirts, polo, wife beaters, tank tops, all
+variety of tshirts and different colors". Eight new garments, 21 colourways,
+105 variants, 9 colours and prices from GBP 32.00 to GBP 62.00. Seeded in
+`docs/demo-data/03-more-products.sql`, and it is DEMO DATA like everything
+else there -- `docs/real-data-needed.md` carries what replaces it.
+
+THE SLEEVELESS VEST IS NOT CALLED WHAT THE OWNER CALLED IT, and that was a
+deliberate departure rather than a transcription error. "Wife beater" is the
+common name for a ribbed sleeveless A-shirt and everybody knows the garment,
+which is why the instruction was perfectly clear. It is not a name to put on a
+product page: it names domestic violence, and it would sit in the page title,
+the SEO description, the order confirmation email, the pick list and the
+customer's bank statement line, where it cannot be quietly corrected once a
+search engine has indexed it. It ships as RIBBED SLEEVELESS VEST TSHIRT, which
+is what UK retail calls it. One `name` and one `slug` to change if the owner
+wants it changed -- but it should be a decision taken rather than a default.
+
+TANK TOP IS A SEPARATE PRODUCT and not a synonym. The vest is ribbed, slim and
+high at the armhole; the tank is flat jersey, relaxed, low at the armhole and
+wide at the strap. Two garments, two photographs, and somebody buying one does
+not want the other.
+
+product_type HAS EXACTLY ONE VALUE, `tshirt`, checked rather than assumed. So
+the polos, the henley, the vest and the tank are all `tshirt`, which is the
+schema agreeing with a T-shirt-first spec rather than a gap -- but if the shop
+ever wants to FILTER by garment type, that is a new enum value and a migration,
+not a free-text column.
+
+PRICES VARY NOW AND THAT IS A CHANGE OF POSTURE. This file records that the
+first three products copied GBP 48.00 from the only product that existed
+rather than inventing a price. That was right with one product to copy from
+and wrong with twelve: a catalogue where everything costs the same never
+exercises a price RANGE on a card, never lets a bag cross the GBP 150
+free-delivery threshold on three items rather than four, and reads as
+obviously fake. The ladder is shaped by how much garment there is and every
+figure is listed in real-data-needed.md as the owner's to set. NOTHING HERE
+KNOWS WHAT A BLANK COSTS.
+
+FIVE SIZES ON THE NEW PRODUCTS, not the original seven, and the second reason
+is the real one. A range opening with S to XXL is what a small brand actually
+receives. And every opening stock figure is a permanent audit_logs row
+(migration 015), so 105 variants is already enough that A23 needs its action
+filter to read anything else -- 147 would have been that for no gain. XS and
+XXXL are one A06 run away, and the original four already cover both ends for
+the Sold out and Low stock states.
+
+STOCK WENT THROUGH adjust_stock() AGAIN, 103 calls in one statement: 103
+inventory_adjustments rows and 103 `stock_adjusted` audit rows. That is not
+pollution. Receiving 103 SKUs genuinely IS 103 ledger lines, which is the
+whole reason 002_rls.sql gives staff no INSERT policy on that table. Two
+colourway/size combinations were deliberately left at zero so Sold out shows
+on a NEW product rather than only on the original four, and XXL opens at 3
+against a threshold of 5 so Low stock shows too. audit_logs went 58 -> 161.
+
+THE PHOTOGRAPHY IS MODEL-WORN NOW, which REVERSES a choice recorded above.
+The first demo batch was flat-lay with an explicit no-people instruction,
+because the one real photograph this shop had turned out to show a model in
+another brand's garment. The owner asked for "a model wearing them" on 27
+October, which is their call to make, and the no-logo instruction is what
+actually mattered and is kept. Twenty images, 4:5 at 1200x1500, one studio
+setup across all twenty so the shop reads as one brand, and different people
+rather than one invented face becoming the business's model.
+
+ALL TWENTY WERE OPENED AND LOOKED AT before a word of alt text was written,
+which is the rule this project learned the hard way and the reason the
+descriptions are not interchangeable: the striped long sleeve in BLACK has
+visibly narrower stripes than the NAVY one, and its description says so. No
+brand marks on any of them, checked rather than assumed from the prompt.
+
+THE PEOPLE IN THEM DO NOT EXIST and the dashboard notice says so. Worth
+keeping separate from every other placeholder in this file: a synthetic model
+is not a misleading claim about the GOODS the way a wrong garment is, so it is
+not the same class of risk -- but a customer cannot tell, so it is recorded as
+a decision somebody took rather than something that happened.
+
+/admin/demo GAINED A SECOND BUTTON, because the first one's guard is exactly
+right for a real photograph and too blunt for a superseded demo one. "It only
+fills products that have NO photographs" means the four products that got
+flat-lays would keep them for good, and the shop would show four flat-lays
+beside eight model shots. "Replace the flat-lays with model photography"
+removes exactly the seven bundled flat-lay rows and their files, then fills.
+It finds them by their EXACT alt text -- the same discriminator
+99-teardown.sql uses, with the same narrow guarantee: a real photograph's
+description is not one of seven string literals written in this repository, so
+a real photograph can never be caught by it, and editing a description in A05
+makes the swap stop finding it, which is the safe direction to fail in. Row
+first, file after, the same order A05's delete uses.
+
+THE COLOURWAYS OUTRUN THE PHOTOGRAPHS, deliberately. Nine colours, twenty
+photographs, so most colourways fall back to another colour's picture --
+which is what product-media.tsx has always done and is better than an empty
+well, but it means someone choosing CHARCOAL sees a black vest. Closing it is
+one photograph per colourway, which is a shoot rather than a task. Noted in
+real-data-needed.md rather than left to be discovered.
+
+THE WRITE PATH IS UNEXERCISED AS ALWAYS: these sessions have no staff storage
+credential (019's policies are gated on is_staff() and the publishable key
+does not satisfy it), so the images ship in public/demo/ and the route uploads
+them through the CALLER'S OWN session. Pressing the button is the test.
+
 Blocked on the owner, not on code: photography (there is somewhere to put
 it now — what is missing is the pictures), verified garment measurements
 (§8.5 — the size tables in the design are placeholders and must not ship), real

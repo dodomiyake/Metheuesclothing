@@ -14,6 +14,7 @@ standing in for.
 |---|---|
 | `01-catalogue.sql` | Fills the garment specification and publishes the three draft products |
 | `02-collections.sql` | Creates the two demo collections and their membership |
+| `03-more-products.sql` | The other eight garments — polos, a henley, a ribbed vest, a tank — with their colourways and opening stock |
 | `99-teardown.sql` | Puts it all back |
 
 Stock went in through `adjust_stock()` rather than SQL in a file, because a
@@ -29,13 +30,27 @@ still applies. A script with a service key would have routed around the lock.
 
 ## What the demo data gives you
 
-- **4 published products**, 62 variants, two colourways each on the three new
-  ones
+- **12 published products**, 167 variants — crew necks, a V neck, a henley,
+  three polos, a ribbed sleeveless vest, a tank top and two striped pieces
+- **9 colours** across the range (BLACK, WHITE, BONE, IVORY, NAVY, CHARCOAL,
+  SAGE, SAND, RUST), so the Colour filter has something to filter
+- **Prices from £32.00 to £62.00**, which is also what lets a bag cross the
+  £150 free-delivery threshold on three items rather than four
 - **Deliberate stock variety** so the states are all visible at once: most
-  sizes 12 in stock, XXXL at 3 (**Low stock**), XS at 0 (**Sold out**)
-- **2 live collections** — CORE with all four products, THE OVERSIZED EDIT with
-  the two wide cuts, so the shop's Collection filter has something real to do
-- **9 photographs**: 7 product shots and 2 collection heroes
+  sizes 10–14 in stock, XXL and XXXL at 3 (**Low stock**), a few at 0
+  (**Sold out**)
+- **2 live collections** — CORE and THE OVERSIZED EDIT, so the shop's
+  Collection filter has something real to do
+- **22 photographs**: 20 model shots and 2 collection heroes
+
+### A note on the people in them
+
+The models do not exist. The photographs are generated, and so are the people
+wearing them — which is worth being deliberate about rather than letting it
+pass unremarked, because a customer looking at the shop has no way to tell.
+Nothing in them carries a brand mark; all twenty were opened and looked at
+before their descriptions were written, which is how the catalogue's one
+earlier photograph was caught showing another label's embroidery.
 
 ---
 
@@ -49,6 +64,10 @@ money moves.
 1. Open `/admin/demo` and press **Add the demo photographs**. It reports what
    it added, skipped and failed. It skips any product that already has
    photography, so it is safe to press twice.
+   If four products still show the original **flat-lay** shots (no model in
+   them), the second button on that page replaces exactly those with model
+   photography. It finds them by their exact description, so anything you
+   have uploaded or re-described is untouchable by it.
 2. Have two browser profiles, or one normal and one private window: you will be
    a customer in one and staff in the other. The admin and the storefront share
    a sign-in, so one window cannot be both without a lot of signing in and out.
@@ -60,6 +79,7 @@ money moves.
 | 1 | `/` | The homepage featured row fills with the four published products. The announcement bar's free-delivery figure is **derived** from `store_settings`, so it cannot disagree with the basket |
 | 2 | `/shop` | Filters down the left at 1440px and behind a sheet below it. Try the **Fit** and **Collection** filters — both read real columns. Note the **Low stock** and **Sold out** labels |
 | 3 | `/shop/oversized-crew-neck-tshirt` | Change colour between BLACK and BONE: **the gallery swaps**, because each photograph is assigned to a colourway. XS reads sold out. The specification section pulls delivery and returns from `store_settings` live |
+| 3b | `/shop/ribbed-sleeveless-vest-tshirt` and `/shop/tank-top-tshirt` | Two garments people often treat as one. The vest is ribbed, slim and high at the armhole; the tank is flat jersey, relaxed and cut low. Different products, different photographs |
 | 4 | Add to Bag | A panel opens — a bottom sheet on a phone, a right drawer at 1440. **The bag count in the header updates.** Press Continue shopping: it closes rather than navigating |
 | 5 | `/bag` | Change a quantity, see the total move. Enter an email |
 | 6 | Secure checkout | Stripe's hosted page. Card **4242 4242 4242 4242**, any future expiry, any CVC, any postcode |
@@ -140,7 +160,8 @@ Back to the customer window.
 
 # Teardown
 
-Run `99-teardown.sql`, then delete `public/demo/`,
+Run `99-teardown.sql` (it returns the eight extended products to draft and
+removes both batches of demo photographs), then delete `public/demo/`,
 `app/admin/(protected)/demo/` and `app/api/admin/demo/`, and remove the notice
 block from the dashboard.
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireStaffSession } from '@/lib/admin/require-staff';
 import { fetchImageToBucket, attachProductImage, imagePaths } from '@/lib/admin/image-import';
+import { SHOP_BUCKET } from '@/lib/images';
 
 export const runtime = 'nodejs';
 
@@ -20,7 +21,8 @@ export const runtime = 'nodejs';
  * not judge whether a URL is acceptable, because only the caller knows: the
  * stock import checks an allow-list of provider CDNs, and here the only
  * permitted source is a fixed file name appended to our own origin. Nothing
- * from the request body reaches the fetch.
+ * from the request body reaches the fetch — `action` is the only thing read
+ * off it and it is one of two literals.
  *
  * IT ONLY FILLS PRODUCTS THAT HAVE NO PHOTOGRAPHS. Running it twice does
  * nothing the second time, and more importantly it can never push a real
@@ -28,17 +30,36 @@ export const runtime = 'nodejs';
  * uploads actual product photography, this route stops touching that
  * product.
  *
+ * THE SECOND ACTION EXISTS BECAUSE THAT GUARD IS TOO BLUNT FOR ONE CASE.
+ * The first demo batch was FLAT-LAY photography, deliberately with no people
+ * in it. The owner has since asked for a model wearing the garments, which
+ * is a different call and theirs to make — but the four products that got
+ * flat-lays are now photographed, so `fill` will never touch them again and
+ * the shop would show four flat-lays beside eight model shots for good.
+ * `swap-to-models` removes exactly the seven bundled flat-lay rows and then
+ * fills. It identifies them by their EXACT alt text, which is the same
+ * discriminator `docs/demo-data/99-teardown.sql` uses and has the same
+ * narrow guarantee: a real photograph's description is not one of seven
+ * string literals written here, so a real photograph can never be caught by
+ * it. Edit those descriptions in A05 and the swap stops finding them, which
+ * is the safe direction to fail in.
+ *
  * EVERY ALT TEXT BELOW WAS WRITTEN FROM THE IMAGE, not from the prompt that
  * made it. `product_images.alt_text` is NOT NULL with a non-empty check
  * precisely so that §13 is enforced by the database rather than by a code
  * review, and this shop has already shipped lorem ipsum and a repeated
  * product name into that column. A description generated alongside the
- * picture would be the same mistake with better grammar.
+ * picture would be the same mistake with better grammar. All twenty were
+ * opened and looked at: the striped long sleeve in black has visibly
+ * narrower stripes than the navy, and the description says so rather than
+ * reusing one sentence for both.
  *
  * THESE ARE GENERATED IMAGES AND THE SHOP IS PRE-SUPPLIER. They exist so the
  * app can be seen working end to end with a populated catalogue, and they
  * are listed in `docs/real-data-needed.md` as the first thing real
- * photography replaces. `docs/demo-data/99-teardown.sql` removes the rows.
+ * photography replaces. The people in them do not exist, which is a thing
+ * the dashboard notice says out loud rather than leaving to be noticed.
+ * `docs/demo-data/99-teardown.sql` removes the rows.
  */
 
 type DemoImage = {
@@ -48,48 +69,144 @@ type DemoImage = {
   alt: string;
 };
 
+/**
+ * The flat-lay batch from 27 October, superseded by the model photography
+ * below. Matched on alt text, for the reason given above. Nothing adds
+ * these any more; they are listed only so `swap-to-models` can find them.
+ */
+const SUPERSEDED_FLAT_LAY_ALT = [
+  'A short sleeve polo shirt laid flat on a pale grey background, in even horizontal black and cream stripes, with a plain cream ribbed collar, matching cream cuffs and a two-button placket.',
+  'A black oversized cotton T-shirt laid flat on a pale grey background, with a ribbed crew neck, dropped shoulder seams, short wide sleeves and a boxy body.',
+  'An off-white oversized cotton T-shirt laid flat on a pale grey background, with a ribbed crew neck, dropped shoulder seams and a wide boxy body, the cotton showing a soft natural slub.',
+  'A black long sleeve cotton T-shirt laid flat on a pale grey background with both sleeves extended, showing a ribbed crew neck and ribbed cuffs at each wrist.',
+  'An off-white long sleeve cotton T-shirt laid flat on a pale grey background with both sleeves extended, showing a ribbed crew neck and ribbed cuffs at each wrist.',
+  'A black short sleeve cotton T-shirt laid flat on a pale grey background, with a ribbed crew neck and a single plain patch pocket stitched on the left chest.',
+  'An off-white short sleeve cotton T-shirt laid flat on a pale grey background, with a ribbed crew neck and a single plain patch pocket stitched on the left chest.',
+];
+
 const PRODUCT_IMAGES: DemoImage[] = [
+  // ------------------------------------------------- the original four
   {
-    file: 'polo-black.jpg',
+    file: 'model-polo-navy.jpg',
     slug: 'striped-short-sleeve-polo-tshirt',
-    colour: 'BLACK',
-    alt: 'A short sleeve polo shirt laid flat on a pale grey background, in even horizontal black and cream stripes, with a plain cream ribbed collar, matching cream cuffs and a two-button placket.',
+    colour: 'NAVY',
+    alt: 'A man stands facing the camera against a plain warm-grey studio wall, wearing a short sleeve polo shirt in broad even horizontal stripes of navy and cream, with a plain cream collar and a two-button placket, over grey trousers and white trainers.',
   },
   {
-    file: 'oversized-black.jpg',
+    file: 'model-oversized-black.jpg',
     slug: 'oversized-crew-neck-tshirt',
     colour: 'BLACK',
-    alt: 'A black oversized cotton T-shirt laid flat on a pale grey background, with a ribbed crew neck, dropped shoulder seams, short wide sleeves and a boxy body.',
+    alt: 'A man stands facing the camera against a plain warm-grey studio wall, wearing a plain black oversized T-shirt whose shoulder seams sit well down the upper arm and whose body hangs wide and straight, over grey trousers and white trainers.',
   },
   {
-    file: 'oversized-bone.jpg',
-    slug: 'oversized-crew-neck-tshirt',
-    colour: 'BONE',
-    alt: 'An off-white oversized cotton T-shirt laid flat on a pale grey background, with a ribbed crew neck, dropped shoulder seams and a wide boxy body, the cotton showing a soft natural slub.',
-  },
-  {
-    file: 'longsleeve-black.jpg',
-    slug: 'long-sleeve-crew-neck-tshirt',
-    colour: 'BLACK',
-    alt: 'A black long sleeve cotton T-shirt laid flat on a pale grey background with both sleeves extended, showing a ribbed crew neck and ribbed cuffs at each wrist.',
-  },
-  {
-    file: 'longsleeve-bone.jpg',
-    slug: 'long-sleeve-crew-neck-tshirt',
-    colour: 'BONE',
-    alt: 'An off-white long sleeve cotton T-shirt laid flat on a pale grey background with both sleeves extended, showing a ribbed crew neck and ribbed cuffs at each wrist.',
-  },
-  {
-    file: 'pocket-black.jpg',
-    slug: 'relaxed-fit-pocket-tshirt',
-    colour: 'BLACK',
-    alt: 'A black short sleeve cotton T-shirt laid flat on a pale grey background, with a ribbed crew neck and a single plain patch pocket stitched on the left chest.',
-  },
-  {
-    file: 'pocket-bone.jpg',
+    file: 'model-pocket-bone.jpg',
     slug: 'relaxed-fit-pocket-tshirt',
     colour: 'BONE',
-    alt: 'An off-white short sleeve cotton T-shirt laid flat on a pale grey background, with a ribbed crew neck and a single plain patch pocket stitched on the left chest.',
+    alt: 'A woman stands facing the camera against a plain warm-grey studio wall, wearing a loose off-white short sleeve T-shirt with a ribbed crew neck and a single square patch pocket on the left chest, over dark grey trousers and white trainers.',
+  },
+  {
+    file: 'model-longsleeve-black.jpg',
+    slug: 'long-sleeve-crew-neck-tshirt',
+    colour: 'BLACK',
+    alt: 'A woman stands facing the camera against a plain warm-grey studio wall, wearing a plain black long sleeve T-shirt with a ribbed crew neck and sleeves reaching the wrist, over cream trousers and white trainers.',
+  },
+
+  // ------------------------------------------------------ the new eight
+  {
+    file: 'model-classic-black.jpg',
+    slug: 'classic-crew-neck-tshirt',
+    colour: 'BLACK',
+    alt: 'A man stands facing the camera against a plain warm-grey studio wall, wearing a plain black short sleeve T-shirt with a ribbed crew neck and sleeves ending mid upper arm, cut straight through the body, over grey trousers and white trainers.',
+  },
+  {
+    file: 'model-classic-white.jpg',
+    slug: 'classic-crew-neck-tshirt',
+    colour: 'WHITE',
+    alt: 'A woman stands facing the camera against a plain warm-grey studio wall, wearing a plain white short sleeve T-shirt with a ribbed crew neck, cut straight through the body, over mid-grey trousers and white trainers.',
+  },
+  {
+    file: 'model-vneck-black.jpg',
+    slug: 'v-neck-tshirt',
+    colour: 'BLACK',
+    alt: 'A bearded man stands facing the camera against a plain warm-grey studio wall, wearing a plain black short sleeve T-shirt with a shallow V neckline that stops a little below the collarbone, over grey trousers and white trainers.',
+  },
+  {
+    file: 'model-vneck-navy.jpg',
+    slug: 'v-neck-tshirt',
+    colour: 'NAVY',
+    alt: 'A woman stands facing the camera against a plain warm-grey studio wall, wearing a plain dark navy short sleeve T-shirt with a shallow V neckline, over cream trousers and white trainers.',
+  },
+  {
+    file: 'model-henley-bone.jpg',
+    slug: 'short-sleeve-henley-tshirt',
+    colour: 'BONE',
+    alt: 'A man stands facing the camera against a plain warm-grey studio wall, wearing an off-white short sleeve T-shirt with no collar and a short buttoned opening of three small buttons at the centre of the chest, over dark grey trousers and white trainers.',
+  },
+  {
+    file: 'model-henley-sand.jpg',
+    slug: 'short-sleeve-henley-tshirt',
+    colour: 'SAND',
+    alt: 'A woman stands facing the camera against a plain warm-grey studio wall, wearing a warm beige short sleeve T-shirt with no collar and a short buttoned opening of three small buttons at the centre of the chest, over black trousers and white trainers.',
+  },
+  {
+    file: 'model-plainpolo-black.jpg',
+    slug: 'plain-short-sleeve-polo-tshirt',
+    colour: 'BLACK',
+    alt: 'A man stands facing the camera against a plain warm-grey studio wall, wearing a plain black short sleeve polo shirt with a fold-down collar and a two-button placket, in a knit with a faint waffle texture, over grey trousers and white trainers.',
+  },
+  {
+    file: 'model-plainpolo-sage.jpg',
+    slug: 'plain-short-sleeve-polo-tshirt',
+    colour: 'SAGE',
+    alt: 'A woman stands facing the camera against a plain warm-grey studio wall, wearing a plain muted grey-green short sleeve polo shirt with a fold-down collar and a two-button placket, over cream trousers and white trainers.',
+  },
+  {
+    file: 'model-lspolo-navy.jpg',
+    slug: 'long-sleeve-polo-tshirt',
+    colour: 'NAVY',
+    alt: 'A man stands facing the camera against a plain warm-grey studio wall, wearing a plain dark navy polo shirt with full-length sleeves gathered into ribbed cuffs, a fold-down collar and a two-button placket, over grey trousers and white trainers.',
+  },
+  {
+    file: 'model-lspolo-bone.jpg',
+    slug: 'long-sleeve-polo-tshirt',
+    colour: 'BONE',
+    alt: 'A woman stands facing the camera against a plain warm-grey studio wall, wearing a plain off-white polo shirt with full-length sleeves, a fold-down collar and a two-button placket, over dark grey trousers and white trainers.',
+  },
+  {
+    file: 'model-vest-black.jpg',
+    slug: 'ribbed-sleeveless-vest-tshirt',
+    colour: 'BLACK',
+    alt: 'A man stands facing the camera against a plain warm-grey studio wall, wearing a close-fitting black sleeveless ribbed vest with narrow shoulder straps, a high-cut armhole and a shallow rounded neckline, over grey trousers and white trainers.',
+  },
+  {
+    file: 'model-vest-white.jpg',
+    slug: 'ribbed-sleeveless-vest-tshirt',
+    colour: 'WHITE',
+    alt: 'A woman stands facing the camera against a plain warm-grey studio wall, wearing a close-fitting white sleeveless ribbed vest with narrow shoulder straps and a shallow rounded neckline, over black trousers and white trainers.',
+  },
+  {
+    file: 'model-tank-black.jpg',
+    slug: 'tank-top-tshirt',
+    colour: 'BLACK',
+    alt: 'A man stands facing the camera against a plain warm-grey studio wall, wearing a loose black sleeveless top in smooth flat cotton with wide shoulder straps and an armhole cut low towards the waist, over grey trousers and white trainers.',
+  },
+  {
+    file: 'model-tank-rust.jpg',
+    slug: 'tank-top-tshirt',
+    colour: 'RUST',
+    alt: 'A woman stands facing the camera against a plain warm-grey studio wall, wearing a loose burnt orange sleeveless top in smooth flat cotton with wide shoulder straps and a rounded neckline, over cream trousers and white trainers.',
+  },
+  {
+    file: 'model-stripedls-navy.jpg',
+    slug: 'striped-long-sleeve-tshirt',
+    colour: 'NAVY',
+    alt: 'A man stands facing the camera against a plain warm-grey studio wall, wearing a long sleeve T-shirt in broad horizontal navy and cream stripes that continue the full length of both sleeves, with a plain navy crew neck, over grey trousers and white trainers.',
+  },
+  {
+    file: 'model-stripedls-black.jpg',
+    slug: 'striped-long-sleeve-tshirt',
+    colour: 'BLACK',
+    alt: 'A woman stands facing the camera against a plain warm-grey studio wall, wearing a long sleeve T-shirt in fine horizontal black and cream stripes, narrower than the navy colourway, continuing the full length of both sleeves, with a plain black crew neck, over black trousers and white trainers.',
   },
 ];
 
@@ -101,6 +218,12 @@ const COLLECTION_HEROES = [
 export async function POST(req: NextRequest) {
   const session = await requireStaffSession();
   if ('error' in session) return session.error;
+
+  // The only thing read off the body, and it is one of two literals.
+  // Anything else is treated as the safe default rather than rejected,
+  // because the two buttons on /admin/demo are the only callers.
+  const body = await req.json().catch(() => null);
+  const swapToModels = (body as { action?: string } | null)?.action === 'swap-to-models';
 
   const origin = req.nextUrl.origin;
   const added: string[] = [];
@@ -121,6 +244,46 @@ export async function POST(req: NextRequest) {
   }
 
   const idBySlug = new Map((products ?? []).map((p) => [p.slug as string, p.id as string]));
+
+  // ------------------------------------------ remove the superseded flat-lays
+  // Only when asked. The ROW goes first and the file after, the same order
+  // A05's delete uses: an orphaned file costs storage, while a row pointing
+  // at a deleted file is a broken image on the shop.
+  if (swapToModels) {
+    const { data: stale, error: staleError } = await session.supabase
+      .from('product_images')
+      .select('id, storage_path')
+      .in('alt_text', SUPERSEDED_FLAT_LAY_ALT);
+
+    if (staleError) {
+      return NextResponse.json(
+        { error: `Could not read the existing photographs: ${staleError.message}` },
+        { status: 500 },
+      );
+    }
+
+    for (const row of stale ?? []) {
+      const { error: deleteError } = await session.supabase
+        .from('product_images')
+        .delete()
+        .eq('id', row.id);
+
+      if (deleteError) {
+        failed.push(`A flat-lay could not be removed: ${deleteError.message}`);
+        continue;
+      }
+
+      // Best effort. A file left behind is invisible to customers and
+      // costs a few kilobytes; saying nothing about a failed ROW delete
+      // would have been the real problem, and that is handled above.
+      await session.supabase.storage.from(SHOP_BUCKET).remove([row.storage_path as string]);
+      added.push('removed a flat-lay photograph');
+    }
+
+    if ((stale ?? []).length === 0) {
+      skipped.push('No bundled flat-lays are left to replace.');
+    }
+  }
 
   // Which products already have photography. A product with even one image
   // is left completely alone — see the note above.
