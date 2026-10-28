@@ -42,6 +42,7 @@ measured. `/admin/demo` counts them.
 | Neck | `products.neck` | Ribbed crew / polo collar | Product page specification |
 | Care | `products.care_instructions` | A generic wash instruction | Product page specification |
 | Design story | `products.design_story` | Written from the shape alone | Product page |
+| Design story heading | `products.design_story_heading` | A name for the design, written here | Product page, above the story |
 
 **Why these are red.** UK textile labelling law requires accurate fibre
 composition, and origin claims sit under consumer protection law. A customer

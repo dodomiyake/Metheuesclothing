@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createServerComponentClient } from '@/lib/supabase/server-component';
 import { formatPence } from '@/lib/money';
@@ -48,7 +49,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   const { data: product, error: productError } = await supabase
     .from('products')
     .select(
-      'id, name, description_short, design_story, fit, fabric_weight_gsm, composition, neck, made_in, care_instructions, status, published_at',
+      'id, name, description_short, design_story_heading, design_story, fit, fabric_weight_gsm, composition, neck, made_in, care_instructions, status, published_at',
     )
     .eq('slug', slug)
     .eq('status', 'published')
@@ -125,6 +126,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   }
 
   const collectionNames = collectionsByProduct.get(product.id) ?? [];
+  // The collections holding THIS T-shirt, for the design story's "Part of"
+  // line. No second query: the one above already covers product.id, and
+  // `collections` is RLS'd to `status = 'live' or is_staff()` (002_rls.sql:88)
+  // so a hidden collection never comes back to a customer and no link is
+  // offered to a page that would 404 — the database doing the filtering
+  // rather than a `.filter()` here that could drift from the policy.
+  const collections = collectionLinks
+    .filter((l) => l.product_id === product.id && l.collections)
+    .map((l) => l.collections!);
   const eyebrow = collectionNames.length ? collectionNames.join(' · ') : null;
 
   const activePrices = (variants ?? []).filter((v) => v.is_active).map((v) => v.price_pence);
@@ -292,10 +302,38 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               rather than repeating its own hero eight hundred pixels down.
             */}
             <div className="mc-pdp-story-copy">
-              <h2 style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1.54px', textTransform: 'uppercase', color: 'var(--mc-text-muted-inverse)', margin: '0 0 16px' }}>
+              <h2 style={{ fontSize: 11, fontWeight: 600, letterSpacing: '1.54px', textTransform: 'uppercase', color: 'var(--mc-text-muted-inverse)', margin: 0 }}>
                 The design story
               </h2>
-              <p style={{ whiteSpace: 'pre-line', fontSize: 17, lineHeight: 1.6, margin: 0 }}>{product.design_story}</p>
+              {/*
+                THE HEADLINE THE FRAME DRAWS AND THIS PAGE USED TO OMIT.
+                62:968's copy column is three things — eyebrow, a 48px
+                headline, body — and shipping two of them is most of why
+                this band read as empty. `design_story_heading` (026) is a
+                DESIGN name, deliberately not products.name, which is
+                already the page title forty pixels up.
+              */}
+              {product.design_story_heading && (
+                <p className="mc-pdp-story-heading">{product.design_story_heading}</p>
+              )}
+              <p style={{ whiteSpace: 'pre-line', fontSize: 17, lineHeight: 1.6, margin: '16px 0 0' }}>{product.design_story}</p>
+              {collections.length > 0 && (
+                <p style={{ fontSize: 15, lineHeight: 1.6, margin: '28px 0 0', color: 'var(--mc-text-muted-inverse)' }}>
+                  Part of{' '}
+                  {collections.map((c, i) => (
+                    <span key={c.slug}>
+                      {i > 0 && (i === collections.length - 1 ? ' and ' : ', ')}
+                      <Link
+                        href={`/collections/${c.slug}`}
+                        style={{ color: 'var(--mc-text-inverse)', textDecoration: 'underline' }}
+                      >
+                        {c.name}
+                      </Link>
+                    </span>
+                  ))}
+                  .
+                </p>
+              )}
             </div>
             {storyImage && (
               <div className="mc-pdp-story-figure">

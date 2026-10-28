@@ -19,6 +19,8 @@ export const ProductFields = {
   name: z.string().trim().min(1).max(200),
   status: z.enum(['draft', 'scheduled', 'published', 'archived']),
   description_short: z.string().trim().max(2000).nullable().optional(),
+  /** 04A's 48px headline (62:968). A line, not a paragraph -- see 026. */
+  design_story_heading: z.string().trim().max(200).nullable().optional(),
   design_story: z.string().trim().max(5000).nullable().optional(),
   fit: z.string().trim().max(500).nullable().optional(),
   fabric_weight_gsm: z.number().int().positive().nullable().optional(),

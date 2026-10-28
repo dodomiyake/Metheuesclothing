@@ -36,6 +36,7 @@ applied; both were true in September and neither has been since.
 | `023_erase_customer.sql` | `erase_customer()` — the UK GDPR erasure right |
 | `024_deliver_order.sql` | `deliver_order()` — the end of fulfilment |
 | `025_deliver_after_refund.sql` | A refund after dispatch must not block delivery |
+| `026_design_story_heading.sql` | `products.design_story_heading` — 04A's 48px headline (62:968), omitted until now for want of a column. Additive, nullable |
 
 ### 022 was applied and never committed, and 023 is the other way round
 
